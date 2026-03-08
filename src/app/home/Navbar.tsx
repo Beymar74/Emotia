@@ -5,6 +5,19 @@ import { useRouter } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { COLORS, SECTION_IDS, SECTION_LABELS } from './constants';
 
+const navbarCSS = `
+  /* Clases responsivas independientes para el Navbar */
+  .desktop-flex { display: none !important; }
+  .desktop-block { display: none !important; }
+  .mobile-flex { display: flex !important; }
+  
+  @media (min-width: 768px) {
+    .desktop-flex { display: flex !important; }
+    .desktop-block { display: block !important; }
+    .mobile-flex { display: none !important; }
+  }
+`;
+
 export default function Navbar({ scrolled }: { scrolled: boolean }) {
   const router = useRouter(); 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -32,6 +45,7 @@ export default function Navbar({ scrolled }: { scrolled: boolean }) {
 
   return (
     <>
+      <style dangerouslySetInnerHTML={{ __html: navbarCSS }} />
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         transition: 'all 0.4s', padding: scrolled ? '12px 0' : '20px 0',
@@ -45,7 +59,7 @@ export default function Navbar({ scrolled }: { scrolled: boolean }) {
           </div>
 
           {/* Links Desktop (Ocultos en móvil) */}
-          <div style={{ display: 'flex', gap: 32 }} className="hidden md:flex">
+          <div className="desktop-flex" style={{ gap: '32px' }}>
             {SECTION_LABELS.slice(1, 4).map((label, i) => (
               <button 
                 key={label} 
@@ -59,15 +73,14 @@ export default function Navbar({ scrolled }: { scrolled: boolean }) {
           </div>
 
           {/* Acciones y Botón Hamburguesa */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <button className="hidden md:block" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, color: COLORS.chocolate, fontFamily: 'inherit' }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button className="desktop-block" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, color: COLORS.chocolate, fontFamily: 'inherit' }}
               onClick={() => router.push('/login')}
             >
               Iniciar sesión
             </button>
             
-            {/* Ocultamos este botón en pantallas ultra pequeñas (celulares verticales) para dar espacio al logo y menú */}
-            <button className="btn-primary hidden sm:flex" style={{ padding: '10px 24px', borderRadius: '100px', fontSize: '0.9rem' }}
+            <button className="btn-primary desktop-flex" style={{ padding: '10px 24px', borderRadius: '100px', fontSize: '0.9rem', alignItems: 'center', justifyContent: 'center' }}
               onClick={() => router.push('/login')}
             >
               Probar IA
@@ -75,11 +88,11 @@ export default function Navbar({ scrolled }: { scrolled: boolean }) {
 
             {/* Botón Menú Móvil (Visible solo en pantallas pequeñas) */}
             <button 
-              className="md:hidden" 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.bordeaux, zIndex: 102, padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              className="mobile-flex" 
+              onClick={() => setIsMobileMenuOpen(true)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.bordeaux, zIndex: 102, padding: '4px', alignItems: 'center', justifyContent: 'center' }}
             >
-              {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+              <Menu size={32} />
             </button>
           </div>
         </div>
@@ -93,7 +106,7 @@ export default function Navbar({ scrolled }: { scrolled: boolean }) {
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(245, 230, 208, 0.98)', // Fondo Beige difuminado
           backdropFilter: 'blur(16px)',
-          zIndex: 101,
+          zIndex: 105, // Z-index más alto para estar sobre todo
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           opacity: isMobileMenuOpen ? 1 : 0,
           pointerEvents: isMobileMenuOpen ? 'auto' : 'none',
@@ -101,6 +114,19 @@ export default function Navbar({ scrolled }: { scrolled: boolean }) {
           padding: '24px'
         }}
       >
+        {/* Botón explícito de CERRAR (X) */}
+        <button 
+          onClick={() => setIsMobileMenuOpen(false)}
+          style={{ 
+            position: 'absolute', top: '24px', right: '24px', 
+            background: 'none', border: 'none', cursor: 'pointer', 
+            color: COLORS.bordeaux, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '8px'
+          }}
+        >
+          <X size={36} />
+        </button>
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%', maxWidth: '300px', textAlign: 'center' }}>
           
           {/* Links de Navegación Móvil */}
