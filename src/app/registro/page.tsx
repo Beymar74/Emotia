@@ -234,7 +234,6 @@ export default function RegisterPage() {
       const result = await stackApp.signUpWithCredential({
         email,
         password,
-        displayName: name,
       });
       if (result.status === 'ok') {
         setSuccess('¡Cuenta creada! Redirigiendo...');
