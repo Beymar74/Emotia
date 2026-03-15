@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, User, Gift, Sparkles, Heart } from 'lucide-react';
+import { useStackApp } from "@stackframe/stack";
 
 // Importamos los componentes compartidos desde la carpeta home
 import Navbar from '../home/Navbar';
@@ -61,15 +62,8 @@ const registerCSS = `
       justify-content: space-between;
       gap: 40px;
     }
-    .visual-column {
-      flex: 1.1;
-      padding-right: 20px;
-    }
-    .form-column {
-      flex: 1;
-      max-width: 440px;
-      width: 100%;
-    }
+    .visual-column { flex: 1.1; padding-right: 20px; }
+    .form-column { flex: 1; max-width: 440px; width: 100%; }
   }
 
   .visual-content { animation: fadeRight 0.7s ease-out forwards; }
@@ -147,6 +141,11 @@ const registerCSS = `
     transform: translateY(-2px);
     box-shadow: 0 12px 24px rgba(142, 27, 58, 0.25);
   }
+  .btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
 
   .btn-social {
     display: flex;
@@ -185,14 +184,40 @@ const registerCSS = `
   }
   .divider::before { margin-right: 12px; }
   .divider::after { margin-left: 12px; }
+
+  .error-msg {
+    background: rgba(171, 58, 80, 0.1);
+    border: 1px solid rgba(171, 58, 80, 0.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #AB3A50;
+    font-size: 0.82rem;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .success-msg {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #16a34a;
+    font-size: 0.82rem;
+    margin-bottom: 16px;
+    text-align: center;
+  }
 `;
 
 export default function RegisterPage() {
+  const stackApp = useStackApp();
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -200,10 +225,39 @@ export default function RegisterPage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Registrando a:", name);
-    router.push('/login');
+    setError('');
+    setSuccess('');
+    setLoading(true);
+    try {
+      const result = await stackApp.signUpWithCredential({
+        email,
+        password,
+        displayName: name,
+      });
+      if (result.status === 'ok') {
+        setSuccess('¡Cuenta creada! Redirigiendo...');
+        setTimeout(() => router.push('/dashboard'), 1500);
+      } else {
+        setError('No se pudo crear la cuenta. Intenta con otro correo.');
+      }
+    } catch {
+      setError('Ocurrió un error. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleRegister = async () => {
+    setError('');
+    try {
+      await stackApp.signInWithOAuth('google', {
+        returnTo: '/dashboard'
+      });
+    } catch {
+      setError('Error al continuar con Google.');
+    }
   };
 
   return (
@@ -211,19 +265,15 @@ export default function RegisterPage() {
       <style dangerouslySetInnerHTML={{ __html: registerCSS }} />
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", position: "relative" }}>
         
-        {/* Componente Navbar */}
         <Navbar scrolled={scrolled} />
 
-        {/* Contenedor Principal (Compactado para encajar bien sin scroll innecesario) */}
         <div style={{ flex: 1, display: "flex", alignItems: "center", position: "relative", padding: "100px 24px 40px", overflow: "hidden" }}>
           
-          {/* Orbes de fondo decorativos */}
           <div style={{ position: "absolute", width: "450px", height: "450px", borderRadius: "50%", top: "-5%", right: "-5%", background: `radial-gradient(circle at 30% 30%, ${COLORS.garnet}15, transparent 70%)`, filter: "blur(60px)", animation: "float 8s ease-in-out infinite alternate", pointerEvents: "none" }} />
           <div style={{ position: "absolute", width: "400px", height: "400px", borderRadius: "50%", bottom: "0%", left: "-10%", background: `radial-gradient(circle at 30% 30%, ${COLORS.gold}20, transparent 70%)`, filter: "blur(60px)", animation: "float 6s ease-in-out infinite alternate-reverse", pointerEvents: "none" }} />
 
           <div className="split-layout">
             
-            {/* Columna Izquierda: Visuales y Copy */}
             <div className="visual-column visual-content">
               <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: `${COLORS.white}60`, backdropFilter: 'blur(10px)', border: `1px solid ${COLORS.garnet}30`, borderRadius: "100px", padding: "6px 16px", marginBottom: "16px" }}>
                 <Sparkles size={14} color={COLORS.garnet} />
@@ -238,7 +288,6 @@ export default function RegisterPage() {
                 Únete a Emotia y deja que nuestra IA analice la personalidad y ocasión para recomendarte detalles con verdadero impacto emocional.
               </p>
 
-              {/* Beneficios */}
               <div className="features-list">
                 {[
                   { icon: <Gift size={16} />, title: "Asesoría IA 24/7", desc: "Encuentra el regalo ideal en minutos." },
@@ -257,7 +306,6 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Columna Derecha: Formulario */}
             <div className="form-column">
               <div className="glass-card">
                 <div style={{ textAlign: "center", marginBottom: "20px" }}>
@@ -269,7 +317,10 @@ export default function RegisterPage() {
                   </p>
                 </div>
 
-                <button className="btn-social">
+                {error && <div className="error-msg">{error}</div>}
+                {success && <div className="success-msg">{success}</div>}
+
+                <button className="btn-social" onClick={handleGoogleRegister} type="button">
                   <GoogleIcon />
                   Continuar con Google
                 </button>
@@ -289,7 +340,7 @@ export default function RegisterPage() {
 
                   <div className="input-group">
                     <Lock className="input-icon" size={18} />
-                    <input type="password" placeholder="Contraseña" className="input-field" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <input type="password" placeholder="Contraseña" className="input-field" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
                   </div>
 
                   <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginTop: "4px", marginBottom: "8px" }}>
@@ -299,8 +350,8 @@ export default function RegisterPage() {
                     </label>
                   </div>
 
-                  <button type="submit" className="btn-primary">
-                    Crear mi cuenta
+                  <button type="submit" className="btn-primary" disabled={loading}>
+                    {loading ? 'Creando cuenta...' : 'Crear mi cuenta'}
                   </button>
                 </form>
 
@@ -316,7 +367,6 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* Componente Footer */}
         <Footer />
         
       </div>

@@ -216,7 +216,7 @@ export default function LoginPage() {
         password,
       });
       if (result.status === 'ok') {
-        router.push('/');
+        router.push('/dashboard');
       } else {
         setError('Email o contraseña incorrectos. Intenta de nuevo.');
       }
@@ -230,7 +230,9 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setError('');
     try {
-      await stackApp.signInWithOAuth('google');
+      await stackApp.signInWithOAuth('google', {
+        returnTo: '/dashboard'
+      });
     } catch {
       setError('Error al iniciar sesión con Google.');
     }
