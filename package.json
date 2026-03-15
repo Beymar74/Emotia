@@ -12,6 +12,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@neondatabase/serverless": "^1.0.2",
+    "@stackframe/stack": "^2.8.77",
     "@upstash/redis": "^1.36.3",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",

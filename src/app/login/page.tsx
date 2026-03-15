@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, Gift, HeartHandshake } from 'lucide-react';
+import { useStackApp } from "@stackframe/stack";
 
 // Importamos los componentes compartidos desde la carpeta home
 import Navbar from '../home/Navbar';
@@ -134,6 +135,11 @@ const loginCSS = `
     transform: translateY(-2px);
     box-shadow: 0 12px 24px rgba(142, 27, 58, 0.25);
   }
+  .btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
 
   .btn-social {
     display: flex;
@@ -172,13 +178,27 @@ const loginCSS = `
   }
   .divider::before { margin-right: 12px; }
   .divider::after { margin-left: 12px; }
+
+  .error-msg {
+    background: rgba(171, 58, 80, 0.1);
+    border: 1px solid rgba(171, 58, 80, 0.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #AB3A50;
+    font-size: 0.82rem;
+    margin-bottom: 16px;
+    text-align: center;
+  }
 `;
 
 export default function LoginPage() {
+  const stackApp = useStackApp();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -186,10 +206,36 @@ export default function LoginPage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Iniciando sesión con:", email);
-    router.push('/admin'); 
+    setError('');
+    setLoading(true);
+    try {
+      const result = await stackApp.signInWithCredential({
+        email,
+        password,
+      });
+      if (result.status === 'ok') {
+        router.push('/dashboard');
+      } else {
+        setError('Email o contraseña incorrectos. Intenta de nuevo.');
+      }
+    } catch {
+      setError('Ocurrió un error. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError('');
+    try {
+      await stackApp.signInWithOAuth('google', {
+        returnTo: '/dashboard'
+      });
+    } catch {
+      setError('Error al iniciar sesión con Google.');
+    }
   };
 
   return (
@@ -235,7 +281,9 @@ export default function LoginPage() {
                   </p>
                 </div>
 
-                <button className="btn-social">
+                {error && <div className="error-msg">{error}</div>}
+
+                <button className="btn-social" onClick={handleGoogleLogin} type="button">
                   <GoogleIcon />
                   Ingresar con Google
                 </button>
@@ -246,28 +294,49 @@ export default function LoginPage() {
                   
                   <div className="input-group">
                     <Mail className="input-icon" size={18} />
-                    <input type="email" placeholder="Correo electrónico" className="input-field" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <input 
+                      type="email" 
+                      placeholder="Correo electrónico" 
+                      className="input-field" 
+                      value={email} 
+                      onChange={(e) => setEmail(e.target.value)} 
+                      required 
+                    />
                   </div>
 
                   <div className="input-group" style={{ marginBottom: "8px" }}>
                     <Lock className="input-icon" size={18} />
-                    <input type="password" placeholder="Contraseña" className="input-field" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <input 
+                      type="password" 
+                      placeholder="Contraseña" 
+                      className="input-field" 
+                      value={password} 
+                      onChange={(e) => setPassword(e.target.value)} 
+                      required 
+                    />
                   </div>
 
                   <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
-                    <button type="button" style={{ background: "none", border: "none", color: COLORS.gold, fontWeight: 700, fontSize: "0.8rem", cursor: "pointer" }}>
+                    <button 
+                      type="button" 
+                      onClick={() => router.push('/handler/forgot-password')}
+                      style={{ background: "none", border: "none", color: COLORS.gold, fontWeight: 700, fontSize: "0.8rem", cursor: "pointer" }}
+                    >
                       ¿Olvidaste tu contraseña?
                     </button>
                   </div>
 
-                  <button type="submit" className="btn-primary">
-                    Iniciar Sesión
+                  <button type="submit" className="btn-primary" disabled={loading}>
+                    {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
                   </button>
                 </form>
 
                 <div style={{ marginTop: "24px", textAlign: "center", fontSize: "0.9rem", color: COLORS.chocolate }}>
                   ¿Aún no tienes una cuenta?{' '}
-                  <button onClick={() => router.push('/registro')} style={{ background: "none", border: "none", color: COLORS.garnet, fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}>
+                  <button 
+                    onClick={() => router.push('/registro')} 
+                    style={{ background: "none", border: "none", color: COLORS.garnet, fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}
+                  >
                     Regístrate aquí
                   </button>
                 </div>
