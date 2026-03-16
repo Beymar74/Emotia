@@ -1,49 +1,74 @@
 "use client";
+// animations.tsx — Componentes de animación reutilizables
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from "react";
+import { COLORS } from "./constants";
 
-export const useInView = (threshold = 0.15) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } },
-      { threshold }
-    );
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return [ref, inView] as const;
-};
+interface FadeInProps {
+  children: React.ReactNode;
+  direction?: "up" | "down" | "left" | "right";
+  delay?: number;
+  style?: React.CSSProperties;
+}
 
-export const FadeIn = ({ children, delay = 0, direction = "up", className = "" }: { children: React.ReactNode, delay?: number, direction?: "up"|"down"|"left"|"right"|"none", className?: string }) => {
-  const [ref, inView] = useInView();
-  const transforms = {
-    up:    "translateY(40px)",
-    down:  "translateY(-40px)",
-    left:  "translateX(-40px)",
-    right: "translateX(40px)",
-    none:  "none",
+export function FadeIn({ children, direction = "up", delay = 0, style }: FadeInProps) {
+  const ref  = useRef<HTMLDivElement>(null);
+  const [vis, setVis] = useState(false);
+
+  const offsets: Record<string, string> = {
+    up: "translateY(28px)", down: "translateY(-28px)",
+    left: "translateX(-28px)", right: "translateX(28px)",
   };
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } },
+      { threshold: 0.12 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   return (
-    <div ref={ref} className={className} style={{
-      opacity: inView ? 1 : 0,
-      transform: inView ? "none" : transforms[direction],
-      transition: `opacity 0.8s ease ${delay}ms, transform 0.8s ease ${delay}ms`,
+    <div ref={ref} style={{
+      opacity: vis ? 1 : 0,
+      transform: vis ? "translate(0)" : offsets[direction],
+      transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
+      ...style,
     }}>
       {children}
     </div>
   );
-};
+}
 
-export const FloatingOrb = ({ size, top, left, color, delay }: { size: string, top: string, left: string, color: string, delay: number }) => (
-  <div style={{
-    position: "absolute", width: size, height: size, borderRadius: "50%",
-    top, left,
-    background: `radial-gradient(circle at 30% 30%, ${color}40, ${color}08)`,
-    filter: "blur(1px)",
-    animation: `float ${3 + delay}s ease-in-out infinite alternate`,
-    animationDelay: `${delay}s`,
-    pointerEvents: "none",
-  }} />
-);
+interface OrbProps {
+  size: string; top?: string; left?: string; right?: string; bottom?: string;
+  color: string; delay?: number; opacity?: number;
+}
+
+export function FloatingOrb({ size, top, left, right, bottom, color, delay = 0, opacity = 0.12 }: OrbProps) {
+  return (
+    <div className="orb" style={{
+      width: size, height: size, top, left, right, bottom,
+      background: color, opacity, animationDelay: `${delay}s`,
+    }} />
+  );
+}
+
+export function PulsingDot({ color = COLORS.garnet }: { color?: string }) {
+  return (
+    <span style={{ position: "relative", display: "inline-flex" }}>
+      <span style={{
+        width: "8px", height: "8px", borderRadius: "50%", background: color,
+        display: "inline-block", animation: "pulse-ring 1.6s ease infinite",
+        position: "absolute", inset: 0, opacity: 0.5,
+      }} />
+      <span style={{
+        width: "8px", height: "8px", borderRadius: "50%", background: color,
+        display: "inline-block", position: "relative",
+      }} />
+    </span>
+  );
+}

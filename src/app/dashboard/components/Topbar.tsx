@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { NAV_TABS, COLORS } from '../constants';
 import { IconMenu, IconSearch, IconBell, IconUser, IconLogout } from './Icons';
+import { useStackApp } from "@stackframe/stack";
 
 // Íconos personalizados idénticos a tu diseño de Figma/UI
 const DropdownUserIcon = () => (
@@ -22,7 +23,7 @@ const DropdownSettingsIcon = () => (
 // Agregamos "navigate" a los props del componente
 export default function Topbar({ activeTab, setSidebarOpen, navigate }: { activeTab: string, setSidebarOpen: (v: boolean) => void, navigate?: (t: string) => void }) {
   const router = useRouter();
-  
+  const stackApp = useStackApp();
   const [showNotifs, setShowNotifs] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [hasNotifs, setHasNotifs] = useState(true);
@@ -43,8 +44,8 @@ export default function Topbar({ activeTab, setSidebarOpen, navigate }: { active
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    router.push('/login');
+  const handleLogout = async () => {
+    await stackApp.signOut();
   };
 
   const handleClearNotifs = () => {

@@ -1,173 +1,80 @@
 "use client";
+// Navbar.tsx — Barra de navegación con frosted glass + menú móvil
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
-import { COLORS, SECTION_IDS, SECTION_LABELS } from './constants';
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { COLORS } from "./constants";
 
-const navbarCSS = `
-  /* Clases responsivas independientes para el Navbar */
-  .desktop-flex { display: none !important; }
-  .desktop-block { display: none !important; }
-  .mobile-flex { display: flex !important; }
-  
-  @media (min-width: 768px) {
-    .desktop-flex { display: flex !important; }
-    .desktop-block { display: block !important; }
-    .mobile-flex { display: none !important; }
-  }
-`;
+interface NavbarProps { scrolled: boolean; }
 
-export default function Navbar({ scrolled }: { scrolled: boolean }) {
-  const router = useRouter(); 
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+export default function Navbar({ scrolled }: NavbarProps) {
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  // Evitar scroll del fondo cuando el menú móvil está abierto
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+  const navLinks = [
+    { label: "Cómo funciona",  id: "como-funciona" },
+    { label: "Características", id: "caracteristicas" },
+    { label: "Testimonios",     id: "testimonios" },
+  ];
+
+  const scrollTo = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
     }
-    return () => { document.body.style.overflow = 'unset'; };
-  }, [isMobileMenuOpen]);
-
-  // Manejar navegación con scroll suave
-  const handleNavClick = (id: string) => {
-    setIsMobileMenuOpen(false);
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-    } else {
-      router.push('/#' + id); 
-    }
+    setMenuOpen(false);
   };
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: navbarCSS }} />
       <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        transition: 'all 0.4s', padding: scrolled ? '12px 0' : '20px 0',
-      }} className={scrolled ? 'nav-glass' : ''}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          
-          {/* Logo Personalizado */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', zIndex: 102 }} onClick={() => { setIsMobileMenuOpen(false); router.push('/'); }}>
-            <img src="/logo/logo.png" alt="Emotia Logo" style={{ width: "40px", height: "40px", objectFit: "contain" }} />
-            <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 800, color: COLORS.bordeaux }}>Emotia</span>
-          </div>
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
+        padding: scrolled ? "12px 24px" : "18px 24px",
+        background: scrolled ? "rgba(245,230,208,0.88)" : "transparent",
+        backdropFilter: scrolled ? "blur(20px) saturate(1.6)" : "none",
+        boxShadow: scrolled ? "0 1px 0 rgba(188,153,104,0.25), 0 4px 20px rgba(90,15,36,0.06)" : "none",
+        transition: "all 0.35s ease",
+      }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <button onClick={() => router.push("/")} style={{ display: "flex", alignItems: "center", gap: "10px", background: "none", border: "none", cursor: "pointer" }}>
+            <img src="/logo/logo.png" alt="Emotia Logo" style={{ width: "34px", height: "34px" }} />
+            <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "1.3rem", color: COLORS.bordeaux, letterSpacing: "-0.01em" }}>Emotia</span>
+          </button>
 
-          {/* Links Desktop (Ocultos en móvil) */}
-          <div className="desktop-flex" style={{ gap: '32px' }}>
-            {SECTION_LABELS.slice(1, 4).map((label, i) => (
-              <button 
-                key={label} 
-                onClick={() => handleNavClick(SECTION_IDS[i+1])} 
-                className="nav-link"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              >
-                {label}
-              </button>
+          <div className="hidden-mobile" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            {navLinks.map(({ label, id }) => (
+              <button key={id} onClick={() => scrollTo(id)}
+                style={{ background: "none", border: "none", padding: "8px 16px", borderRadius: "100px", fontFamily: "'DM Sans', sans-serif", fontSize: "0.9rem", fontWeight: 500, color: COLORS.chocolate, cursor: "pointer", transition: "background 0.2s, color 0.2s" }}
+                onMouseEnter={e => { (e.target as HTMLElement).style.background = `${COLORS.garnet}10`; (e.target as HTMLElement).style.color = COLORS.garnet; }}
+                onMouseLeave={e => { (e.target as HTMLElement).style.background = "transparent"; (e.target as HTMLElement).style.color = COLORS.chocolate; }}
+              >{label}</button>
             ))}
           </div>
 
-          {/* Acciones y Botón Hamburguesa */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <button className="desktop-block" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, color: COLORS.chocolate, fontFamily: 'inherit' }}
-              onClick={() => router.push('/login')}
-            >
-              Iniciar sesión
-            </button>
-            
-            <button className="btn-primary desktop-flex" style={{ padding: '10px 24px', borderRadius: '100px', fontSize: '0.9rem', alignItems: 'center', justifyContent: 'center' }}
-              onClick={() => router.push('/login')}
-            >
-              Probar IA
-            </button>
-
-            {/* Botón Menú Móvil (Visible solo en pantallas pequeñas) */}
-            <button 
-              className="mobile-flex" 
-              onClick={() => setIsMobileMenuOpen(true)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.bordeaux, zIndex: 102, padding: '4px', alignItems: 'center', justifyContent: 'center' }}
-            >
-              <Menu size={32} />
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <button className="hidden-mobile btn-secondary" onClick={() => router.push("/login")} style={{ padding: "9px 22px", borderRadius: "100px", fontSize: "0.88rem" }}>Iniciar sesión</button>
+            <button className="btn-primary" onClick={() => router.push("/login")} style={{ padding: "9px 22px", borderRadius: "100px", fontSize: "0.88rem" }}>Comenzar gratis</button>
+            <button className="show-mobile" onClick={() => setMenuOpen(!menuOpen)}
+              style={{ display: "none", background: "none", border: "none", cursor: "pointer", padding: "8px", color: COLORS.bordeaux }}
+              aria-label="Abrir menú">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                {menuOpen
+                  ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
+                  : <><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></>}
+              </svg>
             </button>
           </div>
         </div>
       </nav>
 
-      {/* ─────────────────────────────────────────────────────────────
-          Menú Móvil Overlay (Desplegable)
-      ───────────────────────────────────────────────────────────── */}
-      <div 
-        style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(245, 230, 208, 0.98)', // Fondo Beige difuminado
-          backdropFilter: 'blur(16px)',
-          zIndex: 105, // Z-index más alto para estar sobre todo
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          opacity: isMobileMenuOpen ? 1 : 0,
-          pointerEvents: isMobileMenuOpen ? 'auto' : 'none',
-          transition: 'opacity 0.4s ease',
-          padding: '24px'
-        }}
-      >
-        {/* Botón explícito de CERRAR (X) */}
-        <button 
-          onClick={() => setIsMobileMenuOpen(false)}
-          style={{ 
-            position: 'absolute', top: '24px', right: '24px', 
-            background: 'none', border: 'none', cursor: 'pointer', 
-            color: COLORS.bordeaux, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '8px'
-          }}
-        >
-          <X size={36} />
-        </button>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%', maxWidth: '300px', textAlign: 'center' }}>
-          
-          {/* Links de Navegación Móvil */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-             {SECTION_LABELS.slice(1, 4).map((label, i) => (
-                <button 
-                  key={label} 
-                  onClick={() => handleNavClick(SECTION_IDS[i+1])} 
-                  style={{ 
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    fontFamily: "'Playfair Display', serif", fontSize: '1.8rem', fontWeight: 700, color: COLORS.bordeaux,
-                    transition: 'color 0.3s ease'
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-          </div>
-
-          {/* Divisor */}
-          <div style={{ width: '100%', height: '1px', background: `linear-gradient(90deg, transparent, ${COLORS.gold}50, transparent)` }} />
-
-          {/* Botones de Acción Móvil */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <button 
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', fontWeight: 600, color: COLORS.chocolate, fontFamily: 'inherit', padding: '12px' }}
-              onClick={() => { setIsMobileMenuOpen(false); router.push('/login'); }}
-            >
-              Iniciar sesión
-            </button>
-            <button 
-              className="btn-primary" 
-              style={{ padding: '16px', borderRadius: '100px', fontSize: '1rem', width: '100%', display: 'flex', justifyContent: 'center' }}
-              onClick={() => { setIsMobileMenuOpen(false); router.push('/login'); }}
-            >
-              Probar Asesor IA
-            </button>
-          </div>
-
+      {menuOpen && (
+        <div style={{ position: "fixed", top: "64px", left: 0, right: 0, background: "rgba(245,230,208,0.97)", backdropFilter: "blur(20px)", zIndex: 999, padding: "16px 24px 24px", borderBottom: `1px solid ${COLORS.gold}30`, boxShadow: "0 8px 32px rgba(90,15,36,0.1)", animation: "fadeUp 0.2s ease" }}>
+          {navLinks.map(({ label, id }) => (
+            <button key={id} onClick={() => scrollTo(id)} style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", padding: "14px 8px", borderBottom: `1px solid ${COLORS.gold}20`, fontFamily: "'DM Sans', sans-serif", fontSize: "1rem", fontWeight: 500, color: COLORS.chocolate, cursor: "pointer" }}>{label}</button>
+          ))}
+          <button className="btn-primary" onClick={() => { router.push("/login"); setMenuOpen(false); }} style={{ width: "100%", marginTop: "16px", padding: "14px", borderRadius: "14px", fontSize: "1rem" }}>Comenzar gratis</button>
         </div>
-      </div>
+      )}
     </>
   );
 }

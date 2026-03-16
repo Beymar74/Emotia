@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { NAV_ITEMS } from '../data';
 import { IconX, IconLogout } from './Icons';
 
@@ -20,17 +21,24 @@ export function SidebarOverlay({ sidebarOpen, setSidebarOpen }: { sidebarOpen: b
       onClick={() => setSidebarOpen(false)}
       aria-hidden="true"
     />
-  )
+  );
 }
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen, activeTab, navigate, handleLogout }: { sidebarOpen: boolean, setSidebarOpen: (v: boolean) => void, activeTab: string, navigate: (t: string) => void, handleLogout: () => void }) {
+  const router = useRouter(); // ← fix
+
   return (
     <aside className={`sidebar${sidebarOpen ? " sidebar--open" : ""}`}>
-      {/* Logo */}
-      <div className="logo-area" onClick={() => navigate("inicio")} role="button" tabIndex={0}>
+
+      {/* Logo — ahora redirige a / en vez de cambiar tab */}
+      <div className="logo-area" onClick={() => router.push("/")} role="button" tabIndex={0}>
         <img src="/logo/logo.png" alt="Emotia Logo" style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
         <span className="logo-text">Emotia</span>
-        <button className="sidebar-close-btn" onClick={(e) => { e.stopPropagation(); setSidebarOpen(false); }} aria-label="Cerrar menú">
+        <button
+          className="sidebar-close-btn"
+          onClick={(e) => { e.stopPropagation(); setSidebarOpen(false); }}
+          aria-label="Cerrar menú"
+        >
           <IconX />
         </button>
       </div>
@@ -58,6 +66,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, activeTab, naviga
           <IconLogout />
         </button>
       </div>
+
     </aside>
   );
 }

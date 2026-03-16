@@ -25,12 +25,13 @@ export default function DashboardCliente() {
   const [activeTab, setActiveTab] = useState("inicio");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Verificar sesión
-  useEffect(() => {
-    if (user === null) {
-      router.push('/login');
-    }
-  }, [user, router]);
+  // ✅ Después — espera a que Stack confirme que no hay sesión
+    useEffect(() => {
+      if (user === undefined) return;
+      if (user === null) {
+        router.push('/login');
+      }
+    }, [user, router]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -59,7 +60,6 @@ export default function DashboardCliente() {
 
   const handleLogout = async () => {
     await user?.signOut();
-    router.push('/login');
   };
 
   // Mientras carga la sesión

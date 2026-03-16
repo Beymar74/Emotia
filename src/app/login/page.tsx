@@ -2,10 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useStackApp, useUser } from "@stackframe/stack"; // ← fix: agregar useUser
 import { Mail, Lock, Gift, HeartHandshake } from 'lucide-react';
-import { useStackApp } from "@stackframe/stack";
-
-// Importamos los componentes compartidos desde la carpeta home
 import Navbar from '../home/Navbar';
 import Footer from '../home/Footer';
 import { COLORS } from '../home/constants';
@@ -190,15 +188,22 @@ const loginCSS = `
     text-align: center;
   }
 `;
-
 export default function LoginPage() {
   const stackApp = useStackApp();
   const router = useRouter();
+  const user = useUser(); // ← fix
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // ← fix: cuando Stack confirma sesión (Google o email), redirige al dashboard
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -211,10 +216,7 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const result = await stackApp.signInWithCredential({
-        email,
-        password,
-      });
+      const result = await stackApp.signInWithCredential({ email, password });
       if (result.status === 'ok') {
         router.push('/dashboard');
       } else {
@@ -230,9 +232,7 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setError('');
     try {
-      await stackApp.signInWithOAuth('google', {
-        returnTo: '/dashboard'
-      });
+      await stackApp.signInWithOAuth('google'); // ← fix: sacar el returnTo, no funciona así
     } catch {
       setError('Error al iniciar sesión con Google.');
     }
