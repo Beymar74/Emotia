@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "emotia",
+  "compatibility_date": "2025-09-27",
+  "observability": {
+    "enabled": true
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "vars": {
+    "NEXT_PUBLIC_STACK_PROJECT_ID": "7169f837-c51b-4a12-b960-35a42688687b",
+    "NEXT_PUBLIC_STACK_URL": "https://api.stack-auth.com",
+    "NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY": "pck_...",
+    "STACK_SECRET_SERVER_KEY": "ssk_t2ppbcsnchvt94p8csczz8xfqqjzcy94tvsg5tf3t5ha8"
+  }
+}
