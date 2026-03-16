@@ -1,6 +1,5 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-<<<<<<< HEAD
   "name": "emotia",
   "compatibility_date": "2025-09-27",
   "observability": {
@@ -16,28 +15,3 @@
     "STACK_SECRET_SERVER_KEY": "ssk_t2ppbcsnchvt94p8csczz8xfqqjzcy94tvsg5tf3t5ha8"
   }
 }
-=======
-  "main": ".open-next/worker.js",
-  "name": "emotia",
-  "compatibility_date": "2025-09-27",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
-  "assets": {
-    "directory": ".open-next/assets",
-    "binding": "ASSETS"
-  },
-  "services": [
-    {
-      "binding": "WORKER_SELF_REFERENCE",
-      "service": "emotia"
-    }
-  ],
-  "images": {
-    "binding": "IMAGES"
-  },
-  "observability": {
-    "enabled": true
-  }
-}
->>>>>>> da78cf19ce7804d7456631659bd92f3b098b2a1f
