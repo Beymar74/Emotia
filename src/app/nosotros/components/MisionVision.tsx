@@ -110,7 +110,7 @@ export default function MisionVision() {
           </h2>
 
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "1.05rem", lineHeight: 1.8, color: COLORS.gris, maxWidth: "500px" }}>
-            Desarrollar una plataforma digital exclusiva para el municipio de La Paz, Bolivia, que, a través de un asistente basado en IA, simplifique y enriquezca el proceso de selección de regalos personalizados, reduciendo la frustración del usuario y potenciando momentos emocionalmente significativos en cada ocasión especial.
+          Proveer a la ciudad de La Paz una plataforma digital con inteligencia artificial que transforme la experiencia de elegir regalos personalizados. Buscamos optimizar el tiempo y reducir el estrés de nuestros usuarios, facilitando opciones que potencien el impacto emocional de cada obsequio.
           </p>
 
           {/* Marca de agua M */}
@@ -162,7 +162,7 @@ export default function MisionVision() {
           </h2>
 
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "1.05rem", lineHeight: 1.8, color: COLORS.marronChocolate, maxWidth: "500px" }}>
-            Consolidarnos como la plataforma de referencia en el municipio de La Paz, Bolivia, para la compra de regalos personalizados, reconocida por su innovación tecnológica, su capacidad de crear conexiones emocionales auténticas y por profesionalizar el mercado artesanal y creativo.
+          Convertirnos en el principal referente tecnológico y comercial de la ciudad de La Paz para obsequios personalizados, transformando la manera en que las personas conectan emocionalmente, mientras elevamos y profesionalizamos el ecosistema de creadores y artesanos locales.
           </p>
 
           {/* Marca de agua V */}
