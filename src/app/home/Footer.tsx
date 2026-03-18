@@ -1,7 +1,7 @@
 "use client";
 // Footer.tsx — Pie de página con columnas y redes sociales
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { COLORS } from "./constants";
 import { HeartIcon } from "./icons";
@@ -26,10 +26,132 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
+const LegalModal = ({ isOpen, onClose, title, content }: { isOpen: boolean; onClose: () => void; title: string; content: string }) => {
+  if (!isOpen) return null;
+
+  const renderContent = (text: string) => {
+    const paragraphs = text.trim().split('\n\n');
+    
+    return paragraphs.map((section, idx) => {
+      const lines = section.split('\n');
+      
+      return (
+        <div key={idx} style={{ marginBottom: "16px" }}>
+          {lines.map((line, lineIdx) => {
+            if (line.match(/^\d\./)) {
+              // Números de secciones
+              return (
+                <div key={lineIdx} style={{ fontSize: "1.05rem", fontWeight: 600, color: COLORS.garnet, marginTop: "12px", marginBottom: "8px", paddingLeft: "0" }}>
+                  {line}
+                </div>
+              );
+            } else if (line.startsWith('- ')) {
+              // Viñetas
+              return (
+                <div key={lineIdx} style={{ marginLeft: "16px", marginBottom: "6px", fontSize: "0.95rem", display: "flex", color: COLORS.chocolate }}>
+                  <span style={{ color: COLORS.garnet, fontWeight: 600, marginRight: "8px", minWidth: "8px" }}>•</span>
+                  <span>{line.substring(2)}</span>
+                </div>
+              );
+            } else if (line.trim() === '') {
+              return null;
+            } else {
+              return (
+                <p key={lineIdx} style={{ margin: "0 0 8px 0", fontSize: "0.95rem", lineHeight: 1.6, color: COLORS.chocolate }}>
+                  {line}
+                </p>
+              );
+            }
+          })}
+        </div>
+      );
+    });
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }} onClick={onClose}>
+      <div style={{ background: "#FFFFFF", borderRadius: "16px", maxWidth: "600px", maxHeight: "80vh", overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.3)", display: "flex", flexDirection: "column" }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ background: `linear-gradient(135deg, ${COLORS.garnet}, ${COLORS.crimson})`, padding: "24px 32px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", color: COLORS.beige, margin: 0 }}>{title}</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "24px", cursor: "pointer", color: COLORS.beige, padding: "0", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", transition: "opacity 0.2s" }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}>✕</button>
+        </div>
+        <div style={{ padding: "32px", overflow: "auto", flex: 1 }}>
+          {renderContent(content)}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const privacidadContent = `En Emotia, tu privacidad es importante para nosotros. Esta política explica cómo recopilamos, usamos y protegemos tu información personal.
+
+1. Información que recopilamos
+- Información de registro: nombre, correo electrónico, teléfono
+- Información de navegación: cookies, páginas visitadas
+- Información de transacciones: compras y regalos realizados
+
+2. Uso de la información
+Utilizamos tu información para:
+- Proporcionar y mejorar nuestros servicios
+- Procesar transacciones
+- Enviar comunicaciones relevantes
+- Personalizar tu experiencia
+
+3. Protección de datos
+Implementamos medidas de seguridad para proteger tu información contra acceso no autorizado.
+
+4. Terceros
+No compartimos tu información personal con terceros sin tu consentimiento, excepto cuando sea necesario para proporcionar nuestros servicios.
+
+5. Tus derechos
+Tienes derecho a acceder, corregir o eliminar tu información personal en cualquier momento.`;
+
+const terminosContent = `Al usar Emotia, aceptas estos términos y condiciones.
+
+1. Uso del servicio
+- Debes tener al menos 18 años para usar nuestro servicio
+- Eres responsable de mantener la confidencialidad de tu cuenta
+- Aceptas usar Emotia de manera legal y ética
+
+2. Propiedad intelectual
+Todo el contenido en Emotia, incluyendo textos, imágenes y software, está protegido por derechos de autor.
+
+3. Limitación de responsabilidad
+Emotia se proporciona "tal como está". No garantizamos que el servicio sea ininterrumpido o libre de errores.
+
+4. Cambios en los términos
+Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios serán efectivos cuando se publiquen.
+
+5. Resolución de disputas
+Las disputas serán resueltas según las leyes aplicables.
+
+6. Contacto
+Para preguntas sobre estos términos, contáctanos en info@emotia.com`;
+
+const cookiesContent = `Emotia utiliza cookies para mejorar tu experiencia de navegación.
+
+1. ¿Qué son las cookies?
+Las cookies son archivos pequeños almacenados en tu dispositivo que contienen información sobre tu navegación.
+
+2. Tipos de cookies que utilizamos
+- Cookies de sesión: se eliminan cuando cierras el navegador
+- Cookies persistentes: permanecen en tu dispositivo
+- Cookies de análisis: nos ayudan a entender cómo usas nuestro servicio
+
+3. Control de cookies
+Puedes controlar las cookies a través de la configuración de tu navegador. Sin embargo, desactivarlas puede afectar la funcionalidad del sitio.
+
+4. Cookies de terceros
+Algunos servicios de terceros pueden establecer sus propias cookies para análisis y publicidad.
+
+5. Actualizaciones
+Podemos actualizar esta política de cookies en cualquier momento.`;
+
 export default function Footer() {
   const year = new Date().getFullYear();
   const router = useRouter();
   const pathname = usePathname();
+  const [openModal, setOpenModal] = useState<"privacidad" | "terminos" | "cookies" | null>(null);
 
   React.useEffect(() => {
     // Cuando regresamos a la página de inicio, scrollear a la sección si existe un hash
@@ -87,6 +209,7 @@ export default function Footer() {
   };
 
   return (
+    <>
     <footer style={{ background: COLORS.bordeaux, color: "rgba(245,230,208,0.75)", padding: "56px 24px 32px" }}>
       <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "40px", marginBottom: "48px" }}>
@@ -110,7 +233,11 @@ export default function Footer() {
                 {(items as any[]).map(item => (
                   <li key={typeof item === "string" ? item : item.label}>
                     {typeof item === "string" ? (
-                      <a href="#" style={{ color: "rgba(245,230,208,0.6)", textDecoration: "none", fontSize: "0.88rem", transition: "color 0.2s" }} onMouseEnter={e => (e.currentTarget.style.color = COLORS.beige)} onMouseLeave={e => (e.currentTarget.style.color = "rgba(245,230,208,0.6)")}>{item}</a>
+                      <button onClick={() => {
+                        if (item === "Privacidad") setOpenModal("privacidad");
+                        else if (item === "Términos") setOpenModal("terminos");
+                        else if (item === "Cookies") setOpenModal("cookies");
+                      }} style={{ background: "none", border: "none", color: "rgba(245,230,208,0.6)", textDecoration: "none", fontSize: "0.88rem", transition: "color 0.2s", cursor: "pointer", padding: 0, fontFamily: "inherit" }} onMouseEnter={e => (e.currentTarget.style.color = COLORS.beige)} onMouseLeave={e => (e.currentTarget.style.color = "rgba(245,230,208,0.6)")}>{item}</button>
                     ) : (
                       <a href={item.href.startsWith('#') ? '#' : item.href} {...(item.href.startsWith('http') ? { target: "_blank", rel: "noopener noreferrer" } : {})} onClick={item.href.startsWith('#') ? (e) => handleScroll(e, item.href) : undefined} style={{ color: "rgba(245,230,208,0.6)", textDecoration: "none", fontSize: "0.88rem", display: "flex", alignItems: "center", gap: "8px", transition: "color 0.2s" }} onMouseEnter={e => (e.currentTarget.style.color = COLORS.beige)} onMouseLeave={e => (e.currentTarget.style.color = "rgba(245,230,208,0.6)")}>
                         <span style={{ color: COLORS.gold, display: "flex", alignItems: "center" }}>{item.icon}</span>
@@ -132,5 +259,10 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+
+    <LegalModal isOpen={openModal === "privacidad"} onClose={() => setOpenModal(null)} title="Política de Privacidad" content={privacidadContent} />
+    <LegalModal isOpen={openModal === "terminos"} onClose={() => setOpenModal(null)} title="Términos y Condiciones" content={terminosContent} />
+    <LegalModal isOpen={openModal === "cookies"} onClose={() => setOpenModal(null)} title="Política de Cookies" content={cookiesContent} />
+  </>
   );
 }
