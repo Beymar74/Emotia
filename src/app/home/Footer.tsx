@@ -30,27 +30,23 @@ const LegalModal = ({ isOpen, onClose, title, content }: { isOpen: boolean; onCl
   if (!isOpen) return null;
 
   const renderContent = (text: string) => {
-    const paragraphs = text.trim().split('\n\n');
-    
-    return paragraphs.map((section, idx) => {
+    return text.split('\n\n').map((section, idx) => {
       const lines = section.split('\n');
-      
       return (
         <div key={idx} style={{ marginBottom: "16px" }}>
           {lines.map((line, lineIdx) => {
             if (line.match(/^\d\./)) {
               // Números de secciones
               return (
-                <div key={lineIdx} style={{ fontSize: "1.05rem", fontWeight: 600, color: COLORS.garnet, marginTop: "12px", marginBottom: "8px", paddingLeft: "0" }}>
+                <div key={lineIdx} style={{ fontSize: "1.1rem", fontWeight: 600, color: COLORS.garnet, marginTop: "12px", marginBottom: "8px" }}>
                   {line}
                 </div>
               );
             } else if (line.startsWith('- ')) {
               // Viñetas
               return (
-                <div key={lineIdx} style={{ marginLeft: "16px", marginBottom: "6px", fontSize: "0.95rem", display: "flex", color: COLORS.chocolate }}>
-                  <span style={{ color: COLORS.garnet, fontWeight: 600, marginRight: "8px", minWidth: "8px" }}>•</span>
-                  <span>{line.substring(2)}</span>
+                <div key={lineIdx} style={{ marginLeft: "16px", marginBottom: "6px", fontSize: "0.95rem" }}>
+                  <span style={{ color: COLORS.garnet, fontWeight: 600 }}>•</span> {line.substring(2)}
                 </div>
               );
             } else if (line.trim() === '') {
@@ -69,8 +65,8 @@ const LegalModal = ({ isOpen, onClose, title, content }: { isOpen: boolean; onCl
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }} onClick={onClose}>
-      <div style={{ background: "#FFFFFF", borderRadius: "16px", maxWidth: "600px", maxHeight: "80vh", overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.3)", display: "flex", flexDirection: "column" }} onClick={(e) => e.stopPropagation()}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }} onClick={onClose}>
+      <div style={{ background: COLORS.beige, borderRadius: "16px", maxWidth: "600px", maxHeight: "80vh", overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.3)", display: "flex", flexDirection: "column" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ background: `linear-gradient(135deg, ${COLORS.garnet}, ${COLORS.crimson})`, padding: "24px 32px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", color: COLORS.beige, margin: 0 }}>{title}</h2>
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "24px", cursor: "pointer", color: COLORS.beige, padding: "0", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", transition: "opacity 0.2s" }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}>✕</button>
@@ -83,7 +79,9 @@ const LegalModal = ({ isOpen, onClose, title, content }: { isOpen: boolean; onCl
   );
 };
 
-const privacidadContent = `En Emotia, tu privacidad es importante para nosotros. Esta política explica cómo recopilamos, usamos y protegemos tu información personal.
+const privacidadContent = `Política de Privacidad
+
+En Emotia, tu privacidad es importante para nosotros. Esta política explica cómo recopilamos, usamos y protegemos tu información personal.
 
 1. Información que recopilamos
 - Información de registro: nombre, correo electrónico, teléfono
@@ -106,7 +104,9 @@ No compartimos tu información personal con terceros sin tu consentimiento, exce
 5. Tus derechos
 Tienes derecho a acceder, corregir o eliminar tu información personal en cualquier momento.`;
 
-const terminosContent = `Al usar Emotia, aceptas estos términos y condiciones.
+const terminosContent = `Términos y Condiciones
+
+Al usar Emotia, aceptas estos términos y condiciones.
 
 1. Uso del servicio
 - Debes tener al menos 18 años para usar nuestro servicio
@@ -128,7 +128,9 @@ Las disputas serán resueltas según las leyes aplicables.
 6. Contacto
 Para preguntas sobre estos términos, contáctanos en info@emotia.com`;
 
-const cookiesContent = `Emotia utiliza cookies para mejorar tu experiencia de navegación.
+const cookiesContent = `Política de Cookies
+
+Emotia utiliza cookies para mejorar tu experiencia de navegación.
 
 1. ¿Qué son las cookies?
 Las cookies son archivos pequeños almacenados en tu dispositivo que contienen información sobre tu navegación.
@@ -220,7 +222,7 @@ export default function Footer() {
             </div>
             <p style={{ fontSize: "0.85rem", lineHeight: 1.65, maxWidth: "220px", color: "rgba(245,230,208,0.6)" }}>IA que convierte cada regalo en un momento que se recuerda para siempre. Hecho en La Paz, Bolivia.</p>
             <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
-              {["IG", "FB", "TW"].map(s => (
+              {[].map(s => (
                 <a key={s} href="#" aria-label={s} style={{ width: "34px", height: "34px", borderRadius: "10px", border: "1px solid rgba(188,153,104,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: COLORS.gold, fontSize: "0.7rem", fontWeight: 700, textDecoration: "none", transition: "background 0.2s" }} onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = `${COLORS.garnet}40`)} onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = "transparent")}>{s}</a>
               ))}
             </div>
