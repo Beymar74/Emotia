@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { 
   Star, Bell, User, LayoutGrid, Package, Crown, 
@@ -20,6 +20,7 @@ const navLinks = [
 
 export default function Topbar({ userName = "Beymar M.", points = 450, onOpenProfile }: { userName?: string, points?: number, onOpenProfile?: () => void }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -27,6 +28,10 @@ export default function Topbar({ userName = "Beymar M.", points = 450, onOpenPro
   const closeAll = () => {
     setShowNotifications(false);
     setShowProfileMenu(false);
+  };
+
+  const handleLogout = () => {
+    router.push('/login');
   };
 
   return (
@@ -123,7 +128,7 @@ export default function Topbar({ userName = "Beymar M.", points = 450, onOpenPro
                     <Settings className="w-4 h-4" /> Editar Perfil
                   </button>
                   <div className="h-px bg-[#F5E6D0] my-1"></div>
-                  <button onClick={() => alert("Simulando cierre de sesión...")}
+                  <button onClick={handleLogout}
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                     <LogOut className="w-4 h-4" /> Cerrar Sesión
                   </button>
@@ -196,7 +201,7 @@ export default function Topbar({ userName = "Beymar M.", points = 450, onOpenPro
                 <span className="font-semibold text-sm">Editar Perfil</span>
               </button>
               <button
-                onClick={() => alert("Simulando cierre de sesión...")}
+                onClick={handleLogout}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors">
                 <LogOut className="w-5 h-5" />
                 <span className="font-semibold text-sm">Cerrar Sesión</span>
