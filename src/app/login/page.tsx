@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStackApp } from "@stackframe/stack";  // ← agregá esto
-import { Mail, Lock, Gift, HeartHandshake } from 'lucide-react';
+import { Mail, Lock, Gift, HeartHandshake, Eye, EyeOff } from 'lucide-react';
 import Navbar from '../home/Navbar';
 import Footer from '../home/Footer';
 import { COLORS } from '../home/constants';
@@ -197,6 +197,7 @@ export default function LoginPage() {
   const [scrolled, setScrolled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -303,13 +304,33 @@ export default function LoginPage() {
                   <div className="input-group" style={{ marginBottom: "8px" }}>
                     <Lock className="input-icon" size={18} />
                     <input 
-                      type="password" 
+                      type={showPassword ? "text" : "password"}
                       placeholder="Contraseña" 
                       className="input-field" 
                       value={password} 
                       onChange={(e) => setPassword(e.target.value)} 
                       required 
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: "absolute",
+                        right: "14px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "#8A7A75",
+                        opacity: 0.7,
+                        padding: 0,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </div>
 
                   <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
