@@ -6,9 +6,6 @@ import {
   Trophy, BarChart3, ShieldCheck, ClipboardList, Settings, LogOut, ChevronLeft, ChevronRight, Bell, X,
   AlertTriangle, Info, CheckCircle
 } from 'lucide-react';
-import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
-} from 'recharts';
 
 // --- IMPORTACIÓN DE TUS VISTAS ---
 import BienvenidaView from "./views/BienvenidaView";
@@ -26,7 +23,7 @@ import AuditoriaView from "./views/AuditoriaView";
 import ConfiguracionView from "./views/ConfiguracionView";
 
 // --- IMPORTACIÓN DEL COMPONENTE DE NOTIFICACIONES ---
-import Notificaciones from "./views/Notificaciones";
+import Notificaciones from "./views/Notificaciones"; // (Asegúrate de que la ruta aquí sea la correcta a tu carpeta components)
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -37,6 +34,7 @@ const CSS = `
   }
 `;
 
+// ARREGLADO: Se eliminaron los duplicados al final de esta lista
 const menuItems = [
   { icon: <LayoutDashboard size={18} />, label:"Dashboard", id:"dashboard" },
   { icon: <Users size={18} />, label:"Usuarios", id:"usuarios" },
@@ -49,11 +47,7 @@ const menuItems = [
   { icon: <BarChart3 size={18} />, label:"Reportes", id:"reportes" },
   { icon: <ShieldCheck size={18} />, label:"Roles y Permisos", id:"roles" },
   { icon: <ClipboardList size={18} />, label:"Auditoría", id:"auditoria" },
-  { icon: <Settings size={18} />, label:"Configuración", id:"configuracion" },
-  { label:"Reportes", id:"reportes" },
-  { label:"Roles y Permisos", id:"roles" },
-  { label:"Auditoría", id:"auditoria" },
-  { label:"Configuración", id:"configuracion" },
+  { icon: <Settings size={18} />, label:"Configuración", id:"configuracion" }
 ];
 
 export default function AdminPage() {
@@ -72,14 +66,12 @@ export default function AdminPage() {
       case "pedidos": return <PedidosView />;
       case "asistente-ia": return <AsistenteIAView />;
       case "gamificacion": return <GamificacionView />;
-      case "reportes":
-        return <div style={{ padding: "1.5rem 2rem" }}><ReportesView /></div>;
-      case "roles":
-        return <div style={{ padding: "1.5rem 2rem" }}><RolesView /></div>;
-      case "auditoria":
-        return <div style={{ padding: "1.5rem 2rem" }}><AuditoriaView /></div>;
-      case "configuracion":
-        return <div style={{ padding: "1.5rem 2rem" }}><ConfiguracionView /></div>;
+      
+      // ARREGLADO: Se quitó el doble padding
+      case "reportes": return <ReportesView />;
+      case "roles": return <RolesView />;
+      case "auditoria": return <AuditoriaView />;
+      case "configuracion": return <ConfiguracionView />;
 
       default:
         return (
@@ -103,15 +95,15 @@ export default function AdminPage() {
 
         {/* SIDEBAR LATERAL (Animación Arreglada) */}
         <div 
-          className="transicion-suave" // <-- Clase de animación agregada
+          className="transicion-suave"
           style={{ 
             position:"fixed", top:0, left:0, bottom:0, 
-            width: drawerOpen ? "220px" : "0", // <-- Ancho dinámico para animación
-            opacity: drawerOpen ? 1 : 0, // <-- Opacidad dinámica
+            width: drawerOpen ? "220px" : "0", 
+            opacity: drawerOpen ? 1 : 0, 
             background:"#701030", 
-            display: "flex", // <-- Eliminado display dinámico que rompe animaciones
+            display: "flex", 
             flexDirection:"column", zIndex:100,
-            overflow: "hidden", // <-- Importante para que el contenido no se desborde al cerrar
+            overflow: "hidden", 
           }}
         >
           
@@ -121,7 +113,7 @@ export default function AdminPage() {
             padding: "10px 55px 16px",
             borderBottom: "1px solid rgba(112,16,48,0.2)", 
             backgroundColor: "#E5BDC2", 
-            flexShrink: 0 // Evita que el logo se comprima
+            flexShrink: 0 
           }}>
             <img 
               src="/logo/logoextendido.png" 
@@ -138,7 +130,7 @@ export default function AdminPage() {
                 key={item.id} 
                 onClick={()=>setSeccionActiva(item.id)}
                 style={{ 
-                  width:"220px", // Ancho fijo interno para evitar que el texto se comprima
+                  width:"220px", 
                   display:"flex", alignItems:"center", gap:".8rem", 
                   padding:".75rem 1.5rem", 
                   background: seccionActiva===item.id?"rgba(255,255,255,0.1)":"transparent", 
@@ -147,7 +139,7 @@ export default function AdminPage() {
                   fontSize:".95rem", 
                   color: seccionActiva===item.id?"#ffffff":"rgba(255,255,255,0.7)", 
                   textAlign:"left", transition:"all .2s", fontFamily:"'Inter',sans-serif",
-                  whiteSpace: "nowrap" // Evita saltos de línea
+                  whiteSpace: "nowrap" 
                 }}
               >
                 {item.icon}
@@ -174,9 +166,9 @@ export default function AdminPage() {
 
         {/* CONTENIDO PRINCIPAL (Animación Arreglada) */}
         <div 
-          className="transicion-suave" // <-- Clase de animación agregada
+          className="transicion-suave"
           style={{ 
-            marginLeft: drawerOpen ? "220px" : "0", // <-- Margen dinámico animado
+            marginLeft: drawerOpen ? "220px" : "0", 
           }}
         >
           
@@ -188,14 +180,13 @@ export default function AdminPage() {
           }}>
             <div style={{ display:"flex", alignItems:"center", gap:"1rem", color:"white", fontSize:"1.2rem", fontWeight:500 }}>
               
-              {/* --- BOTÓN DE FLECHA (Lógica e Icono Arreglados) --- */}
+              {/* --- BOTÓN DE FLECHA --- */}
               <button 
-                onClick={() => setDrawerOpen(!drawerOpen)} // Alterna estado abierto/cerrado
+                onClick={() => setDrawerOpen(!drawerOpen)} 
                 style={{ background:"none", border:"none", color:"white", cursor:"pointer", display:"flex", padding: "4px", borderRadius: "8px", transition: "background 0.2s" }}
                 onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}
               >
-                {/* Muestra ChevronLeft (<) si está abierto, ChevronRight (>) si está cerrado */}
                 {drawerOpen ? <ChevronLeft size={24} /> : <ChevronRight size={24} />}
               </button>
 
