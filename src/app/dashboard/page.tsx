@@ -15,12 +15,12 @@ const DEFAULT_TRACKING_ORDER = {
 };
 
 export default function DashboardPage() {
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
 
   return (
     <main className="max-w-5xl mx-auto px-6 pb-24">
-      <AIAssistantHero userName="Beymar M." />
+      <AIAssistantHero />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
         <SpecialDateCard />
         <OrderTrackingWidget onOpenTracking={() => setIsTrackingOpen(true)} />
@@ -28,10 +28,7 @@ export default function DashboardPage() {
       <InspirationFeed onOpenProduct={setSelectedProduct} />
       {selectedProduct && <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />}
       {isTrackingOpen && (
-        <TrackingModal
-          order={DEFAULT_TRACKING_ORDER}
-          onClose={() => setIsTrackingOpen(false)}
-        />
+        <TrackingModal order={DEFAULT_TRACKING_ORDER} onClose={() => setIsTrackingOpen(false)} />
       )}
     </main>
   );
