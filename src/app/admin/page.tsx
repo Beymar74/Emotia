@@ -6,6 +6,9 @@ import {
   Trophy, BarChart3, ShieldCheck, ClipboardList, Settings, LogOut, ChevronLeft, ChevronRight, Bell, X,
   AlertTriangle, Info, CheckCircle
 } from 'lucide-react';
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from 'recharts';
 
 // --- IMPORTACIÓN DE TUS VISTAS ---
 import BienvenidaView from "./views/BienvenidaView";
@@ -17,6 +20,10 @@ import ProductosView from "./views/ProductosView";
 import PedidosView from "./views/PedidosView";
 import AsistenteIAView from "./views/AsistenteIAView";
 import GamificacionView from "./views/GamificacionView";
+import ReportesView from "./views/ReportesView";
+import RolesView from "./views/RolesView";
+import AuditoriaView from "./views/AuditoriaView";
+import ConfiguracionView from "./views/ConfiguracionView";
 
 // --- IMPORTACIÓN DEL COMPONENTE DE NOTIFICACIONES ---
 import Notificaciones from "./views/Notificaciones";
@@ -43,6 +50,10 @@ const menuItems = [
   { icon: <ShieldCheck size={18} />, label:"Roles y Permisos", id:"roles" },
   { icon: <ClipboardList size={18} />, label:"Auditoría", id:"auditoria" },
   { icon: <Settings size={18} />, label:"Configuración", id:"configuracion" },
+  { label:"Reportes", id:"reportes" },
+  { label:"Roles y Permisos", id:"roles" },
+  { label:"Auditoría", id:"auditoria" },
+  { label:"Configuración", id:"configuracion" },
 ];
 
 export default function AdminPage() {
@@ -61,6 +72,15 @@ export default function AdminPage() {
       case "pedidos": return <PedidosView />;
       case "asistente-ia": return <AsistenteIAView />;
       case "gamificacion": return <GamificacionView />;
+      case "reportes":
+        return <div style={{ padding: "1.5rem 2rem" }}><ReportesView /></div>;
+      case "roles":
+        return <div style={{ padding: "1.5rem 2rem" }}><RolesView /></div>;
+      case "auditoria":
+        return <div style={{ padding: "1.5rem 2rem" }}><AuditoriaView /></div>;
+      case "configuracion":
+        return <div style={{ padding: "1.5rem 2rem" }}><ConfiguracionView /></div>;
+
       default:
         return (
           <div style={{ padding: "2rem", textAlign: "center", color: "#6b7280" }}>
