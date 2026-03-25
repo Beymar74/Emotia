@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useStackApp, useUser } from "@stackframe/stack"; // ← fix: agregar useUser
+import { useStackApp } from "@stackframe/stack";  // ← agregá esto
 import { Mail, Lock, Gift, HeartHandshake } from 'lucide-react';
 import Navbar from '../home/Navbar';
 import Footer from '../home/Footer';
@@ -188,22 +188,15 @@ const loginCSS = `
     text-align: center;
   }
 `;
+
 export default function LoginPage() {
   const stackApp = useStackApp();
   const router = useRouter();
-  const user = useUser(); // ← fix
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // ← fix: cuando Stack confirma sesión (Google o email), redirige al dashboard
-  useEffect(() => {
-    if (user) {
-      router.push('/dashboard');
-    }
-  }, [user, router]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -218,6 +211,7 @@ export default function LoginPage() {
     try {
       const result = await stackApp.signInWithCredential({ email, password });
       if (result.status === 'ok') {
+        // El middleware en /dashboard se encarga de redirigir según el rol
         router.push('/dashboard');
       } else {
         setError('Email o contraseña incorrectos. Intenta de nuevo.');
@@ -232,7 +226,9 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setError('');
     try {
-      await stackApp.signInWithOAuth('google'); // ← fix: sacar el returnTo, no funciona así
+      await stackApp.signInWithOAuth('google');
+      // Stack Auth redirige a /dashboard automáticamente,
+      // luego el middleware detecta el rol y redirige al lugar correcto
     } catch {
       setError('Error al iniciar sesión con Google.');
     }

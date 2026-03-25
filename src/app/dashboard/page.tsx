@@ -4,12 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from 'next/navigation';
 import { useUser } from "@stackframe/stack";
 
-// Importaciones desde tus carpetas modulares
 import { dashboardCSS } from "./styles";
 import Sidebar, { SidebarOverlay } from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 
-// Importaciones de las Vistas (Pestañas)
 import DashboardContent from "./components/DashboardContent";
 import AsesorIA from "./components/AsesorIA";
 import Catalogo from "./components/Catalogo";
@@ -25,13 +23,26 @@ export default function DashboardCliente() {
   const [activeTab, setActiveTab] = useState("inicio");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // ✅ Después — espera a que Stack confirme que no hay sesión
-    useEffect(() => {
-      if (user === undefined) return;
-      if (user === null) {
-        router.push('/login');
-      }
-    }, [user, router]);
+  useEffect(() => {
+    if (user === undefined) return; // todavía cargando
+    if (user === null) {
+      router.push('/login');
+      return;
+    }
+
+    // ✅ Redirección por rol
+    const role = (user.clientMetadata as { role?: string })?.role;
+    if (role === 'admin') {
+      router.push('/admin');
+      return;
+    }
+    if (role === 'proveedor') {
+      router.push('/proveedor');
+      return;
+    }
+    // sin rol o rol 'cliente' → se queda aquí
+
+  }, [user, router]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -62,7 +73,6 @@ export default function DashboardCliente() {
     await user?.signOut();
   };
 
-  // Mientras carga la sesión
   if (user === undefined) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", background: "#F5E6D0" }}>
@@ -71,8 +81,11 @@ export default function DashboardCliente() {
     );
   }
 
-  // Si no hay sesión no renderiza nada (ya redirige)
   if (user === null) return null;
+
+  // Evita renderizar el dashboard si es admin o proveedor (mientras redirige)
+  const role = (user.clientMetadata as { role?: string })?.role;
+  if (role === 'admin' || role === 'proveedor') return null;
 
   return (
     <>
