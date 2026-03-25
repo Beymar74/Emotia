@@ -1,8 +1,9 @@
 "use client";
 import Link from 'next/link';
 import { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useUser } from '@stackframe/stack';
 import { 
   Star, Bell, User, LayoutGrid, Package, Crown, 
   Truck, CalendarDays, Settings, LogOut, CreditCard, 
@@ -18,43 +19,42 @@ const navLinks = [
   { href: '/dashboard/subscription', name: 'Plan VIP', icon: Crown },
 ];
 
-export default function Topbar({ userName = "Beymar M.", points = 450, onOpenProfile }: { userName?: string, points?: number, onOpenProfile?: () => void }) {
+export default function Topbar({ points = 450, onOpenProfile }: { points?: number, onOpenProfile?: () => void }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const user = useUser();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  // Nombre real desde Stack Auth
+  const userName = user?.displayName
+    ?? user?.primaryEmail?.split('@')[0]
+    ?? 'Usuario';
 
   const closeAll = () => {
     setShowNotifications(false);
     setShowProfileMenu(false);
   };
 
+  const handleLogout = () => {
+    router.push('/login');
+  };
+
   return (
     <>
       <header className="sticky top-0 z-50 bg-[#FFFFFF]/90 backdrop-blur-md border-b border-[#F5E6D0] px-4 py-3 flex items-center justify-between shadow-sm">
         
-        {/* Izquierda: Logo + Nav desktop */}
         <div className="flex items-center gap-3">
-          {/* Hamburguesa móvil */}
-          <button
-            onClick={() => { setShowMobileMenu(true); closeAll(); }}
-            className="lg:hidden p-2 text-[#5C3A2E] hover:bg-[#F5E6D0] rounded-full transition-colors"
-          >
+          <button onClick={() => { setShowMobileMenu(true); closeAll(); }}
+            className="lg:hidden p-2 text-[#5C3A2E] hover:bg-[#F5E6D0] rounded-full transition-colors">
             <Menu className="w-5 h-5" />
           </button>
 
           <Link href="/dashboard" className="flex items-center transition-transform hover:scale-105 shrink-0">
-            <Image
-              src="/logo/logoextendido.png"
-              alt="Emotia"
-              width={130}
-              height={40}
-              className="object-contain h-8 w-auto"
-              priority
-            />
+            <Image src="/logo/logoextendido.png" alt="Emotia" width={130} height={40} className="object-contain h-8 w-auto" priority />
           </Link>
 
-          {/* Nav desktop */}
           <nav className="hidden lg:flex items-center gap-0.5 ml-2">
             {navLinks.map(({ href, name, icon: Icon }) => {
               const isActive = pathname === href;
@@ -68,15 +68,12 @@ export default function Topbar({ userName = "Beymar M.", points = 450, onOpenPro
           </nav>
         </div>
 
-        {/* Derecha: Puntos + Bell + Perfil */}
         <div className="flex items-center gap-2">
-          {/* Puntos — visible desde md */}
           <div className="hidden md:flex items-center gap-2 bg-[#F5E6D0] px-3 py-1.5 rounded-full border border-[#BC9968]">
             <Star className="w-4 h-4 text-[#BC9968] fill-[#BC9968]" />
             <span className="text-sm font-extrabold text-[#8E1B3A]">{points} Pts</span>
           </div>
 
-          {/* Notificaciones */}
           <div className="relative">
             <button onClick={() => { setShowNotifications(!showNotifications); setShowProfileMenu(false); }}
               className="relative p-2 text-[#B0B0B0] hover:text-[#8E1B3A] hover:bg-[#F5E6D0]/50 rounded-full transition-colors">
@@ -108,7 +105,6 @@ export default function Topbar({ userName = "Beymar M.", points = 450, onOpenPro
             )}
           </div>
 
-          {/* Perfil */}
           <div className="relative">
             <button onClick={() => { setShowProfileMenu(!showProfileMenu); setShowNotifications(false); }}
               className="flex items-center gap-2 bg-[#FFFFFF] border border-[#F5E6D0] p-1.5 pr-3 rounded-full hover:shadow-sm transition-all">
@@ -123,7 +119,7 @@ export default function Topbar({ userName = "Beymar M.", points = 450, onOpenPro
                     <Settings className="w-4 h-4" /> Editar Perfil
                   </button>
                   <div className="h-px bg-[#F5E6D0] my-1"></div>
-                  <button onClick={() => alert("Simulando cierre de sesión...")}
+                  <button onClick={handleLogout}
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                     <LogOut className="w-4 h-4" /> Cerrar Sesión
                   </button>
@@ -134,30 +130,17 @@ export default function Topbar({ userName = "Beymar M.", points = 450, onOpenPro
         </div>
       </header>
 
-      {/* ── MENÚ MÓVIL (Drawer lateral) ── */}
       {showMobileMenu && (
         <div className="fixed inset-0 z-[60] flex lg:hidden">
-          {/* Backdrop */}
           <div className="absolute inset-0 bg-[#5A0F24]/40 backdrop-blur-sm" onClick={() => setShowMobileMenu(false)} />
-
-          {/* Drawer */}
           <div className="relative w-72 max-w-[85vw] bg-[#FFFFFF] h-full flex flex-col shadow-2xl animate-in slide-in-from-left duration-300">
-            {/* Header del drawer */}
             <div className="bg-gradient-to-r from-[#8E1B3A] to-[#5A0F24] p-5 flex items-center justify-between">
-              <Image
-                src="/logo/logoextendido.png"
-                alt="Emotia"
-                width={110}
-                height={35}
-                className="object-contain h-7 w-auto brightness-0 invert"
-              />
-              <button onClick={() => setShowMobileMenu(false)}
-                className="p-1.5 hover:bg-[#FFFFFF]/20 rounded-full transition-colors text-white">
+              <Image src="/logo/logoextendido.png" alt="Emotia" width={110} height={35} className="object-contain h-7 w-auto brightness-0 invert" />
+              <button onClick={() => setShowMobileMenu(false)} className="p-1.5 hover:bg-[#FFFFFF]/20 rounded-full transition-colors text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Info usuario */}
             <div className="px-5 py-4 border-b border-[#F5E6D0] flex items-center gap-3">
               <div className="bg-[#F5E6D0] p-2.5 rounded-full"><User className="w-5 h-5 text-[#8E1B3A]" /></div>
               <div>
@@ -169,13 +152,11 @@ export default function Topbar({ userName = "Beymar M.", points = 450, onOpenPro
               </div>
             </div>
 
-            {/* Links de navegación */}
             <nav className="flex-grow overflow-y-auto py-3 px-3">
               {navLinks.map(({ href, name, icon: Icon }) => {
                 const isActive = pathname === href;
                 return (
-                  <Link key={href} href={href}
-                    onClick={() => setShowMobileMenu(false)}
+                  <Link key={href} href={href} onClick={() => setShowMobileMenu(false)}
                     className={`flex items-center justify-between px-4 py-3 rounded-xl mb-1 transition-colors ${isActive ? 'bg-[#F5E6D0] text-[#8E1B3A]' : 'text-[#5C3A2E] hover:bg-[#F5E6D0]/50'}`}>
                     <div className="flex items-center gap-3">
                       <Icon className="w-5 h-5" />
@@ -187,16 +168,13 @@ export default function Topbar({ userName = "Beymar M.", points = 450, onOpenPro
               })}
             </nav>
 
-            {/* Footer del drawer */}
             <div className="p-4 border-t border-[#F5E6D0] space-y-2">
-              <button
-                onClick={() => { onOpenProfile?.(); setShowMobileMenu(false); }}
+              <button onClick={() => { onOpenProfile?.(); setShowMobileMenu(false); }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#5C3A2E] hover:bg-[#F5E6D0] transition-colors">
                 <Settings className="w-5 h-5" />
                 <span className="font-semibold text-sm">Editar Perfil</span>
               </button>
-              <button
-                onClick={() => alert("Simulando cierre de sesión...")}
+              <button onClick={handleLogout}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors">
                 <LogOut className="w-5 h-5" />
                 <span className="font-semibold text-sm">Cerrar Sesión</span>
