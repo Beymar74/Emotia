@@ -10,7 +10,7 @@ const MOCK_ORDERS = [
 ];
 
 export default function OrdersPage() {
-  const [trackingOrder, setTrackingOrder] = useState(null);
+  const [trackingOrder, setTrackingOrder] = useState<any>(null);
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-12 animate-in fade-in duration-500">
