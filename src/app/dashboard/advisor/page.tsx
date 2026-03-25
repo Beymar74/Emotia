@@ -2,15 +2,19 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Sparkles, ArrowLeft } from 'lucide-react';
-import { MOCK_PRODUCTS } from '../data/mockProducts';
 import ProductModal from '../components/modals/ProductModal';
+
+const MOCK_PRODUCTS = [
+  { id: 1, title: 'Kit Café de Altura Local', price: 150, rating: 4.9, reviews: 120, category: 'Experiencias', img: 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', description: 'Selección de los mejores granos de café tostado artesanal, incluye taza de cerámica y prensa francesa.' },
+  { id: 2, title: 'Cena Romántica 2 pax', price: 320, rating: 5.0, reviews: 85, category: 'Cenas', img: 'https://images.unsplash.com/photo-1544148103-0773bf10d330?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', description: 'Experiencia gastronómica inolvidable en un restaurante exclusivo con vista a la ciudad.' },
+];
 
 function AdvisorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || 'Sugerencias de regalos';
   const [isAnalyzing, setIsAnalyzing] = useState(true);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsAnalyzing(false), 2000);
@@ -48,14 +52,15 @@ function AdvisorContent() {
                   </div>
                 ) : (
                   <div className="animate-in fade-in duration-500">
-                    <p className="mb-4 text-[#5C3A2E]">¡Qué gran idea! He analizado tu solicitud y he seleccionado estas opciones perfectas para la ocasión. Todas entran en tu presupuesto:</p>
+                    <p className="mb-4 text-[#5C3A2E]">¡Qué gran idea! He analizado tu solicitud y seleccioné estas opciones perfectas para la ocasión:</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                      {MOCK_PRODUCTS.slice(0,2).map((item) => (
-                        <div key={item.id} onClick={() => setSelectedProduct(item)} className="bg-[#F5E6D0]/30 rounded-xl p-3 flex gap-4 cursor-pointer hover:bg-[#F5E6D0] transition-colors border border-[#F5E6D0]">
+                      {MOCK_PRODUCTS.map((item) => (
+                        <div key={item.id} onClick={() => setSelectedProduct(item)}
+                          className="bg-[#F5E6D0]/30 rounded-xl p-3 flex gap-4 cursor-pointer hover:bg-[#F5E6D0] transition-colors border border-[#F5E6D0]">
                           <img src={item.img} alt={item.title} className="w-20 h-20 object-cover rounded-lg" />
                           <div className="flex flex-col justify-center">
                             <h4 className="font-bold text-[#8E1B3A] text-sm">{item.title}</h4>
-                            <span className="text-xs font-bold text-[#5C3A2E]">{item.price}</span>
+                            <span className="text-xs font-bold text-[#5C3A2E]">{item.price} Bs</span>
                           </div>
                         </div>
                       ))}
