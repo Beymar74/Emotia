@@ -158,16 +158,6 @@ export default function Navbar({ scrolled }: NavbarProps) {
                 Menú
               </span>
             </button>
-
-            {/* Búsqueda con placeholder — desktop */}
-            <button
-              className="nav-icon-btn nav-desktop"
-              onClick={() => setSearchOpen(!searchOpen)}
-              style={{ border: "1.5px solid rgba(188,153,104,0.3)", borderRadius: "100px", padding: "8px 18px", gap: "10px", color: "#9B7A5A" }}
-            >
-              <IconSearch />
-              <span style={{ fontSize: "0.85rem", fontWeight: 400 }}>Busca tu regalo aquí</span>
-            </button>
           </div>
 
           {/* Centro: Logo */}
