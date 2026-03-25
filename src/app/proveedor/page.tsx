@@ -1,138 +1,192 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { 
+  LayoutDashboard, Package, ShoppingCart, BarChart3, 
+  User, LogOut, ChevronLeft, Bell, Gift, Check, Star, AlertTriangle, X
+} from 'lucide-react';
 
-const CSS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900&family=DM+Sans:wght@300;400;500;600;700&display=swap');`;
+import DashboardView from "./views/DashboardView";
+import ProductosView from "./views/ProductosView";
+import PedidosView from "./views/PedidosView";
+import MetricasView from "./views/MetricasView";
+import PerfilView from "./views/PerfilView";
 
-const kpis = [
-  { icon:"💰", label:"Mis ventas",   valor:"Bs. 3,240", sub:"Este mes"      },
-  { icon:"📦", label:"Pedidos",      valor:"28",         sub:"5 pendientes"  },
-  { icon:"⭐", label:"Calificación", valor:"4.8",        sub:"32 reseñas"    },
+const CSS = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');`;
+
+const menuItems = [
+  { icon: <LayoutDashboard size={20} />, label: "Dashboard", id: "dashboard" },
+  { icon: <Package size={20} />, label: "Productos", id: "productos" },
+  { icon: <ShoppingCart size={20} />, label: "Pedidos", id: "pedidos" },
+  { icon: <BarChart3 size={20} />, label: "Métricas", id: "metricas" },
+  { icon: <User size={20} />, label: "Perfil", id: "perfil" },
 ];
 
-const pedidos = [
-  { id:"#001", cliente:"Ana Flores",   producto:"Ramo de Rosas Premium", monto:"Bs. 85", estado:"Pendiente" },
-  { id:"#002", cliente:"Lucía Quispe", producto:"Arreglo Floral",        monto:"Bs. 65", estado:"En camino" },
-  { id:"#003", cliente:"Mario López",  producto:"Planta Suculenta",      monto:"Bs. 45", estado:"Entregado" },
-  { id:"#004", cliente:"Paula Vera",   producto:"Ramo de Rosas Premium", monto:"Bs. 85", estado:"Entregado" },
+// Datos mockeados para las notificaciones (adaptados para el Proveedor)
+const notificacionesMock = [
+  { id: 1, icon: <ShoppingCart size={18} color="#3b82f6" />, titulo: "Nuevo pedido recibido", desc: "Pedido #2049 recibido por Bs. 250.", tiempo: "Hace 5 min", leida: false },
+  { id: 2, icon: <Package size={18} color="#BC9968" />, titulo: "Producto aprobado", desc: "Caja de chocolates artesanales ha sido aprobada.", tiempo: "Hace 15 min", leida: false },
+  { id: 3, icon: <AlertTriangle size={18} color="#9B2335" />, titulo: "Alerta de stock", desc: "El Set de Vinos Premium tiene solo 2 unidades.", tiempo: "Hace 30 min", leida: false },
+  { id: 4, icon: <Star size={18} color="#10b981" />, titulo: "Nueva reseña", desc: "María García te ha dejado 5 estrellas.", tiempo: "Hace 1 hora", leida: false },
+  { id: 5, icon: <ShoppingCart size={18} color="#9ca3af" />, titulo: "Pedido cancelado", desc: "Pedido #2010 ha sido cancelado por el cliente.", tiempo: "Ayer", leida: true },
 ];
-
-const productos = [
-  { emoji:"🌹", nombre:"Ramo de Rosas Premium",   precio:"Bs. 85", stock:"12 disponibles", activo:true  },
-  { emoji:"🌻", nombre:"Arreglo Floral Silvestre", precio:"Bs. 65", stock:"8 disponibles",  activo:true  },
-  { emoji:"🌿", nombre:"Planta Suculenta",         precio:"Bs. 45", stock:"20 disponibles", activo:false },
-];
-
-const eC: Record<string,string> = { "Entregado":"#16a34a","En camino":"#BC9968","Pendiente":"#9B2335" };
-const eB: Record<string,string> = { "Entregado":"rgba(22,163,74,.1)","En camino":"rgba(188,153,104,.1)","Pendiente":"rgba(155,35,53,.1)" };
 
 export default function ProveedorPage() {
   const router = useRouter();
-  const [sec, setSec] = useState<"pedidos"|"catalogo">("pedidos");
+  const [vistaActiva, setVistaActiva] = useState("dashboard");
+  
+  // NUEVO ESTADO: Controla si la campanita está abierta o cerrada
+  const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false);
+
+  const renderizarVista = () => {
+    switch (vistaActiva) {
+      case "dashboard": return <DashboardView />;
+      case "productos": return <ProductosView />;
+      case "pedidos": return <PedidosView />;
+      case "metricas": return <MetricasView />;
+      case "perfil": return <PerfilView />;
+      default: return <DashboardView />;
+    }
+  };
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <div style={{ minHeight:"100vh", background:"#f8f4ef", fontFamily:"'DM Sans',sans-serif" }}>
+      <div style={{ height: "100vh", background: "#f8f9fb", fontFamily: "'Inter', sans-serif", display: "flex", overflow: "hidden" }}>
 
-        {/* SIDEBAR */}
-        <div style={{ position:"fixed", top:0, left:0, bottom:0, width:"220px", background:"#5A0F24", display:"flex", flexDirection:"column", zIndex:100, boxShadow:"4px 0 20px rgba(90,15,36,.2)" }}>
-          <div style={{ padding:"1.8rem 1.5rem 1.2rem", borderBottom:"1px solid rgba(245,230,208,.1)" }}>
-            <div style={{ fontFamily:"'Playfair Display',serif", fontWeight:900, fontSize:"1.4rem", color:"#FAF5EE" }}>Emo<span style={{ color:"#BC9968" }}>tia</span></div>
-            <div style={{ fontSize:".65rem", fontWeight:600, letterSpacing:".15em", textTransform:"uppercase", color:"rgba(245,230,208,.4)", marginTop:".2rem" }}>Panel Proveedor</div>
+        {/* SIDEBAR LATERAL */}
+        <div style={{ width: "240px", background: "#701030", display: "flex", flexDirection: "column", color: "white", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 15px 16px", borderBottom: "1px solid rgba(112,16,48,0.2)", backgroundColor: "#E5BDC2", height: "71px", boxSizing: "border-box" }}>
+            <img src="/logo/logoextendido.png" alt="Emotia" style={{ height: "45px", width: "auto", objectFit: "contain", flexShrink: 0 }} />
           </div>
-          <nav style={{ flex:1, padding:"1rem 0" }}>
-            {[["📦","Mis Pedidos","pedidos"],["��","Mi Catálogo","catalogo"]].map(([icon,label,key])=>(
-              <button key={key} onClick={()=>setSec(key as any)}
-                style={{ width:"100%", display:"flex", alignItems:"center", gap:".8rem", padding:".9rem 1.5rem", background:sec===key?"rgba(245,230,208,.1)":"transparent", border:"none", cursor:"pointer", fontWeight:sec===key?600:400, fontSize:".88rem", color:sec===key?"#FAF5EE":"rgba(245,230,208,.7)", textAlign:"left", transition:"all .2s", fontFamily:"'DM Sans',sans-serif" }}
-              ><span>{icon}</span>{label}</button>
+
+          <nav style={{ flex: 1, padding: "1.5rem 0", display: "flex", flexDirection: "column", gap: "5px", overflowY: "auto" }}>
+            {menuItems.map((item) => (
+              <button 
+                key={item.id} onClick={() => setVistaActiva(item.id)}
+                style={{ 
+                  width: "100%", display: "flex", alignItems: "center", gap: "1rem", padding: "0.85rem 24px", 
+                  background: vistaActiva === item.id ? "rgba(255,255,255,0.15)" : "transparent", 
+                  border: "none", cursor: "pointer", fontWeight: vistaActiva === item.id ? 600 : 400, 
+                  fontSize: "0.95rem", color: vistaActiva === item.id ? "#ffffff" : "rgba(255,255,255,0.7)", 
+                  textAlign: "left", transition: "all 0.2s", borderLeft: vistaActiva === item.id ? "4px solid #fff" : "4px solid transparent"
+                }}
+              >
+                {item.icon} {item.label}
+              </button>
             ))}
           </nav>
-          <div style={{ padding:"1.2rem 1.5rem", borderTop:"1px solid rgba(245,230,208,.1)" }}>
-            <button onClick={()=>router.push("/")} style={{ fontFamily:"'DM Sans',sans-serif", fontWeight:500, fontSize:".82rem", color:"rgba(245,230,208,.5)", background:"none", border:"none", cursor:"pointer", padding:0, transition:"color .2s" }}
-              onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.color="#FAF5EE"; }}
-              onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.color="rgba(245,230,208,.5)"; }}
-            >← Salir al sitio</button>
+
+          <div style={{ padding: "1.5rem 24px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+            <button 
+              onClick={() => router.push("/")} 
+              style={{ display: "flex", alignItems: "center", gap: "1rem", fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: "0.95rem", color: "rgba(255,255,255,0.7)", background: "none", border: "none", cursor: "pointer", padding: 0, transition: "color 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.color = "#fff"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}
+            >
+              <LogOut size={20} /> Cerrar Sesión
+            </button>
           </div>
         </div>
 
-        {/* MAIN */}
-        <div style={{ marginLeft:"220px", padding:"2.5rem" }}>
-          <div style={{ marginBottom:"2rem" }}>
-            <h1 style={{ fontFamily:"'Playfair Display',serif", fontWeight:700, fontSize:"1.8rem", color:"#5A0F24", marginBottom:".3rem" }}>Hola, <em style={{ fontStyle:"italic" }}>Flores Illimani</em> 🌸</h1>
-            <p style={{ fontSize:".88rem", color:"rgba(92,58,30,.6)" }}>{new Date().toLocaleDateString("es-BO",{ weekday:"long", year:"numeric", month:"long", day:"numeric" })}</p>
-          </div>
-
-          {/* KPIs */}
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:"1rem", marginBottom:"2rem" }}>
-            {kpis.map(k=>(
-              <div key={k.label} style={{ background:"#FFFFFF", borderRadius:"16px", padding:"1.4rem", border:"1px solid rgba(155,35,53,.1)", boxShadow:"0 2px 8px rgba(90,15,36,.04)" }}>
-                <div style={{ fontSize:"1.6rem", marginBottom:".6rem" }}>{k.icon}</div>
-                <div style={{ fontFamily:"'Playfair Display',serif", fontWeight:700, fontSize:"1.5rem", color:"#9B2335", lineHeight:1 }}>{k.valor}</div>
-                <div style={{ fontWeight:500, fontSize:".75rem", color:"#5C3A1E", marginTop:".3rem" }}>{k.label}</div>
-                <div style={{ fontSize:".7rem", color:"#BC9968", marginTop:".2rem" }}>{k.sub}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* tabs */}
-          <div style={{ display:"flex", gap:".5rem", marginBottom:"1.2rem" }}>
-            {(["pedidos","catalogo"] as const).map(t=>(
-              <button key={t} onClick={()=>setSec(t)} style={{ fontFamily:"'DM Sans',sans-serif", fontWeight:sec===t?600:400, fontSize:".82rem", padding:".4rem 1rem", borderRadius:"100px", border:`1.5px solid ${sec===t?"#9B2335":"rgba(155,35,53,.2)"}`, background:sec===t?"#9B2335":"transparent", color:sec===t?"#FAF5EE":"#5C3A1E", cursor:"pointer", textTransform:"capitalize" }}>{t}</button>
-            ))}
-          </div>
-
-          {/* pedidos */}
-          {sec==="pedidos" && (
-            <div style={{ background:"#FFFFFF", borderRadius:"16px", border:"1px solid rgba(155,35,53,.1)", overflow:"hidden", boxShadow:"0 2px 8px rgba(90,15,36,.04)" }}>
-              <div style={{ padding:"1.2rem 1.5rem", borderBottom:"1px solid rgba(155,35,53,.08)", fontFamily:"'Playfair Display',serif", fontWeight:700, fontSize:"1.1rem", color:"#5A0F24" }}>Mis pedidos</div>
-              <div style={{ overflowX:"auto" }}>
-                <table style={{ width:"100%", borderCollapse:"collapse" }}>
-                  <thead><tr style={{ background:"rgba(155,35,53,.03)" }}>
-                    {["ID","Cliente","Producto","Monto","Estado"].map(h=>(
-                      <th key={h} style={{ fontFamily:"'DM Sans',sans-serif", fontWeight:600, fontSize:".72rem", letterSpacing:".08em", textTransform:"uppercase", color:"rgba(92,58,30,.5)", padding:".8rem 1.2rem", textAlign:"left" }}>{h}</th>
-                    ))}
-                  </tr></thead>
-                  <tbody>
-                    {pedidos.map((p,i)=>(
-                      <tr key={p.id} style={{ borderTop:"1px solid rgba(155,35,53,.06)", background:i%2===0?"transparent":"rgba(155,35,53,.01)" }}>
-                        <td style={{ padding:".9rem 1.2rem", fontFamily:"'DM Sans',sans-serif", fontWeight:600, fontSize:".82rem", color:"#9B2335" }}>{p.id}</td>
-                        <td style={{ padding:".9rem 1.2rem", fontSize:".85rem", color:"#5A0F24" }}>{p.cliente}</td>
-                        <td style={{ padding:".9rem 1.2rem", fontSize:".85rem", color:"#5C3A1E" }}>{p.producto}</td>
-                        <td style={{ padding:".9rem 1.2rem", fontWeight:600, fontSize:".85rem", color:"#5A0F24" }}>{p.monto}</td>
-                        <td style={{ padding:".9rem 1.2rem" }}>
-                          <span style={{ fontFamily:"'DM Sans',sans-serif", fontWeight:600, fontSize:".72rem", color:eC[p.estado], background:eB[p.estado], borderRadius:"100px", padding:".2rem .7rem" }}>{p.estado}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+        {/* CONTENIDO PRINCIPAL */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+          
+          {/* Topbar / Header */}
+          <div style={{ background: "linear-gradient(90deg, #701030 0%, #E5BDC2 100%)", padding: "1rem 2rem", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.1)", zIndex: 10, height: "71px", boxSizing: "border-box" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "white", fontSize: "1.1rem", fontWeight: 600 }}>
+              <ChevronLeft size={20} />
+              <span style={{ textTransform: "capitalize" }}>{menuItems.find(i => i.id === vistaActiva)?.label}</span>
             </div>
-          )}
-
-          {/* catálogo */}
-          {sec==="catalogo" && (
-            <div style={{ background:"#FFFFFF", borderRadius:"16px", border:"1px solid rgba(155,35,53,.1)", overflow:"hidden", boxShadow:"0 2px 8px rgba(90,15,36,.04)" }}>
-              <div style={{ padding:"1.2rem 1.5rem", borderBottom:"1px solid rgba(155,35,53,.08)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                <div style={{ fontFamily:"'Playfair Display',serif", fontWeight:700, fontSize:"1.1rem", color:"#5A0F24" }}>Mi catálogo</div>
-                <button style={{ fontFamily:"'DM Sans',sans-serif", fontWeight:600, fontSize:".78rem", background:"#9B2335", color:"#FAF5EE", border:"none", borderRadius:"100px", padding:".4rem 1rem", cursor:"pointer" }}>+ Agregar</button>
-              </div>
-              {productos.map((p,i)=>(
-                <div key={p.nombre} style={{ display:"flex", alignItems:"center", gap:"1rem", padding:"1rem 1.5rem", borderTop:i>0?"1px solid rgba(155,35,53,.06)":"none" }}>
-                  <div style={{ width:"48px", height:"48px", borderRadius:"12px", background:"linear-gradient(135deg,rgba(155,35,53,.07),rgba(188,153,104,.12))", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.5rem", flexShrink:0 }}>{p.emoji}</div>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontFamily:"'DM Sans',sans-serif", fontWeight:600, fontSize:".9rem", color:"#5A0F24" }}>{p.nombre}</div>
-                    <div style={{ fontSize:".75rem", color:"rgba(92,58,30,.55)", marginTop:".15rem" }}>{p.stock} · {p.precio}</div>
-                  </div>
-                  <span style={{ fontFamily:"'DM Sans',sans-serif", fontWeight:600, fontSize:".7rem", color:p.activo?"#16a34a":"rgba(92,58,30,.4)", background:p.activo?"rgba(22,163,74,.1)":"rgba(92,58,30,.07)", borderRadius:"100px", padding:".2rem .65rem" }}>
-                    {p.activo?"Activo":"Inactivo"}
+            
+            <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+              
+              {/* === CONTENEDOR DE LA CAMPANITA Y EL MENÚ === */}
+              <div style={{ position: "relative" }}>
+                
+                {/* Ícono de la Campanita */}
+                <div onClick={() => setMostrarNotificaciones(!mostrarNotificaciones)} style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
+                  <Bell size={22} color="white" />
+                  <span style={{ position: "absolute", top: "-5px", right: "-5px", background: "#ef4444", color: "white", fontSize: "0.65rem", fontWeight: "bold", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%" }}>
+                    4
                   </span>
                 </div>
-              ))}
+
+                {/* Menú Desplegable de Notificaciones */}
+                {mostrarNotificaciones && (
+                  <div style={{
+                    position: "absolute", top: "45px", right: "-10px", width: "380px",
+                    background: "white", borderRadius: "12px", boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+                    border: "1px solid rgba(0,0,0,0.05)", overflow: "hidden", zIndex: 1000
+                  }}>
+                    {/* Cabecera del menú */}
+                    <div style={{ background: "#9B2335", padding: "1.2rem 1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", color: "white" }}>
+                      <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 600 }}>Notificaciones</h3>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", fontSize: "0.8rem" }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: "4px", cursor: "pointer", opacity: 0.9 }}>
+                          <Check size={14} /> Marcar todas
+                        </span>
+                        <X size={16} style={{ cursor: "pointer" }} onClick={() => setMostrarNotificaciones(false)} />
+                      </div>
+                    </div>
+
+                    {/* Lista de Notificaciones */}
+                    <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+                      {notificacionesMock.map((notif) => (
+                        <div key={notif.id} style={{
+                          display: "flex", gap: "1rem", padding: "1.2rem 1.5rem",
+                          borderBottom: "1px solid #f3f4f6", background: notif.leida ? "#f9fafb" : "white",
+                          cursor: "pointer", transition: "background 0.2s"
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = "#f3f4f6"}
+                        onMouseLeave={e => e.currentTarget.style.background = notif.leida ? "#f9fafb" : "white"}
+                        >
+                          {/* Ícono */}
+                          <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(0,0,0,0.03)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            {notif.icon}
+                          </div>
+                          
+                          {/* Contenido */}
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.2rem" }}>
+                              <h4 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 600, color: "#111827", display: "flex", alignItems: "center", gap: "6px" }}>
+                                {notif.titulo}
+                                {!notif.leida && <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#9B2335" }}></span>}
+                              </h4>
+                              {notif.leida && <Check size={14} color="#9ca3af" />}
+                            </div>
+                            <p style={{ margin: "0 0 0.4rem 0", fontSize: "0.85rem", color: "#6b7280", lineHeight: 1.4 }}>{notif.desc}</p>
+                            <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>{notif.tiempo}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Pie del menú */}
+                    <div style={{ padding: "1rem", textAlign: "center", borderTop: "1px solid #f3f4f6", background: "white" }}>
+                      <button style={{ background: "none", border: "none", color: "#9B2335", fontWeight: 600, fontSize: "0.9rem", cursor: "pointer" }}>
+                        Ver historial completo
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* === FIN CONTENEDOR CAMPANITA === */}
+
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "white" }}>
+                <div style={{ width: "35px", height: "35px", borderRadius: "50%", background: "#f8f4ef", overflow: "hidden", border: "2px solid white" }}>
+                   <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Proveedor" alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+                <span style={{ fontSize: "0.95rem", fontWeight: 500 }}>Flores Illimani</span>
+              </div>
             </div>
-          )}
+          </div>
+
+          <div style={{ flex: 1, overflowY: "auto", padding: "1.5rem 2rem", boxSizing: "border-box" }}>
+            {renderizarVista()}
+          </div>
         </div>
+
       </div>
     </>
   );
