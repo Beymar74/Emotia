@@ -1,5 +1,7 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUser } from "@stackframe/stack";
 import AIAssistantHero from './components/ai/AIAssistantHero';
 import SpecialDateCard from './components/dashboard/SpecialDateCard';
 import OrderTrackingWidget from './components/tracking/OrderTrackingWidget';
@@ -15,8 +17,38 @@ const DEFAULT_TRACKING_ORDER = {
 };
 
 export default function DashboardPage() {
+  const user = useUser();
+  const router = useRouter();
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
+
+  useEffect(() => {
+    if (user === undefined) return; // todavía cargando
+    if (user === null) {
+      router.push('/login');
+      return;
+    }
+
+    // Redirección por rol
+    const role = (user.clientMetadata as { role?: string })?.role;
+    if (role === 'admin') router.push('/admin');
+    if (role === 'proveedor') router.push('/proveedor');
+
+  }, [user, router]);
+
+  // Cargando sesión
+  if (user === undefined) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", background: "#F5E6D0" }}>
+        <p style={{ fontFamily: "serif", fontSize: "1.2rem", color: "#5A0F24" }}>Cargando...</p>
+      </div>
+    );
+  }
+
+  // Sin sesión o redirigiendo
+  if (user === null) return null;
+  const role = (user.clientMetadata as { role?: string })?.role;
+  if (role === 'admin' || role === 'proveedor') return null;
 
   return (
     <main className="max-w-5xl mx-auto px-6 pb-24">
