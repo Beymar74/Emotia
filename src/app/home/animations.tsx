@@ -1,6 +1,4 @@
 "use client";
-// animations.tsx — Componentes de animación reutilizables
-
 import React, { useEffect, useRef, useState } from "react";
 import { COLORS } from "./constants";
 
@@ -16,8 +14,8 @@ export function FadeIn({ children, direction = "up", delay = 0, style }: FadeInP
   const [vis, setVis] = useState(false);
 
   const offsets: Record<string, string> = {
-    up: "translateY(28px)", down: "translateY(-28px)",
-    left: "translateX(-28px)", right: "translateX(28px)",
+    up: "translateY(40px)", down: "translateY(-40px)",
+    left: "translateX(-40px)", right: "translateX(40px)",
   };
 
   useEffect(() => {
@@ -25,7 +23,7 @@ export function FadeIn({ children, direction = "up", delay = 0, style }: FadeInP
     if (!el) return;
     const obs = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } },
-      { threshold: 0.12 }
+      { threshold: 0.1 }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -35,40 +33,10 @@ export function FadeIn({ children, direction = "up", delay = 0, style }: FadeInP
     <div ref={ref} style={{
       opacity: vis ? 1 : 0,
       transform: vis ? "translate(0)" : offsets[direction],
-      transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
+      transition: `opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1) ${delay}ms, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) ${delay}ms`,
       ...style,
     }}>
       {children}
     </div>
-  );
-}
-
-interface OrbProps {
-  size: string; top?: string; left?: string; right?: string; bottom?: string;
-  color: string; delay?: number; opacity?: number;
-}
-
-export function FloatingOrb({ size, top, left, right, bottom, color, delay = 0, opacity = 0.12 }: OrbProps) {
-  return (
-    <div className="orb" style={{
-      width: size, height: size, top, left, right, bottom,
-      background: color, opacity, animationDelay: `${delay}s`,
-    }} />
-  );
-}
-
-export function PulsingDot({ color = COLORS.garnet }: { color?: string }) {
-  return (
-    <span style={{ position: "relative", display: "inline-flex" }}>
-      <span style={{
-        width: "8px", height: "8px", borderRadius: "50%", background: color,
-        display: "inline-block", animation: "pulse-ring 1.6s ease infinite",
-        position: "absolute", inset: 0, opacity: 0.5,
-      }} />
-      <span style={{
-        width: "8px", height: "8px", borderRadius: "50%", background: color,
-        display: "inline-block", position: "relative",
-      }} />
-    </span>
   );
 }
