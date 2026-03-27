@@ -2,7 +2,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Gift, Instagram, MessageCircle, Music } from "lucide-react";
+import { Instagram, MessageCircle, Music } from "lucide-react";
 import { C } from "./constants";
 
 export default function Footer() {
@@ -15,20 +15,35 @@ export default function Footer() {
         {/* TOP ROW */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 20, marginBottom: 22 }}>
 
-          {/* Marca */}
-          <motion.div whileHover={{ scale: 1.03 }} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => router.push("/")}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Gift size={18} color="white" strokeWidth={2} />
-            </div>
-            <div>
-              <span style={{ fontFamily: "'Playfair Display',serif", fontWeight: 900, fontSize: "1.4rem", color: C.beige, letterSpacing: "-0.02em" }}>Emotia</span>
-              <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.78rem", color: "rgba(245,230,208,0.45)", marginLeft: 8 }}>Regalos artesanales bolivianos</span>
-            </div>
+          {/* LOGO REAL */}
+          <motion.div
+            whileHover={{ scale: 1.03 }}
+            style={{ cursor: "pointer" }}
+            onClick={() => router.push("/")}
+          >
+            <img
+              src="/logo/logoextendido.png"
+              alt="Emotia"
+              style={{
+                height: 38,
+                width: "auto",
+                objectFit: "contain",
+                display: "block",
+                filter: "brightness(0) invert(1)",
+                opacity: 0.92,
+              }}
+            />
           </motion.div>
 
           {/* Links */}
           <nav style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-            {[{l:"Regalos",h:"/regalos"},{l:"Nosotros",h:"/nosotros"},{l:"Ayuda",h:"/ayuda"},{l:"Privacidad",h:"/privacidad"}].map(({l,h}) => (
+            {[
+              { l: "Regalos",    h: "/regalos" },
+              { l: "Empresas",   h: "/empresas" },
+              { l: "Nosotros",   h: "/nosotros" },
+              { l: "Ayuda",      h: "/ayuda" },
+              { l: "Privacidad", h: "/privacidad" },
+            ].map(({ l, h }) => (
               <button key={h} onClick={() => router.push(h)}
                 style={{ background: "none", border: "none", color: "rgba(245,230,208,0.58)", fontFamily: "'DM Sans',sans-serif", fontSize: "0.88rem", fontWeight: 500, cursor: "pointer", padding: "6px 12px", borderRadius: 6, transition: "color 0.2s" }}
                 onMouseEnter={e => e.currentTarget.style.color = "rgba(245,230,208,1)"}
