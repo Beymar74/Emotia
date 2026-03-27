@@ -1,6 +1,4 @@
 "use client";
-// HowItWorksSection.tsx — 3 pasos del proceso
-
 import React from "react";
 import { COLORS } from "./constants";
 import { steps } from "./steps";
@@ -8,34 +6,27 @@ import { FadeIn } from "./animations";
 
 export default function HowItWorksSection() {
   return (
-    <section id="como-funciona" style={{ padding: "80px 24px", background: COLORS.white }}>
+    <section id="como-funciona" style={{ padding: "100px 24px", background: COLORS.white }}>
       <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
         <FadeIn direction="up">
-          <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <span className="section-label">El proceso</span>
-            <div className="section-divider" style={{ margin: "12px auto 0" }} />
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 900, color: COLORS.bordeaux, marginTop: "8px", marginBottom: "16px" }}>
-              Tres pasos hacia el <em>regalo perfecto</em>
+          <div style={{ textAlign: "center", marginBottom: "64px" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: COLORS.beige, padding: "6px 16px", borderRadius: "100px", border: `1px solid rgba(188, 153, 104, 0.3)`, marginBottom: "20px" }}>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", fontWeight: 800, color: COLORS.bordeaux, letterSpacing: "0.15em", textTransform: "uppercase" }}>EL PROCESO</span>
+            </div>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2.5rem, 4vw, 3.5rem)", fontWeight: 900, color: COLORS.bordeaux, lineHeight: 1.1, marginBottom: "16px" }}>
+              ¿Cómo funciona la IA de Emotia?
             </h2>
-            <p style={{ fontSize: "1rem", color: COLORS.chocolate, opacity: 0.75, maxWidth: "500px", margin: "0 auto", lineHeight: 1.65 }}>
-              Un proceso diseñado para que dar un regalo sea tan especial como recibirlo.
-            </p>
+            <p style={{ fontSize: "1.1rem", color: COLORS.chocolate, opacity: 0.8, maxWidth: "600px", margin: "0 auto", lineHeight: 1.6 }}>Un sistema diseñado para que dar un regalo sea tan especial y emocionante como recibirlo.</p>
           </div>
         </FadeIn>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: "28px", position: "relative" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "32px", position: "relative" }}>
           {steps.map((step, i) => (
-            <FadeIn key={step.num} direction="up" delay={i * 120}>
-              <div className="card-hover gradient-border" style={{ background: "white", borderRadius: "24px", padding: "36px 28px", position: "relative", height: "100%" }}>
-                <div style={{ position: "absolute", top: "16px", right: "20px", fontFamily: "'Playfair Display', serif", fontSize: "4rem", fontWeight: 900, color: `${COLORS.garnet}07`, lineHeight: 1, userSelect: "none" }}>{step.num}</div>
-                <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: `linear-gradient(135deg, ${COLORS.garnet}12, ${COLORS.crimson}08)`, border: `1px solid ${COLORS.garnet}18`, display: "flex", alignItems: "center", justifyContent: "center", color: COLORS.garnet, marginBottom: "20px", padding: "12px" }}>{step.icon}</div>
-                <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.3rem", fontWeight: 800, color: COLORS.bordeaux, marginBottom: "10px" }}>{step.title}</h3>
-                <p style={{ fontSize: "0.9rem", color: COLORS.chocolate, opacity: 0.75, lineHeight: 1.65 }}>{step.desc}</p>
-                {i < steps.length - 1 && (
-                  <div className="hidden-mobile" style={{ position: "absolute", top: "52px", right: "-14px", width: "28px", height: "28px", borderRadius: "50%", background: `linear-gradient(135deg, ${COLORS.gold}, ${COLORS.garnet})`, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2, boxShadow: `0 4px 12px ${COLORS.gold}40` }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                  </div>
-                )}
+            <FadeIn key={step.num} direction="up" delay={i * 150}>
+              <div style={{ background: "#FAF5EE", borderRadius: "28px", padding: "40px 32px", position: "relative", height: "100%", border: "1px solid rgba(188,153,104,0.2)", transition: "transform 0.3s", cursor: "default" }} onMouseEnter={e => e.currentTarget.style.transform = "translateY(-10px)"} onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
+                <div style={{ position: "absolute", top: "20px", right: "24px", fontFamily: "'Playfair Display', serif", fontSize: "4.5rem", fontWeight: 900, color: `${COLORS.garnet}10`, lineHeight: 1, userSelect: "none" }}>{step.num}</div>
+                <div style={{ width: "64px", height: "64px", borderRadius: "16px", background: `linear-gradient(135deg, ${COLORS.garnet}, ${COLORS.crimson})`, display: "flex", alignItems: "center", justifyContent: "center", color: "white", marginBottom: "24px", padding: "16px", boxShadow: "0 10px 20px rgba(142,27,58,0.2)" }}>{step.icon}</div>
+                <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", fontWeight: 800, color: COLORS.bordeaux, marginBottom: "12px" }}>{step.title}</h3>
+                <p style={{ fontSize: "1rem", color: COLORS.chocolate, opacity: 0.8, lineHeight: 1.6 }}>{step.desc}</p>
               </div>
             </FadeIn>
           ))}

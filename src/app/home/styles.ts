@@ -141,7 +141,7 @@ export const globalCSS = `
     .hidden-desktop { display: none !important; }
   }
 
-  ::-webkit-scrollbar       { width: 5px; }
+  ::-webkit-scrollbar        { width: 5px; }
   ::-webkit-scrollbar-track { background: var(--beige); }
   ::-webkit-scrollbar-thumb { background: var(--garnet); border-radius: 3px; }
 
