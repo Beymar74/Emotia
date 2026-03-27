@@ -11,10 +11,6 @@ export default function Navbar({ scrolled }: NavbarProps) {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  useEffect(() => {
-    window.addEventListener("scroll", s, { passive: true });
-    return () => window.removeEventListener("scroll", s);
-  }, []);
 
   const goTo = (id: string) => {
     setMobileOpen(false);
