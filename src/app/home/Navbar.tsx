@@ -5,13 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, LogIn, Gift, Menu, X } from "lucide-react";
 import { C } from "./constants";
 
-export default function Navbar() {
+interface NavbarProps { scrolled?: boolean }
+
+export default function Navbar({ scrolled }: NavbarProps) {
   const router = useRouter();
-  const [scrolled, setScrolled]     = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const s = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", s, { passive: true });
     return () => window.removeEventListener("scroll", s);
   }, []);

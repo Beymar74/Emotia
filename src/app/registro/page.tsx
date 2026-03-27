@@ -283,7 +283,7 @@ export default function RegisterPage() {
                 No más regalos<br /><em>genéricos.</em>
               </h1>
               
-              <p style={{ color: COLORS.chocolate, fontSize: "0.95rem", maxWidth: "420px", lineHeight: 1.5, opacity: 0.9 }}>
+              <p style={{ color: COLORS.choco, fontSize: "0.95rem", maxWidth: "420px", lineHeight: 1.5, opacity: 0.9 }}>
                 Únete a Emotia y deja que nuestra IA analice la personalidad y ocasión para recomendarte detalles con verdadero impacto emocional.
               </p>
 
@@ -298,7 +298,7 @@ export default function RegisterPage() {
                     </div>
                     <div>
                       <h4 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 800, color: COLORS.bordeaux, fontSize: "0.95rem", marginBottom: "2px" }}>{f.title}</h4>
-                      <p style={{ fontSize: "0.8rem", color: COLORS.chocolate, opacity: 0.8 }}>{f.desc}</p>
+                      <p style={{ fontSize: "0.8rem", color: COLORS.choco, opacity: 0.8 }}>{f.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -344,7 +344,7 @@ export default function RegisterPage() {
 
                   <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginTop: "4px", marginBottom: "8px" }}>
                     <input type="checkbox" id="terms" required style={{ accentColor: COLORS.garnet, width: "16px", height: "16px", cursor: "pointer", marginTop: "2px" }} />
-                    <label htmlFor="terms" style={{ fontSize: "0.8rem", color: COLORS.chocolate, cursor: "pointer", lineHeight: 1.4 }}>
+                    <label htmlFor="terms" style={{ fontSize: "0.8rem", color: COLORS.choco, cursor: "pointer", lineHeight: 1.4 }}>
                       Acepto los <a href="#" style={{ color: COLORS.garnet, fontWeight: 700, textDecoration: "none" }}>Términos</a> y la <a href="#" style={{ color: COLORS.garnet, fontWeight: 700, textDecoration: "none" }}>Política de Privacidad</a>.
                     </label>
                   </div>
@@ -354,7 +354,7 @@ export default function RegisterPage() {
                   </button>
                 </form>
 
-                <div style={{ marginTop: "20px", textAlign: "center", fontSize: "0.85rem", color: COLORS.chocolate }}>
+                <div style={{ marginTop: "20px", textAlign: "center", fontSize: "0.85rem", color: COLORS.choco }}>
                   ¿Ya tienes una cuenta?{' '}
                   <button onClick={() => router.push('/login')} style={{ background: "none", border: "none", color: COLORS.garnet, fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}>
                     Inicia sesión

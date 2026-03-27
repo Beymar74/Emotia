@@ -259,7 +259,7 @@ export default function LoginPage() {
                 Tu asistente IA<br /><em>te espera.</em>
               </h1>
               
-              <p style={{ color: COLORS.chocolate, fontSize: "1rem", maxWidth: "400px", lineHeight: 1.6, opacity: 0.9 }}>
+              <p style={{ color: COLORS.choco, fontSize: "1rem", maxWidth: "400px", lineHeight: 1.6, opacity: 0.9 }}>
                 ¿Listo para planear el próximo gran detalle? Inicia sesión para continuar tus conversaciones y rastrear tus entregas en tiempo real.
               </p>
             </div>
@@ -348,7 +348,7 @@ export default function LoginPage() {
                   </button>
                 </form>
 
-                <div style={{ marginTop: "24px", textAlign: "center", fontSize: "0.9rem", color: COLORS.chocolate }}>
+                <div style={{ marginTop: "24px", textAlign: "center", fontSize: "0.9rem", color: COLORS.choco }}>
                   ¿Aún no tienes una cuenta?{' '}
                   <button 
                     onClick={() => router.push('/registro')} 
