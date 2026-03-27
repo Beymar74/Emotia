@@ -50,11 +50,11 @@ export default function Navbar() {
           transition: "height 0.3s",
         }}>
 
-          {/* ── LOGO ── */}
+          {/* ── LOGO REAL ── */}
           <motion.button
             onClick={() => router.push("/")}
             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}
           >
             <img
               src="/logo/logoextendido.png"
@@ -80,7 +80,7 @@ export default function Navbar() {
                   background: "none", border: "none", cursor: "pointer",
                   fontFamily: "'DM Sans',sans-serif", fontWeight: 600,
                   fontSize: "0.88rem", color: C.choco,
-                  padding: "8px 16px", borderRadius: 10,
+                  padding: "8px 14px", borderRadius: 10,
                 }}
                 onMouseEnter={e => { e.currentTarget.style.background = "rgba(90,15,36,0.07)"; e.currentTarget.style.color = C.bordeaux; }}
                 onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = C.choco; }}
@@ -95,11 +95,7 @@ export default function Navbar() {
             <motion.button
               onClick={() => router.push("/carrito")}
               whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }}
-              style={{
-                background: "rgba(142,27,58,0.08)", border: "none", borderRadius: 11,
-                width: 42, height: 42, display: "flex", alignItems: "center",
-                justifyContent: "center", cursor: "pointer", color: C.garnet,
-              }}
+              style={{ background: "rgba(142,27,58,0.08)", border: "none", borderRadius: 11, width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.garnet }}
             >
               <ShoppingBag size={20} strokeWidth={2} />
             </motion.button>
@@ -107,12 +103,7 @@ export default function Navbar() {
             <motion.button
               onClick={() => router.push("/login")}
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              style={{
-                background: "transparent", border: `1.5px solid rgba(90,15,36,0.25)`,
-                color: C.bordeaux, borderRadius: 100, padding: "8px 18px",
-                fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "0.86rem",
-                cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-              }}
+              style={{ background: "transparent", border: `1.5px solid rgba(90,15,36,0.25)`, color: C.bordeaux, borderRadius: 100, padding: "8px 18px", fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "0.86rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
               onMouseEnter={e => { e.currentTarget.style.background = "rgba(90,15,36,0.06)"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
             >
@@ -122,19 +113,11 @@ export default function Navbar() {
             <motion.button
               onClick={() => goTo("productos")}
               whileHover={{ scale: 1.04, y: -1 }} whileTap={{ scale: 0.97 }}
-              style={{
-                background: `linear-gradient(135deg,${C.garnet},${C.bordeaux})`,
-                color: "white", border: "none", borderRadius: 100,
-                padding: "9px 22px", fontFamily: "'DM Sans',sans-serif",
-                fontWeight: 700, fontSize: "0.86rem", cursor: "pointer",
-                boxShadow: "0 4px 16px rgba(90,15,36,0.3)",
-                display: "flex", alignItems: "center", gap: 7,
-              }}
+              style={{ background: `linear-gradient(135deg,${C.garnet},${C.bordeaux})`, color: "white", border: "none", borderRadius: 100, padding: "9px 22px", fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "0.86rem", cursor: "pointer", boxShadow: "0 4px 16px rgba(90,15,36,0.3)", display: "flex", alignItems: "center", gap: 7 }}
             >
               <Gift size={15} strokeWidth={2.5} /> Ver regalos
             </motion.button>
 
-            {/* Hamburguesa mobile */}
             <motion.button
               onClick={() => setMobileOpen(true)}
               whileTap={{ scale: 0.9 }}
@@ -162,15 +145,13 @@ export default function Navbar() {
               style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 300, background: C.beige, zIndex: 1101, padding: 28, display: "flex", flexDirection: "column", gap: 14 }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <img src="/logo/logoextendido.png" alt="Emotia" style={{ height: 36, objectFit: "contain" }} />
+                <img src="/logo/logoextendido.png" alt="Emotia" style={{ height: 36, objectFit: "contain", display: "block" }} />
                 <motion.button whileTap={{ scale: 0.9 }} onClick={() => setMobileOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: C.choco }}>
                   <X size={22} />
                 </motion.button>
               </div>
-
               {navLinks.map((l, i) => (
-                <motion.button
-                  key={l.label}
+                <motion.button key={l.label}
                   initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.07 }}
                   onClick={l.action}
                   style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "1.1rem", color: C.choco, textAlign: "left", padding: "12px 0", borderBottom: "1px solid rgba(188,153,104,0.2)" }}
@@ -178,7 +159,6 @@ export default function Navbar() {
                   {l.label}
                 </motion.button>
               ))}
-
               <motion.button
                 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
                 onClick={() => { setMobileOpen(false); router.push("/registro"); }}
