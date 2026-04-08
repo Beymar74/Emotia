@@ -1,34 +1,19 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { EmotiaIcon } from './EmotiaIcon';
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Sparkles, Star, Truck, Gift, Package, CheckCircle, Clock, MapPin } from "lucide-react";
-import { C } from "./constants";
-
-const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 24 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] as any },
-});
-
-const CHAT_STEPS = [
-  { id:"ai-0",   role:"ai",     text:"¡Hola! ¿Para quién es el regalo? 🎁",              delay:600  },
-  { id:"usr-1",  role:"user",   text:"Para mi mamá, cumple 55 años 💕",                   delay:1700 },
-  { id:"ai-1",   role:"ai",     text:"¿Qué le gusta más: relajarse, vinos o chocolates?", delay:2800 },
-  { id:"usr-2",  role:"user",   text:"Le encanta relajarse y el vino 🍷",                 delay:4000 },
-  { id:"ai-2",   role:"ai",     text:"¿Cuál es tu presupuesto?",                          delay:5100 },
-  { id:"usr-3",  role:"user",   text:"Entre Bs.150 y Bs.300",                             delay:6200 },
-  { id:"result", role:"result", text:"",                                                   delay:7500 },
-];
+import { ArrowRight, Sparkles, Star, Truck, Gift, CheckCircle, Clock, MapPin, Search } from "lucide-react";
+import { C, CHAT_STEPS, TRUST_ITEMS, MINI_BANNERS, OCASIONES_HERO } from "./constants";
 
 function TypingDots() {
   return (
-    <div style={{ display:"flex", gap:3, padding:"7px 11px" }}>
-      {[0,1,2].map(i => (
+    <div style={{ display: "flex", gap: 3, padding: "7px 11px" }}>
+      {[0, 1, 2].map(i => (
         <motion.span key={i}
-          animate={{ y:[0,-4,0] }}
-          transition={{ duration:0.5, repeat:Infinity, delay:i*0.12 }}
-          style={{ width:5, height:5, borderRadius:"50%", background:C.gold, display:"inline-block" }}
+          animate={{ y: [0, -4, 0] }}
+          transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.13 }}
+          style={{ width: 5, height: 5, borderRadius: "50%", background: C.gold, display: "inline-block" }}
         />
       ))}
     </div>
@@ -41,22 +26,27 @@ function ChatBubble({ msg }: { msg: typeof CHAT_STEPS[0] }) {
   if (msg.role === "result") {
     return (
       <motion.div
-        initial={{ opacity:0, scale:0.93, y:8 }}
-        animate={{ opacity:1, scale:1, y:0 }}
-        transition={{ duration:0.45, ease:[0.22,1,0.36,1] as any }}
-        style={{ background:`linear-gradient(135deg,${C.bordeaux},${C.garnet})`, borderRadius:14, padding:"11px 13px" }}
+        initial={{ opacity: 0, scale: 0.93, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as any }}
+        style={{ background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, borderRadius: 14, padding: "10px 13px" }}
       >
-        <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.6rem", fontWeight:700, color:C.gold, letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:7, display:"flex", alignItems:"center", gap:4 }}>
-          <Sparkles size={10} /> Match encontrado por IA
+        <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.6rem", fontWeight: 700, color: C.gold, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 5, display: "flex", alignItems: "center", gap: 4 }}>
+          <Sparkles size={10} strokeWidth={2} /> Match encontrado por IA
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-          <div style={{ width:38, height:38, borderRadius:10, background:"#FEF0F3", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.3rem", flexShrink:0 }}>🍷</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: "#FEF0F3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            {/* 👇 Cambiamos la copa de vino por una flor de Spa 👇 */}
+            <EmotiaIcon name="Flower2" size={18} color={C.garnet} /> 
+          </div>
           <div>
-            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"0.85rem", fontWeight:800, color:"white", lineHeight:1.2, marginBottom:2 }}>Caja Cata Ciega Premium</div>
-            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <span style={{ fontFamily:"'Playfair Display',serif", fontWeight:900, fontSize:"0.95rem", color:C.gold }}>Bs.280</span>
-              <span style={{ background:"rgba(255,255,255,0.15)", color:"white", fontSize:"0.6rem", fontWeight:700, padding:"2px 7px", borderRadius:100, display:"flex", alignItems:"center", gap:3 }}>
-                <CheckCircle size={9} /> 98% match
+            {/* 👇 Cambiamos el título a un paquete de Spa 👇 */}
+            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "0.85rem", fontWeight: 800, color: "white", lineHeight: 1.2, marginBottom: 2 }}>Día de Spa Relajación Total</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {/* 👇 Ajustamos el precio para que encaje en el presupuesto (Bs. 150 - 300) 👇 */}
+              <span style={{ fontFamily: "'Playfair Display',serif", fontWeight: 900, fontSize: "0.92rem", color: C.gold }}>Bs.250</span>
+              <span style={{ background: "rgba(255,255,255,0.18)", color: "white", fontSize: "0.58rem", fontWeight: 700, padding: "2px 7px", borderRadius: 100, display: "flex", alignItems: "center", gap: 3 }}>
+                <CheckCircle size={8} strokeWidth={2} /> 99% match
               </span>
             </div>
           </div>
@@ -67,13 +57,13 @@ function ChatBubble({ msg }: { msg: typeof CHAT_STEPS[0] }) {
 
   return (
     <motion.div
-      initial={{ opacity:0, x:isUser?12:-12, y:4 }}
-      animate={{ opacity:1, x:0, y:0 }}
-      transition={{ duration:0.32, ease:[0.22,1,0.36,1] as any }}
-      style={{ display:"flex", justifyContent:isUser?"flex-end":"flex-start" }}
+      initial={{ opacity: 0, x: isUser ? 12 : -12, y: 4 }}
+      animate={{ opacity: 1, x: 0, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] as any }}
+      style={{ display: "flex", justifyContent: isUser ? "flex-end" : "flex-start" }}
     >
       {!isUser && (
-        <div style={{ width:20, height:20, borderRadius:6, background:`linear-gradient(135deg,${C.garnet},${C.bordeaux})`, display:"flex", alignItems:"center", justifyContent:"center", marginRight:6, flexShrink:0, marginTop:2 }}>
+        <div style={{ width: 20, height: 20, borderRadius: 6, background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, display: "flex", alignItems: "center", justifyContent: "center", marginRight: 6, flexShrink: 0, marginTop: 2 }}>
           <Gift size={10} color="white" strokeWidth={2.5} />
         </div>
       )}
@@ -81,11 +71,11 @@ function ChatBubble({ msg }: { msg: typeof CHAT_STEPS[0] }) {
         background: isUser ? `linear-gradient(135deg,${C.garnet},${C.crimson})` : "white",
         color: isUser ? "white" : C.choco,
         borderRadius: !isUser ? "3px 12px 12px 12px" : "12px 3px 12px 12px",
-        padding: "7px 11px",
-        fontFamily:"'DM Sans',sans-serif", fontSize:"0.8rem", fontWeight:500, lineHeight:1.4,
-        maxWidth:"76%",
-        boxShadow: isUser ? "0 3px 10px rgba(142,27,58,0.18)" : "0 1px 6px rgba(0,0,0,0.05)",
-        border: !isUser ? "1px solid rgba(188,153,104,0.14)" : "none",
+        padding: "6px 12px",
+        fontFamily: "'DM Sans',sans-serif", fontSize: "0.82rem", fontWeight: 500, lineHeight: 1.45,
+        maxWidth: "88%", // <-- AUMENTADO PARA QUE EL TEXTO SEA MÁS ANCHO Y MENOS ALTO
+        boxShadow: isUser ? `0 3px 10px rgba(198,40,79,0.2)` : "0 1px 6px rgba(0,0,0,0.05)",
+        border: !isUser ? "1px solid rgba(255,209,179,0.3)" : "none",
       }}>
         {msg.text}
       </div>
@@ -94,13 +84,11 @@ function ChatBubble({ msg }: { msg: typeof CHAT_STEPS[0] }) {
 }
 
 export default function HeroSection() {
-  const router   = useRouter();
-  const scrollTo = (id: string) =>
-    document.getElementById(id)?.scrollIntoView({ behavior:"smooth" });
-
+  const router = useRouter();
+  const [searchVal, setSearchVal]   = useState("");
   const [visibleIds, setVisibleIds] = useState<string[]>([]);
-  const [showTyping, setShowTyping]  = useState(false);
-  const [done, setDone]              = useState(false);
+  const [showTyping, setShowTyping] = useState(false);
+  const [done, setDone]             = useState(false);
   const started = useRef(false);
 
   useEffect(() => {
@@ -109,7 +97,7 @@ export default function HeroSection() {
     const timers: ReturnType<typeof setTimeout>[] = [];
     CHAT_STEPS.forEach(step => {
       if (step.role === "ai" || step.role === "result")
-        timers.push(setTimeout(() => setShowTyping(true), step.delay - 750));
+        timers.push(setTimeout(() => setShowTyping(true), step.delay - 800));
       timers.push(setTimeout(() => {
         setShowTyping(false);
         setVisibleIds(prev => prev.includes(step.id) ? prev : [...prev, step.id]);
@@ -119,139 +107,160 @@ export default function HeroSection() {
     return () => timers.forEach(clearTimeout);
   }, []);
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    document.getElementById("productos")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700;800&display=swap');
-        @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
-        @keyframes pulse-g{0%,100%{transform:scale(1)}50%{transform:scale(1.5);opacity:0.6}}
-        .hgrad{background:linear-gradient(135deg,#8E1B3A 0%,#BC9968 45%,#AB3A50 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 4s linear infinite}
-        .ldot{animation:pulse-g 2s infinite}
-        .hero-grid{display:grid;grid-template-columns:1fr 420px;gap:48px;align-items:center}
-        @media(max-width:1000px){.hero-grid{grid-template-columns:1fr}}
+        @keyframes shimmer-e{0%{background-position:-200% center}100%{background-position:200% center}}
+        @keyframes pulse-live{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.6);opacity:.4}}
+        @keyframes grad-flow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        .hero-grad-text{background:linear-gradient(90deg,#C6284F,#E6B85C,#E04A64,#C6284F);background-size:250% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer-e 4s linear infinite}
+        .live-dot{animation:pulse-live 2s infinite}
+        .hero-bg{background:linear-gradient(135deg,#FFF3E6 0%,#FFE3E8 40%,#FFF3E6 70%,#FFD1B3 100%);background-size:300% 300%;animation:grad-flow 10s ease infinite}
+        
+        /* 👇 COLUMNA DERECHA ENSANCHADA DE 420px A 460px 👇 */
+        .hero-grid{display:grid;grid-template-columns:1fr 460px;gap:36px;align-items:center}
+        
+        .mini-banners{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        .ocasiones-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+        @media(max-width:1024px){.hero-grid{grid-template-columns:1fr}}
+        @media(max-width:640px){.mini-banners{grid-template-columns:1fr 1fr}.ocasiones-grid{grid-template-columns:repeat(3,1fr)}}
       `}</style>
 
-      <section style={{
-        background:`radial-gradient(ellipse at 72% 8%,rgba(142,27,58,0.08) 0%,transparent 48%),
-                    radial-gradient(ellipse at 4% 82%,rgba(188,153,104,0.1) 0%,transparent 44%),
-                    linear-gradient(155deg,#FAF5EE 0%,#FFF9F5 45%,#FEF3F6 100%)`,
-        paddingTop:72, display:"flex", flexDirection:"column",
-        overflow:"hidden", position:"relative",
-      }}>
-        <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(rgba(142,27,58,0.045) 1px,transparent 1px)", backgroundSize:"28px 28px", pointerEvents:"none" }} />
+      <section className="hero-bg" style={{ paddingTop: 76, overflow: "hidden", position: "relative" }}>
+        {/* Dot pattern */}
+        <div style={{ position: "absolute", inset: 0, backgroundImage: `radial-gradient(rgba(198,40,79,0.045) 1px,transparent 1px)`, backgroundSize: "26px 26px", pointerEvents: "none" }} />
+        {/* Orbs */}
+        <div style={{ position: "absolute", top: -60, right: "8%", width: 300, height: 300, borderRadius: "50%", background: "rgba(255,107,129,0.1)", filter: "blur(55px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "5%", left: -50, width: 220, height: 220, borderRadius: "50%", background: "rgba(230,184,92,0.09)", filter: "blur(50px)", pointerEvents: "none" }} />
 
-        <div style={{ maxWidth:1280, margin:"0 auto", padding:"36px 32px 28px", position:"relative", zIndex:2, width:"100%" }}>
+        {/* ── HERO PRINCIPAL ── */}
+        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "36px 24px 28px", position: "relative", zIndex: 2 }}>
           <div className="hero-grid">
 
-            {/* ══ COLUMNA IZQUIERDA ══ */}
-            <div style={{ display:"flex", flexDirection:"column" }}>
+            {/* COLUMNA IZQUIERDA */}
+            <div style={{ display: "flex", flexDirection: "column" }}>
 
               {/* Pill */}
-              <motion.div {...fadeUp(0.04)} style={{ display:"inline-flex", alignItems:"center", gap:8, background:"white", border:"1.5px solid rgba(142,27,58,0.18)", borderRadius:100, padding:"5px 15px", marginBottom:18, width:"fit-content", boxShadow:"0 3px 12px rgba(90,15,36,0.08)" }}>
-                <span className="ldot" style={{ width:7, height:7, borderRadius:"50%", background:"#16a34a", flexShrink:0, display:"inline-block" }} />
-                <span style={{ fontFamily:"'DM Sans',sans-serif", fontWeight:700, fontSize:"0.7rem", color:C.bordeaux, letterSpacing:"0.08em", textTransform:"uppercase" }}>
-                  Emotia · Regalos personalizados · La Paz 🇧🇴
+              <motion.div
+                initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.05 }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "white", border: `1.5px solid rgba(255,209,179,0.7)`, borderRadius: 100, padding: "5px 15px", marginBottom: 16, width: "fit-content", boxShadow: "0 3px 14px rgba(198,40,79,0.09)" }}
+              >
+                <span className="live-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e", flexShrink: 0, display: "inline-block" }} />
+                <span style={{ fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "0.7rem", color: C.garnet, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  Emotia · Regalos personalizados · La Paz
                 </span>
               </motion.div>
 
-              {/* Título */}
-              <motion.h1 {...fadeUp(0.1)} style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(2.8rem,4.5vw,4.4rem)", fontWeight:900, lineHeight:1.04, letterSpacing:"-0.03em", marginBottom:16, color:C.bordeaux }}>
-                Regala algo<br />
-                <span className="hgrad">que nunca olvidan.</span>
+              {/* H1 */}
+              <motion.h1
+                initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.12 }}
+                style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(2.4rem,4vw,4rem)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-0.03em", marginBottom: 14, color: C.garnet }}
+              >
+                Regala momentos<br />
+                <span className="hero-grad-text">que nunca olvidan.</span>
               </motion.h1>
 
-              {/* Descripción */}
-              <motion.p {...fadeUp(0.18)} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"1rem", color:C.choco, lineHeight:1.68, marginBottom:24, opacity:0.87, maxWidth:500 }}>
-              <strong style={{ color:C.garnet }}>Emotia</strong> es tu asesor inteligente de regalos personalizados.
-Cuéntanos la ocasión, el perfil y tu presupuesto — nuestra IA encuentra el detalle perfecto
-y lo entrega con dedicatoria incluida.
+              {/* Desc */}
+              <motion.p
+                initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
+                style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.98rem", color: C.choco, lineHeight: 1.7, marginBottom: 24, opacity: 0.88, maxWidth: 480 }}
+              >
+                <strong style={{ color: C.garnet }}>Emotia</strong> es tu asesor inteligente de regalos y experiencias.
+                Cuéntanos la ocasión y nuestra IA encuentra el detalle perfecto, 
+                desde artesanías locales hasta cenas exclusivas en La Paz.
               </motion.p>
 
               {/* Botones */}
-              <motion.div {...fadeUp(0.26)} style={{ display:"flex", gap:11, flexWrap:"wrap", marginBottom:28 }}>
+              <motion.div
+                initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.27 }}
+                style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 26 }}
+              >
                 <motion.button
-                  whileHover={{ scale:1.03, y:-2 }} whileTap={{ scale:0.97 }}
-                  onClick={() => scrollTo("productos")}
-                  style={{ background:`linear-gradient(135deg,${C.bordeaux},${C.garnet})`, color:"white", border:"none", padding:"13px 28px", borderRadius:100, fontFamily:"'DM Sans',sans-serif", fontWeight:800, fontSize:"0.95rem", cursor:"pointer", boxShadow:"0 8px 24px rgba(90,15,36,0.3)", display:"flex", alignItems:"center", gap:7 }}
+                  whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
+                  onClick={() => router.push("/registro")}
+                  style={{ background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, color: "white", border: "none", padding: "12px 26px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.93rem", cursor: "pointer", boxShadow: "0 8px 22px rgba(198,40,79,0.32)", display: "flex", alignItems: "center", gap: 7 }}
                 >
-                  <Gift size={16} strokeWidth={2.5} /> Ver todos los regalos <ArrowRight size={14} strokeWidth={2.5} />
+                  <Sparkles size={15} strokeWidth={2.5} /> Probar IA gratis <ArrowRight size={14} strokeWidth={2.5} />
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale:1.02, y:-2 }} whileTap={{ scale:0.97 }}
-                  onClick={() => router.push("/registro")}
-                  style={{ background:"white", color:C.bordeaux, border:`2px solid rgba(90,15,36,0.18)`, padding:"11px 22px", borderRadius:100, fontFamily:"'DM Sans',sans-serif", fontWeight:700, fontSize:"0.92rem", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}
+                  whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.97 }}
+                  onClick={() => document.getElementById("productos")?.scrollIntoView({ behavior: "smooth" })}
+                  style={{ background: "white", color: C.garnet, border: `2px solid rgba(198,40,79,0.2)`, padding: "10px 20px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "0.9rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
                 >
-                  <Sparkles size={15} strokeWidth={2} /> Usar asistente IA
+                  <Gift size={15} strokeWidth={2} /> Ver todos los regalos
                 </motion.button>
               </motion.div>
 
-              {/* ── PRUEBA SOCIAL + STATS en una sola fila ── */}
-              <motion.div {...fadeUp(0.34)} style={{ display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
-
-                {/* Avatares + estrellas */}
-                <div style={{ display:"flex", alignItems:"center", gap:10, background:"white", borderRadius:14, padding:"10px 16px", border:"1px solid rgba(188,153,104,0.18)", boxShadow:"0 3px 12px rgba(90,15,36,0.05)" }}>
-                  <div style={{ display:"flex" }}>
-                    {["V","S","C","M"].map((l,i) => (
-                      <div key={i} style={{ width:28, height:28, borderRadius:"50%", background:`linear-gradient(135deg,${C.garnet},${C.crimson})`, border:"2px solid white", marginLeft:i>0?-8:0, display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontSize:"0.6rem", fontWeight:800, position:"relative", zIndex:4-i }}>
-                        {l}
-                      </div>
+              {/* Stats */}
+              <motion.div
+                initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.34 }}
+                style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}
+              >
+                {/* Avatares */}
+                <div style={{ display: "flex", alignItems: "center", gap: 9, background: "white", borderRadius: 14, padding: "9px 14px", border: "1px solid rgba(255,209,179,0.5)", boxShadow: "0 3px 12px rgba(198,40,79,0.06)" }}>
+                  <div style={{ display: "flex" }}>
+                    {['V','S','C','M'].map((l, i) => (
+                      <div key={i} style={{ width: 26, height: 26, borderRadius: "50%", background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, border: "2px solid white", marginLeft: i > 0 ? -7 : 0, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "0.58rem", fontWeight: 800, position: "relative", zIndex: 4 - i }}>{l}</div>
                     ))}
                   </div>
                   <div>
-                    <div style={{ display:"flex", gap:1, marginBottom:1 }}>
-                      {[...Array(5)].map((_,i) => <Star key={i} size={10} fill={C.gold} color={C.gold} />)}
+                    <div style={{ display: "flex", gap: 1, marginBottom: 1 }}>
+                      {[...Array(5)].map((_, i) => <Star key={i} size={9} fill={C.gold} color={C.gold} strokeWidth={1.5} />)}
                     </div>
-                    <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.72rem", fontWeight:700, color:C.choco }}>+2,400 regalos</span>
+                    <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.7rem", fontWeight: 700, color: C.choco }}>+2,400 regalos</span>
                   </div>
                 </div>
-
-                {/* Stats inline — pequeños */}
                 {[
-                  { icon:<CheckCircle size={14} color={C.garnet} strokeWidth={2}/>, num:"98%",    label:"satisfacción" },
-                  { icon:<Clock       size={14} color={C.garnet} strokeWidth={2}/>, num:"<2min",  label:"IA responde" },
-                  { icon:<MapPin      size={14} color={C.garnet} strokeWidth={2}/>, num:"Hoy",    label:"entrega LPZ" },
-                ].map((s,i) => (
-                  <div key={i} style={{ display:"flex", alignItems:"center", gap:7, background:"white", borderRadius:12, padding:"9px 14px", border:"1px solid rgba(188,153,104,0.16)", boxShadow:"0 2px 10px rgba(90,15,36,0.04)" }}>
+                  { icon: <CheckCircle size={13} color={C.garnet} strokeWidth={2} />, num: "98%",   label: "satisfacción" },
+                  { icon: <Clock       size={13} color={C.garnet} strokeWidth={2} />, num: "<2min", label: "IA responde" },
+                  { icon: <MapPin      size={13} color={C.garnet} strokeWidth={2} />, num: "Hoy",   label: "entrega LPZ" },
+                ].map((s, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, background: "white", borderRadius: 11, padding: "8px 12px", border: "1px solid rgba(255,209,179,0.4)", boxShadow: "0 2px 10px rgba(198,40,79,0.05)" }}>
                     {s.icon}
                     <div>
-                      <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"1rem", fontWeight:900, color:C.garnet, lineHeight:1 }}>{s.num}</div>
-                      <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.62rem", fontWeight:600, color:C.gray, textTransform:"uppercase", letterSpacing:"0.04em" }}>{s.label}</div>
+                      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "0.95rem", fontWeight: 900, color: C.garnet, lineHeight: 1 }}>{s.num}</div>
+                      <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.58rem", fontWeight: 600, color: C.gray, textTransform: "uppercase", letterSpacing: "0.04em" }}>{s.label}</div>
                     </div>
                   </div>
                 ))}
               </motion.div>
             </div>
 
-            {/* ══ COLUMNA DERECHA: CHAT COMPACTO ══ */}
+            {/* COLUMNA DERECHA: CHAT */}
             <motion.div
-              initial={{ opacity:0, x:30 }}
-              animate={{ opacity:1, x:0 }}
-              transition={{ duration:0.6, delay:0.22, ease:[0.22,1,0.36,1] as any }}
+              initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.65, delay: 0.22, ease: [0.22, 1, 0.36, 1] as any }}
             >
-              <div style={{ background:"rgba(255,255,255,0.88)", backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.9)", borderRadius:24, padding:18, boxShadow:"0 24px 64px rgba(90,15,36,0.12)" }}>
-
-                {/* Header chat */}
-                <div style={{ display:"flex", alignItems:"center", gap:9, paddingBottom:12, borderBottom:"1px solid rgba(188,153,104,0.13)", marginBottom:12 }}>
-                  <div style={{ width:36, height:36, borderRadius:11, overflow:"hidden", flexShrink:0, background:`linear-gradient(135deg,${C.garnet},${C.bordeaux})`, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 3px 10px rgba(90,15,36,0.2)" }}>
-                    <img src="/logo/logo.png" alt="Emotia" style={{ width:32, height:32, objectFit:"contain" }} onError={e=>{(e.target as HTMLImageElement).style.display="none"}} />
+              <div style={{ background: "rgba(255,255,255,0.92)", backdropFilter: "blur(24px)", border: "1px solid rgba(255,209,179,0.55)", borderRadius: 22, padding: 18, boxShadow: "0 24px 60px rgba(198,40,79,0.12)" }}>
+                {/* Header */}
+                <div style={{ display: "flex", alignItems: "center", gap: 9, paddingBottom: 11, borderBottom: "1px solid rgba(255,209,179,0.25)", marginBottom: 11 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                    <img src="/logo/logo.png" alt="Emotia" style={{ width: 30, height: 30, objectFit: "contain" }} onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   </div>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontFamily:"'Playfair Display',serif", fontWeight:800, fontSize:"0.92rem", color:C.bordeaux }}>Emotia IA</div>
-                    <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.65rem", color:"#16a34a", fontWeight:700, display:"flex", alignItems:"center", gap:4, marginTop:1 }}>
-                      <span style={{ width:5, height:5, background:"#16a34a", borderRadius:"50%", display:"inline-block" }} /> En línea · Responde al instante
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 800, fontSize: "0.9rem", color: C.garnet }}>Emotia IA</div>
+                    <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.63rem", color: "#22c55e", fontWeight: 700, display: "flex", alignItems: "center", gap: 4, marginTop: 1 }}>
+                      <span style={{ width: 5, height: 5, background: "#22c55e", borderRadius: "50%", display: "inline-block" }} /> En línea · Responde al instante
                     </div>
                   </div>
-                  <div style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(22,163,74,0.08)", borderRadius:100, padding:"4px 9px", flexShrink:0 }}>
-                    <Truck size={11} color="#16a34a" strokeWidth={2.5} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(34,197,94,0.08)", borderRadius: 100, padding: "3px 8px", flexShrink: 0 }}>
+                    <Truck size={10} color="#22c55e" strokeWidth={2.5} />
                     <div>
-                      <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.61rem", fontWeight:700, color:"#16a34a", whiteSpace:"nowrap" }}>Entrega hoy</div>
-                      <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.56rem", color:C.gray }}>La Paz</div>
+                      <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.59rem", fontWeight: 700, color: "#22c55e", whiteSpace: "nowrap" }}>Entrega hoy</div>
+                      <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.53rem", color: C.gray }}>La Paz</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Mensajes */}
-                <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:12, minHeight:220 }}>
+                {/* 👇 MIN-HEIGHT REDUCIDO PARA QUE SEA MÁS COMPACTO 👇 */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 11, minHeight: 210 }}>
                   <AnimatePresence initial={false}>
                     {visibleIds.map(id => {
                       const step = CHAT_STEPS.find(s => s.id === id)!;
@@ -259,13 +268,13 @@ y lo entrega con dedicatoria incluida.
                     })}
                     {showTyping && (
                       <motion.div key="typing"
-                        initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0 }}
-                        style={{ display:"flex", alignItems:"center", gap:6 }}
+                        initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                        style={{ display: "flex", alignItems: "center", gap: 6 }}
                       >
-                        <div style={{ width:20, height:20, borderRadius:6, background:`linear-gradient(135deg,${C.garnet},${C.bordeaux})`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <div style={{ width: 20, height: 20, borderRadius: 6, background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                           <Gift size={10} color="white" strokeWidth={2.5} />
                         </div>
-                        <div style={{ background:"white", borderRadius:"3px 12px 12px 12px", border:"1px solid rgba(188,153,104,0.13)" }}>
+                        <div style={{ background: "white", borderRadius: "3px 12px 12px 12px", border: "1px solid rgba(255,209,179,0.3)" }}>
                           <TypingDots />
                         </div>
                       </motion.div>
@@ -274,52 +283,84 @@ y lo entrega con dedicatoria incluida.
                 </div>
 
                 {/* Input */}
-                <div style={{ display:"flex", gap:7, background:"white", borderRadius:100, padding:"5px 5px 5px 14px", border:"1px solid rgba(188,153,104,0.18)" }}>
-                  <span style={{ flex:1, fontFamily:"'DM Sans',sans-serif", fontSize:"0.78rem", color:"#B0A09A", display:"flex", alignItems:"center" }}>
+                <div style={{ display: "flex", gap: 7, background: C.cream, borderRadius: 100, padding: "5px 5px 5px 13px", border: "1px solid rgba(255,209,179,0.45)" }}>
+                  <span style={{ flex: 1, fontFamily: "'DM Sans',sans-serif", fontSize: "0.77rem", color: "#C0A898", display: "flex", alignItems: "center" }}>
                     Describe a quien quieres sorprender...
                   </span>
                   <motion.button
-                    whileHover={{ scale:1.08 }} whileTap={{ scale:0.92 }}
+                    whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
                     onClick={() => router.push("/registro")}
-                    style={{ width:32, height:32, borderRadius:"50%", background:`linear-gradient(135deg,${C.garnet},${C.bordeaux})`, border:"none", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 3px 10px rgba(90,15,36,0.26)" }}
+                    style={{ width: 30, height: 30, borderRadius: "50%", background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 3px 10px rgba(198,40,79,0.28)" }}
                   >
-                    <ArrowRight size={14} color="white" strokeWidth={2.5} />
+                    <ArrowRight size={13} color="white" strokeWidth={2.5} />
                   </motion.button>
                 </div>
 
-                {/* CTA post-match */}
                 {done && (
                   <motion.button
-                    initial={{ opacity:0, y:7 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.3 }}
-                    whileHover={{ scale:1.03 }} whileTap={{ scale:0.97 }}
+                    initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                    whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                     onClick={() => router.push("/registro")}
-                    style={{ marginTop:10, width:"100%", background:`linear-gradient(135deg,${C.bordeaux},${C.garnet})`, color:"white", border:"none", padding:"10px", borderRadius:100, fontFamily:"'DM Sans',sans-serif", fontWeight:700, fontSize:"0.85rem", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, boxShadow:"0 5px 16px rgba(90,15,36,0.26)" }}
+                    style={{ marginTop: 9, width: "100%", background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, color: "white", border: "none", padding: "9px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.83rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, boxShadow: "0 5px 16px rgba(198,40,79,0.28)" }}
                   >
-                    <Sparkles size={14} strokeWidth={2} /> Probar gratis ahora
+                    <Sparkles size={13} strokeWidth={2} /> Probar gratis ahora
                   </motion.button>
                 )}
               </div>
             </motion.div>
-
           </div>
         </div>
 
-        {/* BARRA CONFIANZA */}
+        {/* ── BÚSQUEDA PROMINENTE ── */}
+        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 24px 20px", position: "relative", zIndex: 2 }}>
+          <motion.form
+            onSubmit={handleSearch}
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.42 }}
+            style={{ display: "flex", alignItems: "center", background: "white", border: `2px solid rgba(255,209,179,0.7)`, borderRadius: 100, padding: "7px 7px 7px 22px", maxWidth: 620, boxShadow: "0 4px 20px rgba(198,40,79,0.08)" }}
+          >
+            <Search size={15} color={C.garnet} strokeWidth={2} style={{ flexShrink: 0 }} />
+            <input
+              value={searchVal}
+              onChange={e => setSearchVal(e.target.value)}
+              placeholder="Ej: regalo para mamá 55 años, presupuesto Bs.200..."
+              style={{ flex: 1, border: "none", background: "none", fontFamily: "'DM Sans',sans-serif", fontSize: "0.88rem", color: C.choco, outline: "none", marginLeft: 10 }}
+            />
+            <button type="submit" style={{ background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, color: "white", border: "none", borderRadius: 100, padding: "9px 22px", fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.84rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+              <Sparkles size={13} /> Buscar con IA
+            </button>
+          </motion.form>
+        </div>
+
+        {/* ── EXPLORA POR OCASIÓN ── */}
+        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 24px 24px", position: "relative", zIndex: 2 }}>
+          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "1.15rem", fontWeight: 800, color: C.choco, marginBottom: 12 }}>Explora por ocasión</div>
+          <div className="ocasiones-grid">
+            {OCASIONES_HERO.map((o, i) => (
+              <motion.div key={o.id}
+                initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.35, delay: 0.55 + i * 0.06 }}
+                whileHover={{ y: -3, scale: 1.03 }}
+                onClick={() => document.getElementById("productos")?.scrollIntoView({ behavior: "smooth" })}
+                style={{ background: o.bg, borderRadius: 10, overflow: "hidden", cursor: "pointer", textAlign: "center" }}
+              >
+                <div style={{ height: 72, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                   <EmotiaIcon name={o.icon} size={32} color={C.garnet} />
+                </div>
+                <div style={{ padding: "0px 6px 14px", fontFamily: "'DM Sans',sans-serif", fontSize: "0.78rem", fontWeight: 700, color: C.choco }}>{o.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── BARRA CONFIANZA ── */}
         <motion.div
-          initial={{ opacity:0, y:14 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.5, delay:0.45 }}
-          style={{ background:"rgba(255,255,255,0.8)", backdropFilter:"blur(10px)", borderTop:"1px solid rgba(188,153,104,0.15)", marginTop:28 }}
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.5 }}
+          style={{ background: "rgba(255,255,255,0.88)", backdropFilter: "blur(10px)", borderTop: "1px solid rgba(255,209,179,0.3)" }}
         >
-          <div style={{ maxWidth:1280, margin:"0 auto", padding:"0 32px", display:"flex", flexWrap:"wrap" }}>
-            {[
-              { icon:<Truck    size={15} color={C.garnet}/>, t:"Envío a toda Bolivia" },
-              { icon:<Package  size={15} color={C.garnet}/>, t:"Empaque premium" },
-              { icon:"✍️",                                    t:"Tarjeta dedicatoria" },
-              { icon:"🤝",                                    t:"Artesanos bolivianos" },
-              { icon:<Sparkles size={15} color={C.garnet}/>, t:"IA en 2 minutos" },
-            ].map((item,i,arr) => (
-              <div key={i} style={{ flex:"1 1 150px", display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"12px 8px", borderRight:i<arr.length-1?"1px solid rgba(188,153,104,0.13)":"none" }}>
-                <span style={{ fontSize:"0.95rem", display:"flex", alignItems:"center" }}>{item.icon}</span>
-                <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.78rem", fontWeight:600, color:C.choco }}>{item.t}</span>
+          <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 24px", display: "flex", flexWrap: "wrap" }}>
+            {TRUST_ITEMS.map((item, i, arr) => (
+              <div key={i} style={{ flex: "1 1 130px", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "12px 8px", borderRight: i < arr.length - 1 ? "1px solid rgba(255,209,179,0.25)" : "none" }}>
+                <EmotiaIcon name={item.icon} size={18} color={C.choco} />
+                <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.76rem", fontWeight: 600, color: C.choco }}>{item.label}</span>
               </div>
             ))}
           </div>
