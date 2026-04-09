@@ -6,8 +6,8 @@ export const stackServerApp = new StackServerApp({
   publishableClientKey: process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY!,
   secretServerKey: process.env.STACK_SECRET_SERVER_KEY!,
   urls: {
-    afterSignIn: '/dashboard',
-    afterSignUp: '/dashboard',
-    afterSignOut: '/login',
+    afterSignIn: '/regalos', // <--- CAMBIADO AQUÍ
+    afterSignUp: '/regalos', // <--- CAMBIADO AQUÍ
+    afterSignOut: '/', 
   }
 });
