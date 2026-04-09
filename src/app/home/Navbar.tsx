@@ -2,11 +2,20 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, LogIn, Menu, X, Search, Sparkles } from "lucide-react";
+import { ShoppingBag, LogIn, Menu, X, Search, Sparkles, LogOut, User as UserIcon } from "lucide-react";
+import { useUser, useStackApp } from "@stackframe/stack";
 import { C } from "./constants";
 
-export default function Navbar() {
+interface NavbarProps {
+  onOpenLogin?: () => void;
+  onOpenRegister?: () => void;
+}
+
+export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
   const router = useRouter();
+  const user = useUser();
+  const stackApp = useStackApp();
+  
   const [scrolled, setScrolled]     = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchVal, setSearchVal]   = useState("");
@@ -33,23 +42,25 @@ export default function Navbar() {
     setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }), 150);
   };
 
+  // 👇 AHORA EL BUSCADOR TE LLEVA A LA PÁGINA DE REGALOS 👇
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchVal.trim()) return;
-    document.getElementById("productos")?.scrollIntoView({ behavior: "smooth" });
-    setMobileOpen(false); // Cerrar menú móvil si se busca desde ahí
+    router.push(`/regalos?search=${encodeURIComponent(searchVal)}`);
+    setMobileOpen(false);
   };
 
-  const setCat = (category: string) => {
-    // TODO: Implement category filtering logic
-    console.log(`Category selection not yet implemented: ${category}`);
+  const handleLogout = async () => {
+    await stackApp.signOut();
+    window.location.reload(); 
   };
 
+  // 👇 LOS ENLACES AHORA TE LLEVAN AL CATÁLOGO EN LUGAR DE HACER SCROLL 👇
   const NAV_LINKS = [
-    { label: "Regalos Físicos", action: () => { setCat("todos"); goTo("productos"); } },
-    { label: "Experiencias",    action: () => { setCat("experiencias"); goTo("productos"); } },
+    { label: "Regalos Físicos", action: () => { setMobileOpen(false); router.push("/regalos"); } },
+    { label: "Experiencias",    action: () => { setMobileOpen(false); router.push("/regalos?categoria=experiencias"); } },
     { label: "Cómo funciona",   action: () => goTo("como-funciona") },
-    { label: "Nosotros",      action: () => router.push("/nosotros") },
+    { label: "Nosotros",        action: () => { setMobileOpen(false); router.push("/nosotros"); } },
   ];
 
   return (
@@ -72,7 +83,6 @@ export default function Navbar() {
         }
       `}</style>
 
-      {/* Uso de la etiqueta semántica <header> */}
       <header style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 999,
         background: scrolled ? "rgba(255,243,230,0.92)" : "transparent",
@@ -119,7 +129,7 @@ export default function Navbar() {
 
           {/* Acciones desktop */}
           <div className="nav-desktop" style={{ display: "flex", alignItems: "center", gap: 12, marginLeft: "auto", flexShrink: 0 }}>
-            {/* Badge negocio */}
+            
             <motion.button
               onClick={() => router.push("/business")}
               whileHover={{ scale: 1.03, backgroundColor: "rgba(92,58,46,0.1)" }} whileTap={{ scale: 0.97 }}
@@ -135,25 +145,49 @@ export default function Navbar() {
               style={{ position: "relative", background: "white", border: `1px solid rgba(198,40,79,0.15)`, borderRadius: 12, width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.garnet, boxShadow: "0 2px 8px rgba(0,0,0,0.02)" }}
             >
               <ShoppingBag size={18} strokeWidth={1.5} />
-              {/* Notification Dot (UX premium) */}
               <span style={{ position: "absolute", top: 8, right: 8, width: 8, height: 8, backgroundColor: "#ef4444", borderRadius: "50%", border: "2px solid white" }} />
             </motion.button>
 
-            <motion.button
-              onClick={() => router.push("/login")}
-              whileHover={{ scale: 1.03, backgroundColor: "rgba(198,40,79,0.04)" }} whileTap={{ scale: 0.97 }}
-              style={{ background: "transparent", border: `1px solid rgba(198,40,79,0.3)`, color: C.garnet, borderRadius: 100, padding: "8px 20px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "background-color 0.2s" }}
-            >
-              <LogIn size={15} strokeWidth={1.5} /> Entrar
-            </motion.button>
+            {/* 👇 LÓGICA ESTILO AMAZON: Muestra perfil si está logueado, sino Login 👇 */}
+            {user ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "8px", paddingLeft: "12px", borderLeft: `1px solid rgba(188, 153, 104, 0.3)` }}>
+                <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", color: C.choco }}>
+                  Hola, {user.primaryEmail?.split('@')[0] || 'Usuario'}
+                </span>
+                <motion.button
+                  onClick={() => router.push("/dashboard")}
+                  whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }}
+                  style={{ background: "white", border: `1px solid rgba(198,40,79,0.15)`, borderRadius: 12, width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.garnet }}
+                >
+                  <UserIcon size={16} strokeWidth={2} />
+                </motion.button>
+                <motion.button
+                  onClick={handleLogout}
+                  whileHover={{ scale: 1.08, backgroundColor: "#fee2e2" }} whileTap={{ scale: 0.93 }}
+                  style={{ background: "transparent", border: `1px solid transparent`, borderRadius: 12, width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#ef4444", transition: "background 0.2s" }}
+                >
+                  <LogOut size={16} strokeWidth={2} />
+                </motion.button>
+              </div>
+            ) : (
+              <>
+                <motion.button
+                  onClick={onOpenLogin}
+                  whileHover={{ scale: 1.03, backgroundColor: "rgba(198,40,79,0.04)" }} whileTap={{ scale: 0.97 }}
+                  style={{ background: "transparent", border: `1px solid rgba(198,40,79,0.3)`, color: C.garnet, borderRadius: 100, padding: "8px 20px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "background-color 0.2s" }}
+                >
+                  <LogIn size={15} strokeWidth={1.5} /> Entrar
+                </motion.button>
 
-            <motion.button
-              onClick={() => router.push("/registro")}
-              whileHover={{ scale: 1.04, y: -1, boxShadow: "0 6px 16px rgba(198,40,79,0.25)" }} whileTap={{ scale: 0.97 }}
-              style={{ background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, color: "white", border: "none", borderRadius: 100, padding: "10px 22px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.9rem", cursor: "pointer", boxShadow: "0 4px 12px rgba(198,40,79,0.2)" }}
-            >
-              Registrarse
-            </motion.button>
+                <motion.button
+                  onClick={onOpenRegister}
+                  whileHover={{ scale: 1.04, y: -1, boxShadow: "0 6px 16px rgba(198,40,79,0.25)" }} whileTap={{ scale: 0.97 }}
+                  style={{ background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, color: "white", border: "none", borderRadius: 100, padding: "10px 22px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.9rem", cursor: "pointer", boxShadow: "0 4px 12px rgba(198,40,79,0.2)" }}
+                >
+                  Registrarse
+                </motion.button>
+              </>
+            )}
           </div>
 
           {/* Hamburger mobile */}
@@ -226,32 +260,62 @@ export default function Navbar() {
                 </motion.button>
               </nav>
 
-              {/* Botones de Acción */}
-              <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-                <motion.button
-                  initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
-                  onClick={() => { setMobileOpen(false); router.push("/login"); }}
-                  style={{ flex: 1, background: "white", color: C.garnet, border: `1px solid rgba(198,40,79,0.3)`, borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer" }}
-                >
-                  Entrar
-                </motion.button>
-                <motion.button
-                  initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}
-                  onClick={() => { setMobileOpen(false); router.push("/registro"); }}
-                  style={{ flex: 1, background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, color: "white", border: "none", borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer" }}
-                >
-                  Registrarse
-                </motion.button>
-              </div>
+              {/* 👇 LÓGICA ESTILO AMAZON PARA EL MENÚ MÓVIL 👇 */}
+              {user ? (
+                <div style={{ marginTop: "auto" }}>
+                  <div style={{ background: "rgba(255,255,255,0.6)", borderRadius: 16, padding: "16px", display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
+                      <UserIcon size={20} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.8rem", color: C.gray }}>Bienvenido,</div>
+                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "1rem", fontWeight: 700, color: C.choco }}>{user.primaryEmail?.split('@')[0] || 'Usuario'}</div>
+                    </div>
+                    <motion.button
+                      onClick={handleLogout}
+                      whileTap={{ scale: 0.9 }}
+                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 8 }}
+                    >
+                      <LogOut size={20} />
+                    </motion.button>
+                  </div>
+                  <motion.button
+                    initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
+                    onClick={() => { setMobileOpen(false); router.push("/dashboard"); }}
+                    style={{ width: "100%", background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 24px rgba(198,40,79,0.25)" }}
+                  >
+                    <UserIcon size={18} strokeWidth={1.5} /> Ir a mi Perfil
+                  </motion.button>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
+                    <motion.button
+                      initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
+                      onClick={() => { setMobileOpen(false); if(onOpenLogin) onOpenLogin(); }}
+                      style={{ flex: 1, background: "white", color: C.garnet, border: `1px solid rgba(198,40,79,0.3)`, borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer" }}
+                    >
+                      Entrar
+                    </motion.button>
+                    <motion.button
+                      initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}
+                      onClick={() => { setMobileOpen(false); if(onOpenRegister) onOpenRegister(); }}
+                      style={{ flex: 1, background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, color: "white", border: "none", borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer" }}
+                    >
+                      Registrarse
+                    </motion.button>
+                  </div>
+                  
+                  <motion.button
+                    initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
+                    onClick={() => { setMobileOpen(false); if(onOpenRegister) onOpenRegister(); }}
+                    style={{ marginTop: "auto", background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 24px rgba(198,40,79,0.25)" }}
+                  >
+                    <Sparkles size={18} strokeWidth={1.5} /> Usar IA gratis
+                  </motion.button>
+                </>
+              )}
 
-              {/* Call to action Inferior */}
-              <motion.button
-                initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
-                onClick={() => { setMobileOpen(false); router.push("/registro"); }}
-                style={{ marginTop: "auto", background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 24px rgba(198,40,79,0.25)" }}
-              >
-                <Sparkles size={18} strokeWidth={1.5} /> Usar IA gratis
-              </motion.button>
             </motion.aside>
           </>
         )}

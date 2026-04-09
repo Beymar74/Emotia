@@ -5,7 +5,12 @@ import { motion } from "framer-motion";
 import { ArrowRight, User, Store } from "lucide-react";
 import { C } from "./constants";
 
-export default function JoinSection() {
+// 1. Agregamos la interfaz para recibir la función del Modal
+interface JoinSectionProps {
+  onOpenRegister?: () => void;
+}
+
+export default function JoinSection({ onOpenRegister }: JoinSectionProps) {
   const router = useRouter();
 
   const CARDS = [
@@ -16,7 +21,8 @@ export default function JoinSection() {
       title:   "Soy cliente",
       desc:    "Descubre cientos de regalos artesanales bolivianos y usa nuestra IA para encontrar el match perfecto. Entrega hoy en La Paz.",
       btn:     "Crear cuenta gratis",
-      action:  () => router.push("/registro"),
+      // 2. Cambiamos la acción para que abra el modal
+      action:  () => { if (onOpenRegister) onOpenRegister(); else router.push("/registro"); },
       tag:     "Para regalar",
     },
     {
@@ -142,7 +148,8 @@ export default function JoinSection() {
                   }}
                   aria-hidden="true"
                 >
-                  {card.btn} <ArrowRight size={18} strokeWidth={2} />
+                  {/* Flecha más fina (strokeWidth 1.5) */}
+                  {card.btn} <ArrowRight size={18} strokeWidth={1.5} />
                 </motion.button>
               </div>
             </motion.div>

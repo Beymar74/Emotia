@@ -1,10 +1,15 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@stackframe/stack"; // <-- Importamos useUser
 import { EmotiaIcon } from './EmotiaIcon';
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Sparkles, Star, Truck, Gift, CheckCircle, Clock, MapPin, Search } from "lucide-react";
 import { C, CHAT_STEPS, TRUST_ITEMS, MINI_BANNERS, OCASIONES_HERO } from "./constants";
+
+interface HeroSectionProps {
+  onOpenRegister?: () => void;
+}
 
 function TypingDots() {
   return (
@@ -36,14 +41,11 @@ function ChatBubble({ msg }: { msg: typeof CHAT_STEPS[0] }) {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
           <div style={{ width: 34, height: 34, borderRadius: 10, background: "#FEF0F3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            {/* 👇 Cambiamos la copa de vino por una flor de Spa 👇 */}
             <EmotiaIcon name="Flower2" size={18} color={C.garnet} /> 
           </div>
           <div>
-            {/* 👇 Cambiamos el título a un paquete de Spa 👇 */}
             <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "0.85rem", fontWeight: 800, color: "white", lineHeight: 1.2, marginBottom: 2 }}>Día de Spa Relajación Total</div>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              {/* 👇 Ajustamos el precio para que encaje en el presupuesto (Bs. 150 - 300) 👇 */}
               <span style={{ fontFamily: "'Playfair Display',serif", fontWeight: 900, fontSize: "0.92rem", color: C.gold }}>Bs.250</span>
               <span style={{ background: "rgba(255,255,255,0.18)", color: "white", fontSize: "0.58rem", fontWeight: 700, padding: "2px 7px", borderRadius: 100, display: "flex", alignItems: "center", gap: 3 }}>
                 <CheckCircle size={8} strokeWidth={2} /> 99% match
@@ -73,7 +75,7 @@ function ChatBubble({ msg }: { msg: typeof CHAT_STEPS[0] }) {
         borderRadius: !isUser ? "3px 12px 12px 12px" : "12px 3px 12px 12px",
         padding: "6px 12px",
         fontFamily: "'DM Sans',sans-serif", fontSize: "0.82rem", fontWeight: 500, lineHeight: 1.45,
-        maxWidth: "88%", // <-- AUMENTADO PARA QUE EL TEXTO SEA MÁS ANCHO Y MENOS ALTO
+        maxWidth: "88%",
         boxShadow: isUser ? `0 3px 10px rgba(198,40,79,0.2)` : "0 1px 6px rgba(0,0,0,0.05)",
         border: !isUser ? "1px solid rgba(255,209,179,0.3)" : "none",
       }}>
@@ -83,33 +85,42 @@ function ChatBubble({ msg }: { msg: typeof CHAT_STEPS[0] }) {
   );
 }
 
-export default function HeroSection() {
+export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
   const router = useRouter();
+  const user = useUser(); // <-- Obtenemos el estado de sesión del usuario
+  
   const [searchVal, setSearchVal]   = useState("");
   const [visibleIds, setVisibleIds] = useState<string[]>([]);
   const [showTyping, setShowTyping] = useState(false);
   const [done, setDone]             = useState(false);
-  const started = useRef(false);
 
+  // 👇 ANIMACIÓN ARREGLADA (Eliminamos el useRef que la bloqueaba) 👇
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
+    setVisibleIds([]);
+    setDone(false);
+    setShowTyping(false);
+
     const timers: ReturnType<typeof setTimeout>[] = [];
+    
     CHAT_STEPS.forEach(step => {
-      if (step.role === "ai" || step.role === "result")
+      if (step.role === "ai" || step.role === "result") {
         timers.push(setTimeout(() => setShowTyping(true), step.delay - 800));
+      }
       timers.push(setTimeout(() => {
         setShowTyping(false);
         setVisibleIds(prev => prev.includes(step.id) ? prev : [...prev, step.id]);
         if (step.role === "result") setDone(true);
       }, step.delay));
     });
+    
     return () => timers.forEach(clearTimeout);
   }, []);
 
+  // 👇 AHORA EL BUSCADOR LLEVA AL CATÁLOGO EN LUGAR DE HACER SCROLL 👇
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    document.getElementById("productos")?.scrollIntoView({ behavior: "smooth" });
+    if (!searchVal.trim()) return;
+    router.push(`/regalos?search=${encodeURIComponent(searchVal)}`);
   };
 
   return (
@@ -123,7 +134,6 @@ export default function HeroSection() {
         .live-dot{animation:pulse-live 2s infinite}
         .hero-bg{background:linear-gradient(135deg,#FFF3E6 0%,#FFE3E8 40%,#FFF3E6 70%,#FFD1B3 100%);background-size:300% 300%;animation:grad-flow 10s ease infinite}
         
-        /* 👇 COLUMNA DERECHA ENSANCHADA DE 420px A 460px 👇 */
         .hero-grid{display:grid;grid-template-columns:1fr 460px;gap:36px;align-items:center}
         
         .mini-banners{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -181,19 +191,31 @@ export default function HeroSection() {
                 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.27 }}
                 style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 26 }}
               >
-                <motion.button
-                  whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
-                  onClick={() => router.push("/registro")}
-                  style={{ background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, color: "white", border: "none", padding: "12px 26px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.93rem", cursor: "pointer", boxShadow: "0 8px 22px rgba(198,40,79,0.32)", display: "flex", alignItems: "center", gap: 7 }}
-                >
-                  <Sparkles size={15} strokeWidth={2.5} /> Probar IA gratis <ArrowRight size={14} strokeWidth={2.5} />
-                </motion.button>
+                {/* 👇 CONDICIONAL: SI HAY USUARIO MUESTRA "COMENZAR BÚSQUEDA" 👇 */}
+                {user ? (
+                  <motion.button
+                    whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
+                    onClick={() => router.push("/regalos")}
+                    style={{ background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, color: "white", border: "none", padding: "12px 26px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.93rem", cursor: "pointer", boxShadow: "0 8px 22px rgba(198,40,79,0.32)", display: "flex", alignItems: "center", gap: 7 }}
+                  >
+                    <Sparkles size={15} strokeWidth={2.5} /> Comenzar búsqueda <ArrowRight size={14} strokeWidth={2.5} />
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
+                    onClick={() => { if (onOpenRegister) onOpenRegister(); }}
+                    style={{ background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, color: "white", border: "none", padding: "12px 26px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.93rem", cursor: "pointer", boxShadow: "0 8px 22px rgba(198,40,79,0.32)", display: "flex", alignItems: "center", gap: 7 }}
+                  >
+                    <Sparkles size={15} strokeWidth={2.5} /> Probar IA gratis <ArrowRight size={14} strokeWidth={2.5} />
+                  </motion.button>
+                )}
+
                 <motion.button
                   whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.97 }}
-                  onClick={() => document.getElementById("productos")?.scrollIntoView({ behavior: "smooth" })}
+                  onClick={() => router.push("/regalos")}
                   style={{ background: "white", color: C.garnet, border: `2px solid rgba(198,40,79,0.2)`, padding: "10px 20px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "0.9rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
                 >
-                  <Gift size={15} strokeWidth={2} /> Ver todos los regalos
+                  <Gift size={15} strokeWidth={2} /> Ver catálogo
                 </motion.button>
               </motion.div>
 
@@ -259,7 +281,6 @@ export default function HeroSection() {
                 </div>
 
                 {/* Mensajes */}
-                {/* 👇 MIN-HEIGHT REDUCIDO PARA QUE SEA MÁS COMPACTO 👇 */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 11, minHeight: 210 }}>
                   <AnimatePresence initial={false}>
                     {visibleIds.map(id => {
@@ -289,21 +310,22 @@ export default function HeroSection() {
                   </span>
                   <motion.button
                     whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
-                    onClick={() => router.push("/registro")}
+                    onClick={() => { user ? router.push("/regalos") : (onOpenRegister && onOpenRegister()); }}
                     style={{ width: 30, height: 30, borderRadius: "50%", background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 3px 10px rgba(198,40,79,0.28)" }}
                   >
                     <ArrowRight size={13} color="white" strokeWidth={2.5} />
                   </motion.button>
                 </div>
 
+                {/* 👇 CONDICIONAL FINAL DEL CHAT 👇 */}
                 {done && (
                   <motion.button
                     initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
                     whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => router.push("/registro")}
+                    onClick={() => { user ? router.push("/regalos") : (onOpenRegister && onOpenRegister()); }}
                     style={{ marginTop: 9, width: "100%", background: `linear-gradient(135deg,${C.garnet},${C.crimson})`, color: "white", border: "none", padding: "9px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.83rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, boxShadow: "0 5px 16px rgba(198,40,79,0.28)" }}
                   >
-                    <Sparkles size={13} strokeWidth={2} /> Probar gratis ahora
+                    <Sparkles size={13} strokeWidth={2} /> {user ? 'Continuar comprando' : 'Probar gratis ahora'}
                   </motion.button>
                 )}
               </div>
@@ -331,6 +353,29 @@ export default function HeroSection() {
           </motion.form>
         </div>
 
+        {/* ── MINI BANNERS ── */}
+        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 24px 20px", position: "relative", zIndex: 2 }}>
+          <div className="mini-banners">
+            {MINI_BANNERS.map((b, i) => (
+              <motion.div key={i}
+                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.48 + i * 0.07 }}
+                whileHover={{ y: -3, boxShadow: "0 8px 24px rgba(198,40,79,0.12)" }}
+                onClick={() => router.push("/regalos")}
+                style={{ background: b.bg, borderRadius: 12, padding: "16px 16px 14px", position: "relative", overflow: "hidden", cursor: "pointer", transition: "box-shadow 0.3s" }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <EmotiaIcon name={b.icon} size={14} color={b.acento} />
+                  <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.67rem", fontWeight: 700, color: b.acento, textTransform: "uppercase", letterSpacing: "0.08em" }}>{b.tag}</span>
+                </div>
+                <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "1.05rem", fontWeight: 800, color: b.acento, lineHeight: 1.2 }}>{b.title}</div>
+                <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: b.acento, marginTop: 8, display: "flex", alignItems: "center", gap: 4 }}>
+                  Ver colección <ArrowRight size={12} strokeWidth={2} />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
         {/* ── EXPLORA POR OCASIÓN ── */}
         <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 24px 24px", position: "relative", zIndex: 2 }}>
           <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "1.15rem", fontWeight: 800, color: C.choco, marginBottom: 12 }}>Explora por ocasión</div>
@@ -339,7 +384,7 @@ export default function HeroSection() {
               <motion.div key={o.id}
                 initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.35, delay: 0.55 + i * 0.06 }}
                 whileHover={{ y: -3, scale: 1.03 }}
-                onClick={() => document.getElementById("productos")?.scrollIntoView({ behavior: "smooth" })}
+                onClick={() => router.push("/regalos")}
                 style={{ background: o.bg, borderRadius: 10, overflow: "hidden", cursor: "pointer", textAlign: "center" }}
               >
                 <div style={{ height: 72, display: "flex", alignItems: "center", justifyContent: "center" }}>
