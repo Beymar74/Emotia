@@ -1,8 +1,9 @@
 "use client";
-import { useState } from 'react';
-import { Package, Truck, CheckCircle, Clock, User, ArrowRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Package, Truck, CheckCircle, Clock, User, ArrowRight, Loader2 } from 'lucide-react';
 import TrackingModal from '../components/modals/TrackingModal';
 
+// Mantenemos el MOCK aquí arriba solo temporalmente
 const MOCK_ORDERS = [
   { id: '#EM-2041', title: 'Caja Sorpresa Spa Botánico', recipient: 'María (Mamá)', date: '12 Mar 2026', status: 'En Tránsito', Icon: Truck, color: 'bg-[#BC9968]', textColor: 'text-[#BC9968]', progress: 2 },
   { id: '#EM-2038', title: 'Kit Café de Altura Local', recipient: 'Carlos (Amigo)', date: '10 Mar 2026', status: 'Preparando', Icon: Package, color: 'bg-[#8E1B3A]', textColor: 'text-[#8E1B3A]', progress: 1 },
@@ -11,6 +12,43 @@ const MOCK_ORDERS = [
 
 export default function OrdersPage() {
   const [trackingOrder, setTrackingOrder] = useState<any>(null);
+  
+  // NUEVO: Estados para los datos y la carga
+  const [misPedidos, setMisPedidos] = useState<any[]>([]);
+  const [cargando, setCargando] = useState(true);
+
+  // NUEVO: La tubería para conectarse a la BDD
+  useEffect(() => {
+    const cargarPedidos = async () => {
+      try {
+        // AQUI IRÁ EL FETCH REAL DE BEYMAR:
+        // const res = await fetch('/api/usuario/pedidos');
+        // const data = await res.json();
+        // setMisPedidos(data);
+
+        // Simulamos que el internet tarda 1 segundo en responder
+        setTimeout(() => {
+          setMisPedidos(MOCK_ORDERS);
+          setCargando(false);
+        }, 1000);
+      } catch (error) {
+        console.error("Error cargando pedidos:", error);
+        setCargando(false);
+      }
+    };
+
+    cargarPedidos();
+  }, []);
+
+  // Pantalla de carga mientras trae los datos
+  if (cargando) {
+    return (
+      <main className="max-w-4xl mx-auto px-6 py-20 flex flex-col items-center justify-center text-[#8E1B3A]">
+        <Loader2 className="w-12 h-12 animate-spin mb-4" />
+        <p className="font-semibold">Cargando tus pedidos mágicos...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-12 animate-in fade-in duration-500">
@@ -19,7 +57,8 @@ export default function OrdersPage() {
         <p className="text-[#5C3A2E]">Revisa el historial y estado de todos tus regalos enviados.</p>
       </div>
       <div className="space-y-6">
-        {MOCK_ORDERS.map((order, i) => (
+        {/* Cambiamos MOCK_ORDERS por nuestro nuevo estado misPedidos */}
+        {misPedidos.map((order, i) => (
           <div key={i} className="bg-[#FFFFFF] rounded-2xl p-6 border border-[#F5E6D0] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-4 w-full md:w-auto">
               <div className={`p-4 rounded-xl text-[#FFFFFF] ${order.color} shadow-sm`}>

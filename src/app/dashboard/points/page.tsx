@@ -1,8 +1,8 @@
 "use client";
-import { useState } from 'react';
-import { Star, Gift, ShoppingBag, Trophy, Crown, ChevronRight, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Star, Gift, ShoppingBag, Trophy, Crown, TrendingUp, Loader2 } from 'lucide-react';
 
-const HISTORY = [
+const HISTORY_MOCK = [
   { id: 1, tipo: 'ganado', descripcion: 'Compra: Cena Romántica 2 pax', puntos: +33, fecha: '12 Mar 2026', icon: ShoppingBag },
   { id: 2, tipo: 'ganado', descripcion: 'Compra: Kit Café de Altura', puntos: +15, fecha: '10 Mar 2026', icon: ShoppingBag },
   { id: 3, tipo: 'usado', descripcion: 'Descuento aplicado en pedido', puntos: -50, fecha: '08 Mar 2026', icon: Gift },
@@ -26,8 +26,44 @@ const RECOMPENSAS = [
 ];
 
 export default function PointsPage() {
-  const totalPuntos = 450;
-  const nivelActual = NIVELES.find(n => totalPuntos >= n.min && totalPuntos < n.max) ?? NIVELES[2];
+  const [totalPuntos, setTotalPuntos] = useState(0);
+  const [historial, setHistorial] = useState<any[]>([]);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    const cargarPuntos = async () => {
+      try {
+        // AQUI IRÁ EL FETCH REAL DE BEYMAR:
+        // const res = await fetch('/api/usuario/puntos');
+        // const data = await res.json();
+        // setTotalPuntos(data.saldoTotal);
+        // setHistorial(data.historial);
+
+        setTimeout(() => {
+          setTotalPuntos(450); // El valor real vendrá de la BDD
+          setHistorial(HISTORY_MOCK);
+          setCargando(false);
+        }, 1000);
+      } catch (error) {
+        console.error("Error cargando puntos:", error);
+        setCargando(false);
+      }
+    };
+
+    cargarPuntos();
+  }, []);
+
+  if (cargando) {
+    return (
+      <main className="max-w-4xl mx-auto px-6 py-20 flex flex-col items-center justify-center text-[#8E1B3A]">
+        <Loader2 className="w-12 h-12 animate-spin mb-4" />
+        <p className="font-semibold">Buscando tus recompensas...</p>
+      </main>
+    );
+  }
+
+  // Calculamos los niveles SOLO después de que ya cargó
+  const nivelActual = NIVELES.find(n => totalPuntos >= n.min && totalPuntos < n.max) ?? NIVELES[0];
   const nivelSiguiente = NIVELES[NIVELES.indexOf(nivelActual) + 1];
   const progreso = nivelSiguiente
     ? ((totalPuntos - nivelActual.min) / (nivelSiguiente.min - nivelActual.min)) * 100
@@ -42,7 +78,6 @@ export default function PointsPage() {
         <p className="text-[#5C3A2E]">Acumula puntos en cada compra y canjéalos por recompensas exclusivas.</p>
       </div>
 
-      {/* Tarjeta principal de puntos */}
       <div className="bg-gradient-to-br from-[#8E1B3A] to-[#5A0F24] rounded-3xl p-8 text-white mb-8 relative overflow-hidden shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#AB3A50] rounded-full mix-blend-multiply filter blur-3xl opacity-40 translate-x-1/2 -translate-y-1/2"></div>
         <div className="relative z-10">
@@ -73,14 +108,13 @@ export default function PointsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Recompensas canjeables */}
         <div>
           <h2 className="text-xl font-bold text-[#5A0F24] mb-4 flex items-center gap-2">
             <Gift className="w-5 h-5 text-[#BC9968]" /> Canjear Puntos
           </h2>
           <div className="space-y-3">
             {RECOMPENSAS.map((r, i) => (
-              <div key={i} className={`bg-[#FFFFFF] rounded-2xl p-4 border flex items-center justify-between shadow-sm ${r.disponible ? 'border-[#BC9968]/40 hover:shadow-md' : 'border-[#F5E6D0] opacity-60'} transition-shadow`}>
+              <div key={i} className={`bg-[#FFFFFF] rounded-2xl p-4 border flex items-center justify-between shadow-sm ${r.disponible && totalPuntos >= r.puntos ? 'border-[#BC9968]/40 hover:shadow-md' : 'border-[#F5E6D0] opacity-60'} transition-shadow`}>
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{r.icon}</span>
                   <div>
@@ -97,13 +131,12 @@ export default function PointsPage() {
           </div>
         </div>
 
-        {/* Historial */}
         <div>
           <h2 className="text-xl font-bold text-[#5A0F24] mb-4 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-[#BC9968]" /> Historial
           </h2>
           <div className="space-y-3">
-            {HISTORY.map((h) => {
+            {historial.map((h) => {
               const Icon = h.icon;
               return (
                 <div key={h.id} className="bg-[#FFFFFF] rounded-2xl p-4 border border-[#F5E6D0] flex items-center justify-between shadow-sm">

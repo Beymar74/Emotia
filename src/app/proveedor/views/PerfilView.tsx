@@ -1,129 +1,210 @@
 "use client";
-import React from "react";
-import { Store, Phone, Mail, MapPin, Globe, UploadCloud, Save } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { 
+  Building2, Mail, Phone, MapPin, Globe, 
+  Camera, Save, CheckCircle2, Store, Tag 
+} from "lucide-react";
+import { toast } from "sonner"; // Notificaciones elegantes
+
+const CATEGORIAS_EMOTIA = [
+  "Chocolates", "Flores", "Vinos y Licores", "Desayunos", 
+  "Experiencias", "Joyas", "Artesanías", "Peluches", "Spa y Bienestar"
+];
 
 export default function PerfilView() {
+  const [cargando, setCargando] = useState(false);
+  const [inicializado, setInicializado] = useState(false);
+  
+  // Estado inicial por defecto
+  const [datosNegocio, setDatosNegocio] = useState({
+    nombreMarca: "Flores Illimani",
+    descripcion: "Especialistas en arreglos florales premium con flores frescas de los valles bolivianos.",
+    correoCorporativo: "contacto@floresillimani.com",
+    telefono: "+591 76543210",
+    ciudad: "La Paz",
+    direccion: "Av. Ballivián, Calacoto",
+    sitioWeb: "www.floresillimani.com",
+    categorias: ["Flores", "Experiencias"]
+  });
+
+  // Cargamos los datos de la memoria al abrir la página
+  useEffect(() => {
+    if (!inicializado) {
+      const datosGuardados = localStorage.getItem("emotia_perfil_proveedor");
+      if (datosGuardados) {
+        setDatosNegocio(JSON.parse(datosGuardados));
+      }
+      setInicializado(true);
+    }
+  }, [inicializado]);
+
+  // Manejador para agregar o quitar categorías
+  const handleToggleCategoria = (cat: string) => {
+    setDatosNegocio(prev => ({
+      ...prev,
+      categorias: prev.categorias.includes(cat)
+        ? prev.categorias.filter(c => c !== cat)
+        : [...prev.categorias, cat]
+    }));
+  };
+
+  // Guardar cambios en la memoria temporal
+  const handleGuardar = () => {
+    setCargando(true);
+    
+    // Guardamos en la memoria del navegador
+    localStorage.setItem("emotia_perfil_proveedor", JSON.stringify(datosNegocio));
+
+    // Simulamos el tiempo de respuesta de la base de datos
+    setTimeout(() => {
+      setCargando(false);
+      toast.success("Perfil de negocio actualizado correctamente");
+    }, 1000);
+  };
+
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1.5rem", fontFamily: "'Inter', sans-serif", alignItems: "start" }}>
-
-      {/* COLUMNA IZQUIERDA: Formulario */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-
-        {/* Tarjeta 1: Información del Negocio */}
-        <div style={{ background: "white", borderRadius: "12px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 4px 15px rgba(0,0,0,0.03)", padding: "1.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem", borderBottom: "1px solid #f3f4f6", paddingBottom: "1rem" }}>
-            <Store size={20} color="#9B2335" />
-            <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 600, color: "#111827" }}>Información del Negocio</h3>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              <label style={{ fontSize: "0.85rem", fontWeight: 500, color: "#374151" }}>Nombre del Negocio</label>
-              <input type="text" defaultValue="Flores Illimani" style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid #d1d5db", outline: "none", color: "#111827" }} />
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              <label style={{ fontSize: "0.85rem", fontWeight: 500, color: "#374151" }}>Descripción</label>
-              <textarea rows={3} defaultValue="Especialistas en arreglos florales premium y detalles personalizados para toda ocasión." style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid #d1d5db", outline: "none", resize: "none", color: "#111827" }} />
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                <label style={{ fontSize: "0.85rem", fontWeight: 500, color: "#374151", display: "flex", alignItems: "center", gap: "4px" }}><Phone size={14}/> Teléfono</label>
-                <input type="text" defaultValue="+591 71234567" style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid #d1d5db", outline: "none", color: "#111827" }} />
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                <label style={{ fontSize: "0.85rem", fontWeight: 500, color: "#374151", display: "flex", alignItems: "center", gap: "4px" }}><Mail size={14}/> Email</label>
-                <input type="email" defaultValue="ventas@floresillimani.com" style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid #d1d5db", outline: "none", color: "#111827" }} />
-              </div>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              <label style={{ fontSize: "0.85rem", fontWeight: 500, color: "#374151", display: "flex", alignItems: "center", gap: "4px" }}><MapPin size={14}/> Dirección</label>
-              <input type="text" defaultValue="Av. Arce #2520, Zona San Jorge, La Paz" style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid #d1d5db", outline: "none", color: "#111827" }} />
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              <label style={{ fontSize: "0.85rem", fontWeight: 500, color: "#374151", display: "flex", alignItems: "center", gap: "4px" }}><Globe size={14}/> Sitio Web</label>
-              <input type="text" defaultValue="https://www.floresillimani.com" style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid #d1d5db", outline: "none", color: "#111827" }} />
-            </div>
-          </div>
+    <div className="animate-in fade-in duration-500 space-y-8 pb-10" style={{ fontFamily: "'Inter', sans-serif" }}>
+      
+      {/* Cabecera de la Vista */}
+      <div className="flex justify-between items-end">
+        <div>
+          <h1 className="text-2xl font-bold text-[#111827]">Perfil de Negocio</h1>
+          <p className="text-[#6b7280] text-sm mt-1">Gestiona la información pública de tu marca y datos de contacto.</p>
         </div>
-
-        {/* Tarjeta 2: Logo */}
-        <div style={{ background: "white", borderRadius: "12px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 4px 15px rgba(0,0,0,0.03)", padding: "1.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem", borderBottom: "1px solid #f3f4f6", paddingBottom: "1rem" }}>
-            <UploadCloud size={20} color="#9B2335" />
-            <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 600, color: "#111827" }}>Logo del Negocio</h3>
-          </div>
-
-          <div style={{ 
-            border: "2px dashed #d1d5db", borderRadius: "8px", padding: "2.5rem 1rem", 
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-            background: "#f9fafb", cursor: "pointer", transition: "border 0.2s"
-          }}
-          onMouseEnter={e => e.currentTarget.style.borderColor = "#9B2335"}
-          onMouseLeave={e => e.currentTarget.style.borderColor = "#d1d5db"}
-          >
-            <UploadCloud size={32} color="#9ca3af" style={{ marginBottom: "0.5rem" }} />
-            <p style={{ margin: 0, fontSize: "0.9rem", color: "#4b5563", fontWeight: 500 }}>Haz clic para subir o arrastra tu logo aquí</p>
-            <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.75rem", color: "#9ca3af" }}>PNG, JPG o GIF (Max. 2MB)</p>
-          </div>
-        </div>
-
-      </div>
-
-      {/* COLUMNA DERECHA: Vista Previa y Guardar */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-        
-        {/* Botón Guardar (Destacado) */}
-        <button style={{ 
-          background: "#9B2335", color: "white", border: "none", borderRadius: "8px",
-          padding: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-          fontWeight: 600, cursor: "pointer", fontFamily: "'Inter', sans-serif", fontSize: "0.95rem",
-          boxShadow: "0 4px 6px -1px rgba(155, 35, 53, 0.2)", transition: "background 0.2s"
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = "#7a1a29"}
-        onMouseLeave={e => e.currentTarget.style.background = "#9B2335"}
+        <button 
+          onClick={handleGuardar}
+          disabled={cargando}
+          className="flex items-center gap-2 px-6 py-2.5 bg-[#701030] text-white rounded-xl font-semibold hover:bg-[#5a0c26] transition-all shadow-md disabled:opacity-50"
         >
-          <Save size={18} /> Guardar Cambios
+          {cargando ? "Guardando..." : <><Save size={18} /> Guardar Cambios</>}
         </button>
+      </div>
 
-        {/* Tarjeta de Vista Previa (Para rellenar el vacío y que se vea Pro) */}
-        <div style={{ background: "white", borderRadius: "12px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 4px 15px rgba(0,0,0,0.03)", overflow: "hidden" }}>
-          {/* Header de la tarjeta */}
-          <div style={{ height: "90px", background: "linear-gradient(90deg, #701030 0%, #E5BDC2 100%)" }}></div>
-          <div style={{ padding: "0 1.5rem 1.5rem", display: "flex", flexDirection: "column", alignItems: "center", marginTop: "-40px" }}>
-            <div style={{ 
-              width: "80px", height: "80px", borderRadius: "50%", background: "white", 
-              padding: "4px", display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
-            }}>
-              <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f8f4ef", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Proveedor" alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* COLUMNA IZQUIERDA: Logo y Datos Básicos */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Tarjeta de Información General */}
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-6">
+            <div className="flex items-center gap-2 pb-4 border-b border-gray-50">
+              <Building2 className="text-[#BC9968]" size={20} />
+              <h2 className="font-bold text-[#374151]">Información de la Marca</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-[#6b7280] uppercase">Nombre Comercial</label>
+                <input 
+                  type="text" 
+                  value={datosNegocio.nombreMarca}
+                  onChange={(e) => setDatosNegocio({...datosNegocio, nombreMarca: e.target.value})}
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#701030] text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-[#6b7280] uppercase">Sitio Web (Opcional)</label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-3 text-gray-400" size={16} />
+                  <input 
+                    type="text" 
+                    value={datosNegocio.sitioWeb}
+                    onChange={(e) => setDatosNegocio({...datosNegocio, sitioWeb: e.target.value})}
+                    className="w-full p-3 pl-10 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#701030] text-sm"
+                  />
+                </div>
+              </div>
+              <div className="md:col-span-2 space-y-2">
+                <label className="text-xs font-bold text-[#6b7280] uppercase">Descripción del Negocio</label>
+                <textarea 
+                  rows={3}
+                  value={datosNegocio.descripcion}
+                  onChange={(e) => setDatosNegocio({...datosNegocio, descripcion: e.target.value})}
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#701030] text-sm"
+                />
               </div>
             </div>
-            
-            <h3 style={{ margin: "0.75rem 0 0.25rem 0", fontSize: "1.1rem", fontWeight: 700, color: "#111827" }}>Flores Illimani</h3>
-            <span style={{ background: "rgba(34, 197, 94, 0.1)", color: "#16a34a", padding: "0.2rem 0.6rem", borderRadius: "9999px", fontSize: "0.7rem", fontWeight: 600 }}>Proveedor Verificado</span>
-            
-            <p style={{ textAlign: "center", fontSize: "0.85rem", color: "#6b7280", margin: "1rem 0" }}>
-              Especialistas en arreglos florales premium y detalles personalizados para toda ocasión.
-            </p>
+          </div>
 
-            <div style={{ width: "100%", borderTop: "1px solid #f3f4f6", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.8rem", color: "#4b5563" }}>
-                <MapPin size={14} color="#9ca3af" /> La Paz, Bolivia
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.8rem", color: "#4b5563" }}>
-                <Store size={14} color="#9ca3af" /> Miembro desde 2026
-              </div>
+          {/* Tarjeta de Categorías */}
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-6">
+            <div className="flex items-center gap-2 pb-4 border-b border-gray-0">
+              <Tag className="text-[#BC9968]" size={20} />
+              <h2 className="font-bold text-[#374151]">Categorías de Productos</h2>
+            </div>
+            <p className="text-sm text-gray-500">Selecciona las categorías que mejor describen tus productos para aparecer en las búsquedas correctas.</p>
+            
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIAS_EMOTIA.map(cat => {
+                const isSelected = datosNegocio.categorias.includes(cat);
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => handleToggleCategoria(cat)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                      isSelected 
+                      ? 'bg-[#701030] text-white shadow-sm' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {cat} {isSelected && <CheckCircle2 size={14} />}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
 
-      </div>
+        {/* COLUMNA DERECHA: Logo y Contacto */}
+        <div className="space-y-6">
+          
+          {/* Logo del Negocio */}
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col items-center text-center space-y-4">
+            <div className="relative">
+              <div className="w-32 h-32 rounded-3xl bg-[#F5E6D0] flex items-center justify-center border-4 border-white shadow-lg overflow-hidden">
+                <Store size={48} className="text-[#701030]" />
+              </div>
+              <button className="absolute -bottom-2 -right-2 p-2 bg-[#BC9968] text-white rounded-full shadow-md hover:bg-[#a6865a] transition-colors">
+                <Camera size={18} />
+              </button>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg">{datosNegocio.nombreMarca}</h3>
+              <p className="text-xs text-green-600 font-bold bg-green-50 px-2 py-1 rounded-full mt-1">Proveedor Verificado</p>
+            </div>
+          </div>
 
+          {/* Datos de Contacto */}
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
+            <h2 className="font-bold text-[#374151] border-b border-gray-50 pb-3">Datos de Contacto</h2>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Mail size={16} /></div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">Email</span>
+                  <span className="text-sm font-medium">{datosNegocio.correoCorporativo}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-50 text-green-600 rounded-lg"><Phone size={16} /></div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">Teléfono</span>
+                  <span className="text-sm font-medium">{datosNegocio.telefono}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-50 text-orange-600 rounded-lg"><MapPin size={16} /></div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">Dirección</span>
+                  <span className="text-sm font-medium">{datosNegocio.direccion}, {datosNegocio.ciudad}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
   );
 }
