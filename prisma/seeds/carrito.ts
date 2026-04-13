@@ -4,13 +4,13 @@ export async function seedCarrito(prisma: PrismaClient) {
     const usuarios = await prisma.usuarios.findMany()
     const productos = await prisma.productos.findMany()
 
-    const einard = usuarios.find(u => u.email === 'einard@test.com')!
-    const maria = usuarios.find(u => u.email === 'maria.quispe@test.com')!
+    const einard = usuarios.find((u: any) => u.email === 'einard@test.com')!
+    const maria = usuarios.find((u: any) => u.email === 'maria.quispe@test.com')!
 
-    const pulsera = productos.find(p => p.nombre === 'Pulsera tejida con nombre')!
-    const taza = productos.find(p => p.nombre === 'Taza con foto personalizada')!
-    const cactus = productos.find(p => p.nombre === 'Cactus decorativo')!
-    const torta = productos.find(p => p.nombre === 'Torta personalizada')!
+    const pulsera = productos.find((p: any) => p.nombre === 'Pulsera tejida con nombre')!
+    const taza = productos.find((p: any) => p.nombre === 'Taza con foto personalizada')!
+    const cactus = productos.find((p: any) => p.nombre === 'Cactus decorativo')!
+    const torta = productos.find((p: any) => p.nombre === 'Torta personalizada')!
 
     await prisma.carrito.createMany({
         skipDuplicates: true,

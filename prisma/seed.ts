@@ -14,9 +14,12 @@ import { seedRecordatorios } from './seeds/recordatorios'
 import { seedNotificaciones } from './seeds/notificaciones'
 import { seedAuditLog } from './seeds/audit_log'
 
+// @ts-ignore
 import { Pool } from 'pg'
+// @ts-ignore
 import { PrismaPg } from '@prisma/adapter-pg'
 
+// @ts-ignore
 const pool = new Pool({ connectionString: process.env.DATABASE_URL! })
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
@@ -70,6 +73,7 @@ async function main() {
 main()
     .catch((e) => {
         console.error('❌ Error en seed:', e)
+        // @ts-ignore
         process.exit(1)
     })
     .finally(async () => {

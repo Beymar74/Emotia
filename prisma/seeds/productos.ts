@@ -5,16 +5,16 @@ export async function seedProductos(prisma: PrismaClient) {
     const proveedores = await prisma.proveedores.findMany()
     const categorias = await prisma.categorias.findMany()
 
-    const artesanias = proveedores.find(p => p.nombre_negocio === 'Artesanías Mamani')!
-    const chocolates = proveedores.find(p => p.nombre_negocio === 'Chocolates Quispe')!
-    const flores = proveedores.find(p => p.nombre_negocio === 'Flores Copacabana')!
-    const tech = proveedores.find(p => p.nombre_negocio === 'TechGadgets Bolivia')!
+    const artesanias = proveedores.find((p: any) => p.nombre_negocio === 'Artesanías Mamani')!
+    const chocolates = proveedores.find((p: any) => p.nombre_negocio === 'Chocolates Quispe')!
+    const flores = proveedores.find((p: any) => p.nombre_negocio === 'Flores Copacabana')!
+    const tech = proveedores.find((p: any) => p.nombre_negocio === 'TechGadgets Bolivia')!
 
-    const catJoyeria = categorias.find(c => c.nombre === 'Joyeria y Accesorios')!
-    const catDulces = categorias.find(c => c.nombre === 'Dulces y Delicias')!
-    const catFlores = categorias.find(c => c.nombre === 'Flores y Plantas')!
-    const catTech = categorias.find(c => c.nombre === 'Tecnologia y Gadgets')!
-    const catTextiles = categorias.find(c => c.nombre === 'Textiles Personalizados')!
+    const catJoyeria = categorias.find((c: any) => c.nombre === 'Joyeria y Accesorios')!
+    const catDulces = categorias.find((c: any) => c.nombre === 'Dulces y Delicias')!
+    const catFlores = categorias.find((c: any) => c.nombre === 'Flores y Plantas')!
+    const catTech = categorias.find((c: any) => c.nombre === 'Tecnologia y Gadgets')!
+    const catTextiles = categorias.find((c: any) => c.nombre === 'Textiles Personalizados')!
 
     await prisma.productos.createMany({
         skipDuplicates: true,
