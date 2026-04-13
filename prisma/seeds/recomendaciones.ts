@@ -1,6 +1,7 @@
 import { PrismaClient } from '../../src/generated/prisma/client'
 
 export async function seedRecomendaciones(prisma: PrismaClient) {
+
     const usuarios = await prisma.usuarios.findMany()
     const productos = await prisma.productos.findMany()
 

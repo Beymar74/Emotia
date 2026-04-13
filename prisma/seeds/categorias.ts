@@ -1,5 +1,6 @@
 import { PrismaClient } from '../../src/generated/prisma/client'
 export async function seedCategorias(prisma: PrismaClient) {
+
   await prisma.categorias.createMany({
     skipDuplicates: true,
     data: [

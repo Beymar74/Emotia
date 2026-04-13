@@ -1,6 +1,7 @@
 import { PrismaClient } from '../../src/generated/prisma/client'
 
 export async function seedNotificaciones(prisma: PrismaClient) {
+
     const usuarios = await prisma.usuarios.findMany()
 
     const beymar = usuarios.find((u: any) => u.email === 'beymar@test.com')!

@@ -1,6 +1,7 @@
 import { PrismaClient } from '../../src/generated/prisma/client'
 
 export async function seedProductos(prisma: PrismaClient) {
+
     // Obtener IDs de proveedores y categorías
     const proveedores = await prisma.proveedores.findMany()
     const categorias = await prisma.categorias.findMany()

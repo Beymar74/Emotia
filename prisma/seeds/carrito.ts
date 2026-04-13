@@ -1,6 +1,7 @@
 import { PrismaClient } from '../../src/generated/prisma/client'
 
 export async function seedCarrito(prisma: PrismaClient) {
+
     const usuarios = await prisma.usuarios.findMany()
     const productos = await prisma.productos.findMany()
 
