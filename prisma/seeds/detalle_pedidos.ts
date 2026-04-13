@@ -1,6 +1,9 @@
 import { PrismaClient } from '../../src/generated/prisma/client'
 
 export async function seedDetallePedidos(prisma: PrismaClient) {
+    // Limpiar antes de insertar para evitar duplicados
+    await prisma.detalle_pedidos.deleteMany()
+
     const pedidos = await prisma.pedidos.findMany()
     const productos = await prisma.productos.findMany()
     const proveedores = await prisma.proveedores.findMany()
@@ -15,10 +18,7 @@ export async function seedDetallePedidos(prisma: PrismaClient) {
     const tech = proveedores.find(p => p.nombre_negocio === 'TechGadgets Bolivia')!
     const flores = proveedores.find(p => p.nombre_negocio === 'Flores Copacabana')!
 
-    // pedido[0] = beymar entregado, pedido[1] = evelyn confirmado
-    // pedido[2] = mauricio en_preparacion, pedido[3] = beymar pendiente
     await prisma.detalle_pedidos.createMany({
-        skipDuplicates: true,
         data: [
             {
                 pedido_id: pedidos[0].id,
