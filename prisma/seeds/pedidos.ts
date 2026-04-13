@@ -4,13 +4,13 @@ export async function seedPedidos(prisma: PrismaClient) {
     const usuarios = await prisma.usuarios.findMany()
     const direcciones = await prisma.direcciones.findMany()
 
-    const beymar = usuarios.find(u => u.email === 'beymar@test.com')!
-    const evelyn = usuarios.find(u => u.email === 'evelyn@test.com')!
-    const mauricio = usuarios.find(u => u.email === 'mauricio@test.com')!
+    const beymar = usuarios.find((u: any) => u.email === 'beymar@test.com')!
+    const evelyn = usuarios.find((u: any) => u.email === 'evelyn@test.com')!
+    const mauricio = usuarios.find((u: any) => u.email === 'mauricio@test.com')!
 
-    const dirBeymar = direcciones.find(d => d.usuario_id === beymar.id)!
-    const dirEvelyn = direcciones.find(d => d.usuario_id === evelyn.id)!
-    const dirMauricio = direcciones.find(d => d.usuario_id === mauricio.id)!
+    const dirBeymar = direcciones.find((d: any) => d.usuario_id === beymar.id)!
+    const dirEvelyn = direcciones.find((d: any) => d.usuario_id === evelyn.id)!
+    const dirMauricio = direcciones.find((d: any) => d.usuario_id === mauricio.id)!
 
     await prisma.pedidos.createMany({
         skipDuplicates: true,

@@ -4,15 +4,15 @@ export async function seedRecomendaciones(prisma: PrismaClient) {
     const usuarios = await prisma.usuarios.findMany()
     const productos = await prisma.productos.findMany()
 
-    const beymar = usuarios.find(u => u.email === 'beymar@test.com')!
-    const evelyn = usuarios.find(u => u.email === 'evelyn@test.com')!
-    const mauricio = usuarios.find(u => u.email === 'mauricio@test.com')!
+    const beymar = usuarios.find((u: any) => u.email === 'beymar@test.com')!
+    const evelyn = usuarios.find((u: any) => u.email === 'evelyn@test.com')!
+    const mauricio = usuarios.find((u: any) => u.email === 'mauricio@test.com')!
 
-    const collar = productos.find(p => p.nombre === 'Collar de plata artesanal')!
-    const chocolates = productos.find(p => p.nombre === 'Caja de chocolates artesanales')!
-    const rosas = productos.find(p => p.nombre === 'Ramo de rosas rojas')!
-    const audifonos = productos.find(p => p.nombre === 'Audífonos personalizados')!
-    const pulsera = productos.find(p => p.nombre === 'Pulsera tejida con nombre')!
+    const collar = productos.find((p: any) => p.nombre === 'Collar de plata artesanal')!
+    const chocolates = productos.find((p: any) => p.nombre === 'Caja de chocolates artesanales')!
+    const rosas = productos.find((p: any) => p.nombre === 'Ramo de rosas rojas')!
+    const audifonos = productos.find((p: any) => p.nombre === 'Audífonos personalizados')!
+    const pulsera = productos.find((p: any) => p.nombre === 'Pulsera tejida con nombre')!
 
     await prisma.recomendaciones.createMany({
         skipDuplicates: true,

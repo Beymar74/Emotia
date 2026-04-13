@@ -3,10 +3,10 @@ import { PrismaClient } from '../../src/generated/prisma/client'
 export async function seedAuditLog(prisma: PrismaClient) {
     const usuarios = await prisma.usuarios.findMany()
 
-    const admin = usuarios.find(u => u.email === 'admin@emotia.bo')!
-    const beymar = usuarios.find(u => u.email === 'beymar@test.com')!
-    const evelyn = usuarios.find(u => u.email === 'evelyn@test.com')!
-    const mauricio = usuarios.find(u => u.email === 'mauricio@test.com')!
+    const admin = usuarios.find((u: any) => u.email === 'admin@emotia.bo')!
+    const beymar = usuarios.find((u: any) => u.email === 'beymar@test.com')!
+    const evelyn = usuarios.find((u: any) => u.email === 'evelyn@test.com')!
+    const mauricio = usuarios.find((u: any) => u.email === 'mauricio@test.com')!
 
     await prisma.audit_log.createMany({
         data: [

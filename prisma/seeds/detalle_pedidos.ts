@@ -8,15 +8,15 @@ export async function seedDetallePedidos(prisma: PrismaClient) {
     const productos = await prisma.productos.findMany()
     const proveedores = await prisma.proveedores.findMany()
 
-    const collar = productos.find(p => p.nombre === 'Collar de plata artesanal')!
-    const chocolates = productos.find(p => p.nombre === 'Caja de chocolates artesanales')!
-    const audifonos = productos.find(p => p.nombre === 'Audífonos personalizados')!
-    const rosas = productos.find(p => p.nombre === 'Ramo de rosas rojas')!
+    const collar = productos.find((p: any) => p.nombre === 'Collar de plata artesanal')!
+    const chocolates = productos.find((p: any) => p.nombre === 'Caja de chocolates artesanales')!
+    const audifonos = productos.find((p: any) => p.nombre === 'Audífonos personalizados')!
+    const rosas = productos.find((p: any) => p.nombre === 'Ramo de rosas rojas')!
 
-    const artesanias = proveedores.find(p => p.nombre_negocio === 'Artesanías Mamani')!
-    const chocoProv = proveedores.find(p => p.nombre_negocio === 'Chocolates Quispe')!
-    const tech = proveedores.find(p => p.nombre_negocio === 'TechGadgets Bolivia')!
-    const flores = proveedores.find(p => p.nombre_negocio === 'Flores Copacabana')!
+    const artesanias = proveedores.find((p: any) => p.nombre_negocio === 'Artesanías Mamani')!
+    const chocoProv = proveedores.find((p: any) => p.nombre_negocio === 'Chocolates Quispe')!
+    const tech = proveedores.find((p: any) => p.nombre_negocio === 'TechGadgets Bolivia')!
+    const flores = proveedores.find((p: any) => p.nombre_negocio === 'Flores Copacabana')!
 
     await prisma.detalle_pedidos.createMany({
         data: [
