@@ -1,6 +1,7 @@
 import { PrismaClient } from '../../src/generated/prisma/client'
 
 export async function seedPedidos(prisma: PrismaClient) {
+
     const usuarios = await prisma.usuarios.findMany()
     const direcciones = await prisma.direcciones.findMany()
 

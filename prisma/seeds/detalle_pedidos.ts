@@ -1,8 +1,6 @@
 import { PrismaClient } from '../../src/generated/prisma/client'
 
 export async function seedDetallePedidos(prisma: PrismaClient) {
-    // Limpiar antes de insertar para evitar duplicados
-    await prisma.detalle_pedidos.deleteMany()
 
     const pedidos = await prisma.pedidos.findMany()
     const productos = await prisma.productos.findMany()

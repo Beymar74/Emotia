@@ -1,6 +1,7 @@
 import { PrismaClient } from '../../src/generated/prisma/client'
 
 export async function seedProveedores(prisma: PrismaClient) {
+
     await prisma.proveedores.createMany({
         skipDuplicates: true,
         data: [

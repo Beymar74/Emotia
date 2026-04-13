@@ -1,6 +1,7 @@
 import { PrismaClient } from '../../src/generated/prisma/client'
 
 export async function seedUsuarios(prisma: PrismaClient) {
+
     await prisma.usuarios.createMany({
         skipDuplicates: true,
         data: [

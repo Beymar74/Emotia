@@ -1,6 +1,7 @@
 import { PrismaClient } from '../../src/generated/prisma/client'
 
 export async function seedAuditLog(prisma: PrismaClient) {
+
     const usuarios = await prisma.usuarios.findMany()
 
     const admin = usuarios.find((u: any) => u.email === 'admin@emotia.bo')!

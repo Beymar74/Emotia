@@ -27,6 +27,24 @@ const prisma = new PrismaClient({ adapter })
 async function main() {
     console.log('🌱 Iniciando seed de Emotia...\n')
 
+    console.log('🧹 Limpiando base de datos...')
+    await prisma.$transaction([
+        prisma.audit_log.deleteMany(),
+        prisma.notificaciones.deleteMany(),
+        prisma.recordatorios.deleteMany(),
+        prisma.insignias.deleteMany(),
+        prisma.recomendaciones.deleteMany(),
+        prisma.carrito.deleteMany(),
+        prisma.detalle_pedidos.deleteMany(),
+        prisma.pedidos.deleteMany(),
+        prisma.direcciones.deleteMany(),
+        prisma.productos.deleteMany(),
+        prisma.usuarios.deleteMany(),
+        prisma.proveedores.deleteMany(),
+        prisma.categorias.deleteMany(),
+    ])
+    console.log('✅ Base de datos limpia\n')
+
     // Orden importa por las relaciones entre tablas
     await seedCategorias(prisma)
     console.log('✅ Categorías')
