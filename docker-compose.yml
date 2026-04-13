@@ -1,12 +1,30 @@
-services: 
-  app: 
-    build: . 
-    container_name: emotia_app 
-    restart: unless-stopped 
-    ports: 
-      - "3000:3000" 
-    env_file: .env 
-    volumes: 
-      - .:/app 
-      - /app/node_modules 
-      - /app/.next 
+services:
+  app:
+    build: .
+    container_name: emotia_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file: .env
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+
+  db:
+    image: postgres:16
+    container_name: emotia_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: emotia
+      POSTGRES_PASSWORD: emotia123
+      POSTGRES_DB: emotia_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
