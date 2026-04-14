@@ -2,10 +2,10 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@stackframe/stack";
-import { EmotiaIcon } from './EmotiaIcon';
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Star, Truck, Gift, CheckCircle, Heart, ShieldCheck, Search } from "lucide-react";
-import { MINI_BANNERS, OCASIONES_HERO, TRUST_ITEMS } from "./constants";
+import { ArrowRight, Sparkles, Star, Truck, Gift, CheckCircle, ShieldCheck, Heart } from "lucide-react";
+import { EmotiaIcon } from './EmotiaIcon';
+import { TRUST_ITEMS } from "./constants";
 
 // NUEVA PALETA DE COLORES DE BEYMAR
 const P = {
@@ -27,13 +27,6 @@ interface HeroSectionProps {
 export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
   const router = useRouter();
   const user = useUser();
-  const [searchVal, setSearchVal] = React.useState("");
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchVal.trim()) return;
-    router.push(`/regalos?search=${encodeURIComponent(searchVal)}`);
-  };
 
   return (
     <>
@@ -58,11 +51,8 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
         }
 
         .hero-grid { display: grid; grid-template-columns: 1fr 480px; gap: 48px; align-items: center; }
-        .mini-banners { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-        .ocasiones-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
         
         @media(max-width:1024px) { .hero-grid { grid-template-columns: 1fr; } .hero-image-container { display: none; } }
-        @media(max-width:640px) { .mini-banners { grid-template-columns: 1fr; } .ocasiones-grid { grid-template-columns: repeat(2, 1fr); } }
       `}</style>
 
       <section className="hero-bg" style={{ paddingTop: 76 }}>
@@ -71,7 +61,7 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
         <div style={{ position: "absolute", bottom: 0, left: -100, width: 300, height: 300, borderRadius: "50%", background: P.granate, opacity: 0.05, filter: "blur(60px)", pointerEvents: "none" }} />
 
         {/* ── HERO PRINCIPAL ── */}
-        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "40px 24px 32px", position: "relative", zIndex: 2 }}>
+        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "40px 24px 60px", position: "relative", zIndex: 2 }}>
           <div className="hero-grid">
 
             {/* COLUMNA IZQUIERDA: Textos y CTA */}
@@ -182,67 +172,6 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
                 </div>
               </motion.div>
             </motion.div>
-          </div>
-        </div>
-
-        {/* ── BÚSQUEDA ── */}
-        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 24px 24px", position: "relative", zIndex: 2 }}>
-          <motion.form
-            onSubmit={handleSearch}
-            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.5 }}
-            style={{ display: "flex", alignItems: "center", background: P.blanco, border: `1px solid ${P.dorado}50`, borderRadius: 100, padding: "8px 8px 8px 24px", maxWidth: 700, boxShadow: `0 8px 25px ${P.bordo}10` }}
-          >
-            <Search size={18} color={P.granate} strokeWidth={2.5} style={{ flexShrink: 0 }} />
-            <input
-              value={searchVal} onChange={e => setSearchVal(e.target.value)}
-              placeholder="Ej: Desayuno sorpresa, regalo para aniversario..."
-              style={{ flex: 1, border: "none", background: "none", fontFamily: "'DM Sans',sans-serif", fontSize: "0.95rem", color: P.chocolate, outline: "none", marginLeft: 12 }}
-            />
-            <button type="submit" style={{ background: P.granate, color: P.blanco, border: "none", borderRadius: 100, padding: "12px 28px", fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.9rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-              Buscar <ArrowRight size={14} />
-            </button>
-          </motion.form>
-        </div>
-
-        {/* ── MINI BANNERS (Rediseño Premium) ── */}
-        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 24px 32px", position: "relative", zIndex: 2 }}>
-          <div className="mini-banners">
-            {MINI_BANNERS.map((b, i) => (
-              <motion.div key={i}
-                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.6 + i * 0.1 }}
-                whileHover={{ y: -4, boxShadow: `0 12px 30px ${P.granate}15`, borderColor: P.dorado }}
-                onClick={() => router.push("/regalos")}
-                style={{ background: P.blanco, borderRadius: 16, padding: "24px", cursor: "pointer", border: `1px solid ${P.beige}`, boxShadow: `0 4px 15px rgba(0,0,0,0.03)`, transition: "all 0.3s ease" }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                  <div style={{ padding: 8, background: `${P.beige}60`, borderRadius: 10 }}>
-                    <EmotiaIcon name={b.icon} size={18} color={P.granate} />
-                  </div>
-                  <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.75rem", fontWeight: 800, color: P.chocolate, textTransform: "uppercase", letterSpacing: "0.08em" }}>{b.tag}</span>
-                </div>
-                <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "1.2rem", fontWeight: 800, color: P.bordo }}>{b.title}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── EXPLORA POR OCASIÓN (Rediseño Premium) ── */}
-        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 24px 40px", position: "relative", zIndex: 2 }}>
-          <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "1.25rem", fontWeight: 800, color: P.bordo, marginBottom: 20 }}>Explora por ocasión</div>
-          <div className="ocasiones-grid">
-            {OCASIONES_HERO.map((o, i) => (
-              <motion.div key={o.id}
-                initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.35, delay: 0.7 + i * 0.05 }}
-                whileHover={{ y: -5, scale: 1.02, borderColor: P.dorado, boxShadow: `0 8px 20px ${P.granate}10` }}
-                onClick={() => router.push("/regalos")}
-                style={{ background: P.blanco, borderRadius: 16, overflow: "hidden", cursor: "pointer", textAlign: "center", border: `1px solid ${P.beige}`, transition: "all 0.3s ease", boxShadow: `0 2px 10px rgba(0,0,0,0.02)` }}
-              >
-                <div style={{ height: 80, display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(to bottom, ${P.blanco}, ${P.beige}40)` }}>
-                   <EmotiaIcon name={o.icon} size={32} color={P.granate} />
-                </div>
-                <div style={{ padding: "14px 8px", fontFamily: "'DM Sans',sans-serif", fontSize: "0.85rem", fontWeight: 800, color: P.chocolate, borderTop: `1px solid ${P.beige}50` }}>{o.label}</div>
-              </motion.div>
-            ))}
           </div>
         </div>
 
