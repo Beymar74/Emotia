@@ -1,1 +1,15 @@
 @import "tailwindcss";
+:root {
+  --primary-purple: #7B2CBF;
+  --primary-pink: #E6398A;
+  --primary-orange: #FF6B00;
+  --neutral-white: #FFFFFF;
+  --neutral-light: #F5F5F5;
+  --neutral-dark: #2B2B2B;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--neutral-white);
+}

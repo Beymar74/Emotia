@@ -1,0 +1,161 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 10, 38, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 1.2rem;
+}
+
+.modal {
+  position: relative;
+  width: min(440px, 100%);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at top center, rgba(230, 57, 138, 0.08), transparent 26%),
+    #ffffff;
+  padding: 2rem 1.8rem 1.8rem;
+  box-shadow: 0 28px 70px rgba(43, 23, 64, 0.28);
+  border: 1px solid rgba(123, 44, 191, 0.1);
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #5f4c74;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.iconWrap {
+  width: 5.2rem;
+  height: 5.2rem;
+  margin: 0 auto 1.4rem;
+  border-radius: 999px;
+  background: #fff0f7;
+  color: #e6398a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  margin: 0;
+  text-align: center;
+  color: #2b1740;
+  font-size: 2rem;
+  line-height: 1.05;
+}
+
+.subtitle {
+  margin: 0.9rem auto 0;
+  max-width: 320px;
+  text-align: center;
+  color: #7a678f;
+  line-height: 1.65;
+  font-size: 0.96rem;
+}
+
+.tabRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  margin-top: 1.8rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid rgba(123, 44, 191, 0.1);
+}
+
+.activeTab,
+.inactiveTab {
+  text-align: center;
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+.activeTab {
+  color: #e6398a;
+  position: relative;
+}
+
+.activeTab::after {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: -0.95rem;
+  height: 3px;
+  border-radius: 999px;
+  background: #e6398a;
+}
+
+.inactiveTab {
+  color: #8d76a6;
+}
+
+.googleButton {
+  width: 100%;
+  min-height: 3.7rem;
+  margin-top: 1.5rem;
+  border: none;
+  border-radius: 999px;
+  background: #e6398a;
+  color: #ffffff;
+  font-size: 1.02rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  cursor: pointer;
+  box-shadow: 0 18px 30px rgba(230, 57, 138, 0.24);
+}
+
+.googleBadge {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+}
+
+.divider {
+  margin: 1.4rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: #8d76a6;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(123, 44, 191, 0.12);
+}
+
+.footerText {
+  margin: 1rem 0 0;
+  text-align: center;
+  color: #7a678f;
+  line-height: 1.65;
+  font-size: 0.88rem;
+}

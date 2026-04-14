@@ -80,7 +80,7 @@ export default function ProductsSection() {
             <motion.button
               initial={{ opacity:0, x:18 }} whileInView={{ opacity:1, x:0 }} viewport={{ once:true }}
               whileHover={{ scale:1.04 }} whileTap={{ scale:0.97 }}
-              onClick={() => router.push("/regalos")}
+              onClick={() => router.push("/producto")}
               style={{ background:C.roseLight, color:C.garnet, border:`1.5px solid rgba(198,40,79,0.2)`, padding:"10px 22px", borderRadius:100, fontFamily:"'DM Sans',sans-serif", fontWeight:700, fontSize:"0.86rem", cursor:"pointer", display:"flex", alignItems:"center", gap:7 }}
               onMouseEnter={e=>{ e.currentTarget.style.background=C.garnet; e.currentTarget.style.color="white"; }}
               onMouseLeave={e=>{ e.currentTarget.style.background=C.roseLight; e.currentTarget.style.color=C.garnet; }}
@@ -220,7 +220,7 @@ export default function ProductsSection() {
               style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:10, marginTop:36 }}>
               <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.86rem", color:C.gray }}>Mostrando {MAX_VISIBLE} de {filtered.length} productos</p>
               <motion.button whileHover={{ scale:1.04, y:-2 }} whileTap={{ scale:0.97 }}
-                onClick={() => router.push("/regalos")}
+                onClick={() => router.push("/producto")}
                 style={{ background:`linear-gradient(135deg,${C.garnet},${C.crimson})`, color:"white", border:"none", padding:"13px 36px", borderRadius:100, fontFamily:"'DM Sans',sans-serif", fontWeight:800, fontSize:"0.98rem", cursor:"pointer", display:"flex", alignItems:"center", gap:8, boxShadow:"0 8px 26px rgba(198,40,79,0.3)" }}>
                 Ver todos los regalos <ArrowRight size={16} strokeWidth={1.5}/>
               </motion.button>
