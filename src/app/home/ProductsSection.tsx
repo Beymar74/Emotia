@@ -1,15 +1,13 @@
 "use client";
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import useEmblaCarousel from "embla-carousel-react";
 import { EmotiaIcon } from "./EmotiaIcon";
 import {
-  Star, ArrowRight, ChevronLeft, ChevronRight,
-  Sparkles, MessageCircle, Gift
+  Star, ArrowRight, MessageCircle, Gift, Sparkles, Store, TrendingUp, ShieldCheck
 } from "lucide-react";
-import { PRODUCTS, CAT_GRID, OFERTAS, TESTIMONIALS } from "./constants";
+import { PRODUCTS, CAT_GRID, TESTIMONIALS } from "./constants";
 
 // NUEVA PALETA DE COLORES DE BEYMAR
 const P = {
@@ -28,17 +26,11 @@ const MAX_VISIBLE = 8;
 
 export default function ProductsSection() {
   const router = useRouter();
-  const [added, setAdded] = useState<number[]>([]);
   
-  // Carrusel SOLAMENTE para testimonios ahora
-  const [emblaRefTest, emblaApiTest] = useEmblaCarousel({ loop: true, align: "start" });
-
   const visibleProducts = PRODUCTS.slice(0, MAX_VISIBLE); 
-  // Duplicamos el arreglo para crear el efecto de bucle infinito perfecto
+  // Duplicamos los arreglos para crear el efecto de bucle infinito perfecto
   const marqueeItems = [...visibleProducts, ...visibleProducts];
-
-  const scrollPrevTest = useCallback(() => emblaApiTest?.scrollPrev(), [emblaApiTest]);
-  const scrollNextTest = useCallback(() => emblaApiTest?.scrollNext(), [emblaApiTest]);
+  const marqueeTestimonials = [...TESTIMONIALS, ...TESTIMONIALS, ...TESTIMONIALS]; // Triplicado para asegurar el flujo continuo en pantallas anchas
 
   const STEPS = [
     { num:"01", icon:<MessageCircle size={24} color={P.granate} strokeWidth={1.5}/>, title:"Cuéntanos la historia",      desc:"Dinos para quién es el regalo, qué celebran y tu presupuesto. La IA hace el resto." },
@@ -51,8 +43,7 @@ export default function ProductsSection() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap');
         
-        .cat-display-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
-        .ofertas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .cat-display-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
         .steps-grid { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 0; align-items: center; }
         
         /* ── MAGIA DEL CARRUSEL INFINITO (MARQUEE) ── */
@@ -68,7 +59,6 @@ export default function ProductsSection() {
           padding: 20px 0 40px;
         }
 
-        /* Degradados a los lados para efecto "aparición/desaparición" */
         .marquee-wrapper::before, .marquee-wrapper::after {
           content: "";
           position: absolute;
@@ -81,29 +71,34 @@ export default function ProductsSection() {
         .marquee-wrapper::before { left: 0; background: linear-gradient(to right, ${P.blanco}, transparent); }
         .marquee-wrapper::after { right: 0; background: linear-gradient(to left, ${P.blanco}, transparent); }
 
+        /* Pista para Productos (40s) */
         .marquee-track {
           display: flex;
           gap: 24px;
           width: max-content;
-          animation: scroll-marquee 40s linear infinite; /* Animación constante sin pausas */
+          animation: scroll-marquee 40s linear infinite; 
+        }
+        
+        /* Pista para Testimonios (50s, un poco más lento para leer) */
+        .marquee-track-slow {
+          display: flex;
+          gap: 24px;
+          width: max-content;
+          animation: scroll-marquee 50s linear infinite; 
         }
 
-        /* Estilos Embla para Testimonios */
-        .embla { overflow: hidden; width: 100%; padding: 10px 0 30px; }
-        .embla__container { display: flex; gap: 24px; margin-left: 1rem; }
-        .embla__slide_test { flex: 0 0 min(380px, 85vw); min-width: 0; }
+        /* NOTA: Eliminamos la regla :hover que causaba la pausa */
 
+        @media(max-width:1024px) { .cat-display-grid { grid-template-columns: repeat(4, 1fr); } }
         @media(max-width:860px) { .steps-grid { grid-template-columns: 1fr !important; gap: 20px; } .step-arrow { transform: rotate(90deg); padding: 10px 0 !important; } }
         @media(max-width:640px) { .cat-display-grid { grid-template-columns: repeat(2, 1fr) !important; } }
       `}</style>
 
       {/* ══════════════════════════
-          NUEVO CARRUSEL INFINITO VITRINA
+          CARRUSEL INFINITO VITRINA
       ══════════════════════════ */}
       <section id="productos" style={{ padding: "80px 0 20px", background: P.blanco }}>
         <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 24px" }}>
-
-          {/* Cabecera */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 12, flexWrap: "wrap", gap: 14 }}>
             <motion.div initial={{ opacity:0, x:-18 }} whileInView={{ opacity:1, x:0 }} viewport={{ once:true }}>
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
@@ -126,7 +121,6 @@ export default function ProductsSection() {
           </div>
         </div>
 
-        {/* Carrusel Infinito (Funciona como un botón gigante hacia el catálogo) */}
         <div className="marquee-wrapper">
           <div className="marquee-track">
             {marqueeItems.map((p, index) => (
@@ -134,7 +128,7 @@ export default function ProductsSection() {
                 key={`${p.id}-${index}`} 
                 whileHover={{ y:-8, borderColor: P.dorado }}
                 style={{ flex: "0 0 300px", background:P.blanco, borderRadius:20, border:`1px solid ${P.beige}`, overflow:"hidden", display:"flex", flexDirection:"column", cursor:"pointer", boxShadow: `0 10px 30px rgba(0,0,0,0.03)`, transition:"all 0.3s" }}
-                onClick={() => router.push("/regalos")} // Todo el bloque te manda al catálogo
+                onClick={() => router.push("/regalos")}
               >
                 <div style={{ position:"relative", height:300, overflow:"hidden" }}>
                   <img src={p.imgSrc} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover", transition:"transform 0.5s ease" }}
@@ -162,7 +156,7 @@ export default function ProductsSection() {
       {/* ══════════════════════════
           TODAS LAS CATEGORÍAS
       ══════════════════════════ */}
-      <div style={{ background:P.beige + "40", padding:"80px 24px" }}>
+      <div style={{ background:P.beige + "40", padding:"80px 24px", marginTop: 20 }}>
         <div style={{ maxWidth:1320, margin:"0 auto" }}>
           <motion.div initial={{ opacity:0, y:16 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} style={{ marginBottom:32, textAlign: "center" }}>
             <h2 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"clamp(1.8rem, 3vw, 2.4rem)", fontWeight:900, color:P.bordo }}>Explora por Categoría</h2>
@@ -173,15 +167,15 @@ export default function ProductsSection() {
                 initial={{ opacity:0, scale:0.92 }} whileInView={{ opacity:1, scale:1 }} viewport={{ once:true }} transition={{ delay:i*0.06 }}
                 whileHover={{ y:-6, scale:1.03, borderColor: P.dorado, boxShadow: `0 12px 24px ${P.granate}15` }}
                 onClick={() => router.push("/regalos")}
-                style={{ background:P.blanco, borderRadius:16, padding:"24px 12px", textAlign:"center", cursor:"pointer", border:`1px solid ${P.beige}`, transition:"all 0.3s ease", boxShadow: `0 4px 10px rgba(0,0,0,0.02)` }}
+                style={{ background:P.blanco, borderRadius:16, padding:"16px 8px", textAlign:"center", cursor:"pointer", border:`1px solid ${P.beige}`, transition:"all 0.3s ease", boxShadow: `0 4px 10px rgba(0,0,0,0.02)` }}
               >
-                <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-                  <div style={{ padding: 12, background: `${P.beige}60`, borderRadius: "50%" }}>
-                    <EmotiaIcon name={c.icon} size={28} color={P.granate} />
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+                  <div style={{ padding: 10, background: `${P.beige}60`, borderRadius: "50%" }}>
+                    <EmotiaIcon name={c.icon} size={24} color={P.granate} />
                   </div>
                 </div>
-                <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.9rem", fontWeight:800, color:P.chocolate, marginBottom:4 }}>{c.label}</div>
-                <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.75rem", color:P.gris, fontWeight: 600 }}>{c.count} opciones</div>
+                <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.8rem", fontWeight:800, color:P.chocolate, marginBottom:4 }}>{c.label}</div>
+                <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.65rem", color:P.gris, fontWeight: 600 }}>{c.count} opciones</div>
               </motion.div>
             ))}
           </div>
@@ -189,50 +183,9 @@ export default function ProductsSection() {
       </div>
 
       {/* ══════════════════════════
-          OFERTAS DEL DÍA
+          EMOTIA BUSINESS
       ══════════════════════════ */}
-      <div style={{ background:P.blanco, padding:"80px 24px" }}>
-        <div style={{ maxWidth:1320, margin:"0 auto" }}>
-          <motion.div initial={{ opacity:0, y:16 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} style={{ marginBottom:32 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-              <span style={{ width:24, height:2.5, background:P.carmesi, borderRadius:2, display:"inline-block" }} />
-              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.75rem", fontWeight:800, color:P.carmesi, letterSpacing:"0.2em", textTransform:"uppercase" }}>Tiempo Limitado</span>
-            </div>
-            <h2 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"clamp(1.8rem, 3vw, 2.4rem)", fontWeight:900, color:P.bordo, marginBottom:4 }}>Privilegios de Hoy</h2>
-          </motion.div>
-          
-          <div className="ofertas-grid">
-            {OFERTAS.map((o,i) => (
-              <motion.div key={o.id}
-                initial={{ opacity:0, scale:0.95 }} whileInView={{ opacity:1, scale:1 }} viewport={{ once:true }} transition={{ delay:i*0.08 }}
-                whileHover={{ y:-6, boxShadow:`0 16px 40px ${P.granate}15` }}
-                style={{ background:P.blanco, borderRadius:16, overflow:"hidden", border:`1px solid ${P.beige}`, cursor:"pointer", position:"relative", transition: "all 0.3s ease" }}
-                onClick={() => router.push(`/producto/${o.id}`)} // Mantenemos link a producto individual aquí porque son ofertas específicas
-              >
-                <div style={{ position:"absolute", top:12, left:12, background:P.carmesi, color:P.blanco, fontSize:"0.75rem", fontWeight:800, padding:"4px 12px", borderRadius:100, zIndex:2, boxShadow:`0 4px 10px ${P.carmesi}40` }}>{o.pct}</div>
-                <div style={{ height:180, overflow:"hidden", position:"relative" }}>
-                  <img src={o.imgSrc} alt={o.name} style={{ width:"100%", height:"100%", objectFit:"cover", transition:"transform 0.5s ease" }}
-                    onMouseEnter={e => { (e.target as HTMLImageElement).style.transform = "scale(1.08)"; }}
-                    onMouseLeave={e => { (e.target as HTMLImageElement).style.transform = "scale(1)"; }}
-                  />
-                </div>
-                <div style={{ padding:"16px 20px" }}>
-                  <div style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"1.1rem", fontWeight:800, color:P.bordo, marginBottom:8, lineHeight:1.25 }}>{o.name}</div>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-                    <span style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"1.3rem", fontWeight:900, color:P.granate }}>{o.newPrice}</span>
-                    <span style={{ fontSize:"0.85rem", color:P.gris, textDecoration:"line-through" }}>{o.oldPrice}</span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ══════════════════════════
-          BANNER IA (Rediseño Lujo)
-      ══════════════════════════ */}
-      <div style={{ padding:"0 24px 80px", background:P.blanco }}>
+      <div style={{ padding:"80px 24px", background:P.blanco }}>
         <div style={{ maxWidth:1320, margin:"0 auto" }}>
           <motion.div initial={{ opacity:0, y:22 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }}
             style={{ borderRadius:24, background:`linear-gradient(135deg, ${P.bordo} 0%, ${P.granate} 100%)`, padding:"56px 48px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:32, flexWrap:"wrap", position:"relative", overflow:"hidden", boxShadow:`0 24px 60px ${P.bordo}30` }}>
@@ -243,21 +196,30 @@ export default function ProductsSection() {
             
             <div style={{ position:"relative", zIndex:2, maxWidth: 600 }}>
               <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.75rem", fontWeight:800, color:P.dorado, letterSpacing:"0.2em", textTransform:"uppercase", marginBottom:12, display:"flex", alignItems:"center", gap:6 }}>
-                <Sparkles size={14} strokeWidth={2} /> Inteligencia Artificial
+                <Store size={14} strokeWidth={2} /> Emotia Business
               </div>
               <h3 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"clamp(1.8rem, 3.5vw, 2.4rem)", fontWeight:900, color:P.blanco, marginBottom:16, lineHeight:1.15 }}>
-                ¿Sin ideas?<br/>Deja que la magia actúe.
+                Impulsa tus ventas con<br/>nuestra red inteligente.
               </h3>
-              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"1.05rem", color:`${P.beige}90`, lineHeight:1.6 }}>
-                Cuéntale a nuestra IA para quién es el detalle y en segundos diseñará la opción perfecta. Personalidad, ocasión y presupuesto, todo calculado a la perfección.
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"1.05rem", color:`${P.beige}90`, lineHeight:1.6, marginBottom:24 }}>
+                ¿Eres artesano, tienes una tienda o creas experiencias únicas? Únete a nuestra plataforma y deja que nuestra IA conecte tus productos con los clientes ideales.
               </p>
+              
+              <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, color: P.blanco, fontSize: "0.85rem", fontFamily: "'DM Sans', sans-serif" }}>
+                  <TrendingUp size={16} color={P.dorado} /> Mayor alcance
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, color: P.blanco, fontSize: "0.85rem", fontFamily: "'DM Sans', sans-serif" }}>
+                  <ShieldCheck size={16} color={P.dorado} /> Gestión simplificada
+                </div>
+              </div>
             </div>
             
             <div style={{ position:"relative", zIndex:2, flexShrink:0 }}>
               <motion.button whileHover={{ scale:1.05, y:-2 }} whileTap={{ scale:0.97 }}
-                onClick={() => router.push("/registro")}
+                onClick={() => router.push("/business")}
                 style={{ background:P.dorado, color:P.bordo, border:"none", padding:"18px 36px", borderRadius:100, fontFamily:"'DM Sans',sans-serif", fontWeight:800, fontSize:"1.05rem", cursor:"pointer", display:"flex", alignItems:"center", gap:8, boxShadow:`0 12px 30px ${P.dorado}40` }}>
-                Consultar al Asesor <ArrowRight size={18} strokeWidth={2}/>
+                Únete como Productor <ArrowRight size={18} strokeWidth={2}/>
               </motion.button>
             </div>
           </motion.div>
@@ -265,7 +227,7 @@ export default function ProductsSection() {
       </div>
 
       {/* ══════════════════════════
-          CÓMO FUNCIONA (Rediseño Lujo)
+          CÓMO FUNCIONA
       ══════════════════════════ */}
       <div id="como-funciona" style={{ background:`${P.beige}30`, padding:"80px 24px" }}>
         <div style={{ maxWidth:1320, margin:"0 auto" }}>
@@ -313,46 +275,40 @@ export default function ProductsSection() {
       </div>
 
       {/* ══════════════════════════
-          TESTIMONIOS (Rediseño Lujo)
+          TESTIMONIOS INFINITOS
       ══════════════════════════ */}
-      <div style={{ background:P.blanco, padding:"80px 24px" }}>
-        <div style={{ maxWidth:1320, margin:"0 auto" }}>
+      <div style={{ background:P.blanco, padding:"80px 0 40px" }}>
+        <div style={{ maxWidth:1320, margin:"0 auto", padding:"0 24px" }}>
           <motion.div initial={{ opacity:0, y:18 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }}
-            style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:40, flexWrap:"wrap", gap:16 }}>
+            style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24 }}>
             <h2 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"clamp(1.8rem, 3vw, 2.4rem)", fontWeight:900, color:P.bordo }}>Memorias inolvidables</h2>
-            <div style={{ display:"flex", gap:12 }}>
-              <motion.button whileHover={{ scale:1.1 }} whileTap={{ scale:0.9 }} onClick={scrollPrevTest}
-                style={{ width:48, height:48, borderRadius:"50%", background:P.blanco, border:`1.5px solid ${P.beige}`, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:P.granate, boxShadow:`0 4px 10px ${P.granate}10` }}>
-                <ChevronLeft size={20} strokeWidth={2}/>
-              </motion.button>
-              <motion.button whileHover={{ scale:1.1 }} whileTap={{ scale:0.9 }} onClick={scrollNextTest}
-                style={{ width:48, height:48, borderRadius:"50%", background:P.granate, border:"none", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:P.blanco, boxShadow:`0 4px 10px ${P.granate}30` }}>
-                <ChevronRight size={20} strokeWidth={2}/>
-              </motion.button>
-            </div>
           </motion.div>
-          
-          <div className="embla" ref={emblaRefTest}>
-            <div className="embla__container">
-              {[...TESTIMONIALS,...TESTIMONIALS].map((t,i) => (
-                <div key={i} className="embla__slide_test" style={{ background:`${P.beige}20`, borderRadius:24, padding:"32px", border:`1px solid ${P.beige}`, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                  <div>
-                    <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
-                      {[...Array(5)].map((_,i) => <Star key={i} size={14} fill={P.dorado} color={P.dorado} />)}
-                    </div>
-                    <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"1.05rem", color:P.chocolate, lineHeight:1.7, fontStyle:"italic", marginBottom:24 }}>"{t.text}"</p>
+        </div>
+
+        <div className="marquee-wrapper">
+          <div className="marquee-track-slow">
+            {marqueeTestimonials.map((t, index) => (
+              <motion.div 
+                key={`test-${index}`} 
+                whileHover={{ y: -6, borderColor: P.dorado, boxShadow: `0 12px 30px ${P.granate}10` }}
+                style={{ flex: "0 0 380px", background:`${P.beige}20`, borderRadius:24, padding:"32px", border:`1px solid ${P.beige}`, display: "flex", flexDirection: "column", justifyContent: "space-between", transition:"all 0.3s ease", cursor: "default" }}
+              >
+                <div>
+                  <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
+                    {[...Array(5)].map((_,i) => <Star key={i} size={14} fill={P.dorado} color={P.dorado} />)}
                   </div>
-                  
-                  <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                    <div style={{ width:48, height:48, borderRadius:"50%", background:P.bordo, display:"flex", alignItems:"center", justifyContent:"center", color:P.blanco, fontWeight:800, fontSize:"1.1rem" }}>{t.avatar}</div>
-                    <div>
-                      <div style={{ fontFamily:"'Montserrat',sans-serif", fontWeight:800, color:P.bordo, fontSize:"0.95rem" }}>{t.name}</div>
-                      <div style={{ fontFamily:"'DM Sans',sans-serif", color:P.gris, fontSize:"0.8rem", marginTop: 2 }}>Cliente Verificado</div>
-                    </div>
+                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"1.05rem", color:P.chocolate, lineHeight:1.7, fontStyle:"italic", marginBottom:24 }}>"{t.text}"</p>
+                </div>
+                
+                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                  <div style={{ width:48, height:48, borderRadius:"50%", background:P.bordo, display:"flex", alignItems:"center", justifyContent:"center", color:P.blanco, fontWeight:800, fontSize:"1.1rem" }}>{t.avatar}</div>
+                  <div>
+                    <div style={{ fontFamily:"'Montserrat',sans-serif", fontWeight:800, color:P.bordo, fontSize:"0.95rem" }}>{t.name}</div>
+                    <div style={{ fontFamily:"'DM Sans',sans-serif", color:P.gris, fontSize:"0.8rem", marginTop: 2 }}>Cliente Verificado</div>
                   </div>
                 </div>
-              ))}
-            </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>
