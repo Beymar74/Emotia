@@ -3,9 +3,18 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, User, Store } from "lucide-react";
-import { C } from "./constants";
 
-// 1. Agregamos la interfaz para recibir la función del Modal
+// NUEVA PALETA DE COLORES
+const P = {
+  granate: "#8E1B3A",
+  bordo: "#5A0F24",
+  chocolate: "#5C3A2E",
+  dorado: "#BC9968",
+  beige: "#F5E6D0",
+  blanco: "#FFFFFF",
+  gris: "#B0B0B0"
+};
+
 interface JoinSectionProps {
   onOpenRegister?: () => void;
 }
@@ -16,18 +25,17 @@ export default function JoinSection({ onOpenRegister }: JoinSectionProps) {
   const CARDS = [
     {
       id:      "cliente",
-      icon:    <User size={16} strokeWidth={1.5} />,
+      icon:    <User size={16} strokeWidth={2} />,
       imgSrc:  "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=800&auto=format&fit=crop",
       title:   "Soy cliente",
       desc:    "Descubre cientos de regalos artesanales bolivianos y usa nuestra IA para encontrar el match perfecto. Entrega hoy en La Paz.",
       btn:     "Crear cuenta gratis",
-      // 2. Cambiamos la acción para que abra el modal
       action:  () => { if (onOpenRegister) onOpenRegister(); else router.push("/registro"); },
       tag:     "Para regalar",
     },
     {
       id:      "productor",
-      icon:    <Store size={16} strokeWidth={1.5} />,
+      icon:    <Store size={16} strokeWidth={2} />,
       imgSrc:  "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop",
       title:   "Soy productor",
       desc:    "¿Eres artesano, empresa o tienda? Vende tus productos, gestiona regalos corporativos y automatiza tu operación con Emotia Business.",
@@ -38,47 +46,53 @@ export default function JoinSection({ onOpenRegister }: JoinSectionProps) {
   ];
 
   return (
-    <section style={{ background: C.white, padding: "80px 24px", position: "relative", overflow: "hidden" }}>
+    <section style={{ background: P.blanco, padding: "100px 24px", position: "relative", overflow: "hidden" }}>
       {/* Fondo sutil decorativo */}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1px", background: `linear-gradient(90deg, transparent, rgba(198,40,79,0.1), transparent)` }} />
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1px", background: `linear-gradient(90deg, transparent, ${P.dorado}50, transparent)` }} />
+      <div style={{ position: "absolute", bottom: -200, right: -200, width: 600, height: 600, borderRadius: "50%", background: P.beige, opacity: 0.2, filter: "blur(80px)" }} />
       
-      <div style={{ maxWidth: 960, margin: "0 auto", position: "relative", zIndex: 2 }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 2 }}>
 
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }}
-          style={{ textAlign: "center", marginBottom: 48 }}
+          style={{ textAlign: "center", marginBottom: 64 }}
         >
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 4vw, 2.8rem)", fontWeight: 500, color: C.choco, lineHeight: 1.1, marginBottom: 12 }}>
-            Únete a <strong style={{ color: C.garnet, fontWeight: 900 }}>Emotia</strong>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:12, marginBottom:16 }}>
+            <span style={{ width:40, height:1.5, background:P.dorado, display:"inline-block" }} />
+            <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.8rem", fontWeight:800, color:P.dorado, letterSpacing:"0.15em", textTransform:"uppercase" }}>Sé parte de la comunidad</span>
+            <span style={{ width:40, height:1.5, background:P.dorado, display:"inline-block" }} />
+          </div>
+          <h2 style={{ fontFamily: "'Montserrat', serif", fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 900, color: P.bordo, lineHeight: 1.1, marginBottom: 16 }}>
+            Únete a <span style={{ color: P.granate }}>Emotia</span>
           </h2>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "1.05rem", color: C.gray, maxWidth: 500, margin: "0 auto" }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "1.1rem", color: P.chocolate, maxWidth: 500, margin: "0 auto" }}>
             La primera plataforma inteligente de regalos en Bolivia.
           </p>
         </motion.div>
 
         {/* Cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 32 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 40 }}>
           {CARDS.map((card, i) => (
             <motion.div
               key={card.id}
-              initial={{ opacity: 0, y: 24 }} 
+              initial={{ opacity: 0, y: 30 }} 
               whileInView={{ opacity: 1, y: 0 }} 
               viewport={{ once: true, margin: "-50px" }} 
-              transition={{ delay: i * 0.15, duration: 0.5, ease: "easeOut" }}
+              transition={{ delay: i * 0.15, duration: 0.6, ease: "easeOut" }}
               whileHover="hover"
               style={{ 
-                borderRadius: 20, 
-                border: "1px solid rgba(255,209,179,0.5)", 
-                background: "white",
+                borderRadius: 24, 
+                border: `1px solid ${P.beige}`, 
+                background: P.blanco,
                 overflow: "hidden", 
                 cursor: "pointer", 
                 display: "flex",
                 flexDirection: "column",
-                boxShadow: "0 6px 16px rgba(0,0,0,0.04)"
+                boxShadow: `0 10px 30px rgba(0,0,0,0.03)`
               }}
               variants={{
-                hover: { y: -6, boxShadow: "0 24px 48px rgba(198,40,79,0.12)" }
+                hover: { y: -8, boxShadow: `0 24px 50px ${P.granate}15`, borderColor: P.dorado }
               }}
               onClick={card.action}
               role="button"
@@ -87,37 +101,33 @@ export default function JoinSection({ onOpenRegister }: JoinSectionProps) {
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.action(); } }}
             >
               {/* Contenedor de Imagen */}
-              <div style={{ height: 240, position: "relative", overflow: "hidden" }}>
-                
-                {/* Overlay oscuro superior */}
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "80px", background: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 100%)", zIndex: 2, pointerEvents: "none" }} />
+              <div style={{ height: 280, position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "120px", background: "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%)", zIndex: 2, pointerEvents: "none" }} />
 
-                {/* Etiqueta / Tag */}
-                <div style={{ position: "absolute", top: 16, left: 16, zIndex: 3, display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.9)", backdropFilter: "blur(8px)", padding: "6px 12px", borderRadius: 100, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-                  <span style={{ color: C.garnet, display: "flex", alignItems: "center" }}>{card.icon}</span>
-                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", fontWeight: 800, color: C.garnet, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                <div style={{ position: "absolute", top: 20, left: 20, zIndex: 3, display: "flex", alignItems: "center", gap: 8, background: `${P.blanco}E6`, backdropFilter: "blur(10px)", padding: "8px 16px", borderRadius: 100, boxShadow: "0 4px 15px rgba(0,0,0,0.15)" }}>
+                  <span style={{ color: P.granate, display: "flex", alignItems: "center" }}>{card.icon}</span>
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", fontWeight: 800, color: P.granate, textTransform: "uppercase", letterSpacing: "0.08em" }}>
                     {card.tag}
                   </span>
                 </div>
                 
-                {/* Imagen Real */}
                 <motion.img 
                   src={card.imgSrc}
                   alt={`Representación de ${card.title}`}
-                  variants={{ hover: { scale: 1.06 } }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  variants={{ hover: { scale: 1.08 } }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
                   style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />
               </div>
 
               {/* Contenido */}
-              <div style={{ padding: "32px 28px 28px", display: "flex", flexDirection: "column", flexGrow: 1 }}>
-                <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", fontWeight: 800, color: C.choco, marginBottom: 14, textAlign: "center" }}>
+              <div style={{ padding: "40px 32px 32px", display: "flex", flexDirection: "column", flexGrow: 1, position: "relative" }}>
+                <h3 style={{ fontFamily: "'Montserrat', serif", fontSize: "1.8rem", fontWeight: 900, color: P.bordo, marginBottom: 16, textAlign: "center" }}>
                   {card.title}
                 </h3>
                 
                 <div style={{ flexGrow: 1 }}>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.95rem", color: C.gray, lineHeight: 1.6, textAlign: "center", marginBottom: 28 }}>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "1rem", color: P.chocolate, lineHeight: 1.6, textAlign: "center", marginBottom: 32 }}>
                     {card.desc}
                   </p>
                 </div>
@@ -125,31 +135,30 @@ export default function JoinSection({ onOpenRegister }: JoinSectionProps) {
                 {/* Botón interactivo */}
                 <motion.button
                   variants={{
-                    hover: { backgroundColor: C.garnet, color: "#ffffff", boxShadow: "0 8px 24px rgba(198,40,79,0.25)" }
+                    hover: { backgroundColor: P.granate, color: P.blanco, boxShadow: `0 8px 25px ${P.granate}30` }
                   }}
                   whileTap={{ scale: 0.97 }}
                   onClick={e => { e.stopPropagation(); card.action(); }}
                   style={{ 
                     width: "100%", 
-                    backgroundColor: C.roseLight, 
-                    color: C.garnet, 
+                    backgroundColor: P.beige, 
+                    color: P.bordo, 
                     border: "none", 
-                    borderRadius: 12, 
-                    padding: "15px", 
+                    borderRadius: 14, 
+                    padding: "16px", 
                     fontFamily: "'DM Sans', sans-serif", 
-                    fontWeight: 700, 
-                    fontSize: "0.95rem", 
+                    fontWeight: 800, 
+                    fontSize: "1rem", 
                     cursor: "pointer", 
                     display: "flex", 
                     alignItems: "center", 
                     justifyContent: "center", 
-                    gap: 8, 
+                    gap: 10, 
                     transition: "background-color 0.4s ease, color 0.4s ease" 
                   }}
                   aria-hidden="true"
                 >
-                  {/* Flecha más fina (strokeWidth 1.5) */}
-                  {card.btn} <ArrowRight size={18} strokeWidth={1.5} />
+                  {card.btn} <ArrowRight size={18} strokeWidth={2} />
                 </motion.button>
               </div>
             </motion.div>
