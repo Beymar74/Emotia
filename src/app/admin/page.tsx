@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import prisma from "@/lib/prisma";
 import MetricCard from "./_components/MetricCard";
 import QuickActions from "./_components/QuickActions";
@@ -36,7 +38,7 @@ export default async function AdminPage() {
     where: { estado: 'aprobado' }
   });
 
-  // 5. Últimos proveedores registrados (para la tabla)
+  // 5. Ãšltimos proveedores registrados (para la tabla)
   const ultimosProveedores = await prisma.proveedores.findMany({
     take: 5,
     orderBy: { created_at: 'desc' },
@@ -49,10 +51,10 @@ export default async function AdminPage() {
   return (
     <div className="space-y-5">
 
-      {/* Métricas */}
+      {/* MÃ©tricas */}
       <div>
         <p className="text-[8.5px] tracking-[2.5px] uppercase text-[#7A5260] font-medium mb-3">
-          Resumen — Abril 2026
+          Resumen â€” Abril 2026
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
           <MetricCard
@@ -90,17 +92,17 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      {/* Acciones rápidas */}
+      {/* Acciones rÃ¡pidas */}
       <div>
         <p className="text-[8.5px] tracking-[2.5px] uppercase text-[#7A5260] font-medium mb-3">
-          Acciones rápidas del administrador
+          Acciones rÃ¡pidas del administrador
         </p>
         <QuickActions />
       </div>
 
       {/* Grid principal */}
       <div className="grid grid-cols-1 xl:grid-cols-[1.6fr_1fr] gap-3">
-        {/* Aquí pasamos los datos reales al componente */}
+        {/* AquÃ­ pasamos los datos reales al componente */}
         <ProveedoresTable data={ultimosProveedores} />
         
         <div className="flex flex-col gap-3">
