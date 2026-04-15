@@ -94,25 +94,30 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* METRICAS (4 tarjetas superiores) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          { label: "Pendientes", val: "12", icon: <Clock />, color: P.granate, bg: P.beige },
-          { label: "En Proceso", val: "08", icon: <Package />, color: P.dorado, bg: "#FDF7ED" },
-          { label: "Entregados", val: "45", icon: <CheckCircle />, color: P.negro, bg: "#F3F4F6" },
-          { label: "Ingresos", val: "Bs. 3,450", icon: <TrendingUp />, color: "#059669", bg: "#ECFDF5" }
-        ].map((m, i) => (
-          <div key={i} className="bg-white p-5 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm">
-            <div>
-              <p className="text-[10px] text-[#B0B0B0] font-black uppercase tracking-widest">{m.label}</p>
-              <p className="text-2xl font-black mt-1" style={{ color: m.color }}>{m.val}</p>
-            </div>
-            <div className="h-12 w-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: m.bg }}>
-              {React.cloneElement(m.icon as React.ReactElement, { color: m.color, size: 24 })}
-            </div>
-          </div>
-        ))}
+      {/* METRICAS RAPIDAS */}
+<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+  {[
+    { label: "Pendientes", val: "12", icon: Clock, color: P.granate, bg: P.beige },
+    { label: "En Proceso", val: "08", icon: Package, color: P.dorado, bg: "#FDF7ED" },
+    { label: "Entregados", val: "45", icon: CheckCircle, color: P.negro, bg: "#F3F4F6" },
+    { label: "Ingresos", val: "Bs. 3,450", icon: TrendingUp, color: "#059669", bg: "#ECFDF5" }
+  ].map((m, i) => {
+    // Definimos el componente del ícono dinámicamente
+    const IconComponent = m.icon;
+    return (
+      <div key={i} className="bg-white p-5 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm">
+        <div>
+          <p className="text-[10px] text-[#B0B0B0] font-black uppercase tracking-widest">{m.label}</p>
+          <p className="text-2xl font-black mt-1" style={{ color: m.color }}>{m.val}</p>
+        </div>
+        <div className="h-12 w-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: m.bg }}>
+          {/* Renderizamos el componente directamente con sus props */}
+          <IconComponent color={m.color} size={24} />
+        </div>
       </div>
+    );
+  })}
+</div>
 
       {/* CUERPO PRINCIPAL (2 COLUMNAS) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
