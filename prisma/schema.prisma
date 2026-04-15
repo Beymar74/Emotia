@@ -1,13 +1,13 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js" // Asegúrate de que termine en -js
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL") // <--- ESTA ES LA LÍNEA QUE FALTA
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model audit_log {
   id         BigInt   @id @default(autoincrement())
   actor_id   Int?

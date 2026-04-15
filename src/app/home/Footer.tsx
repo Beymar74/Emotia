@@ -1,202 +1,174 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Instagram, MessageCircle, Music, Loader2, CheckCircle2, Heart } from "lucide-react";
-import { C } from "./constants";
+import { motion } from "framer-motion";
+import { Instagram, MessageCircle, Music, Heart, MapPin, Mail, Gift, ArrowRight } from "lucide-react";
+// NUEVA PALETA DE COLORES
+const P = {
+  granate: "#8E1B3A",
+  bordo: "#5A0F24",
+  carmesi: "#AB3A50",
+  chocolate: "#5C3A2E",
+  dorado: "#BC9968",
+  beige: "#F5E6D0",
+  blanco: "#FFFFFF",
+  gris: "#B0B0B0"
+};
 
 export default function Footer() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
 
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-    
-    // Simulación de UX: Estado de carga antes del éxito
-    setStatus("loading");
-    setTimeout(() => {
-      setStatus("success");
-      setEmail("");
-    }, 1200);
-  };
+  const LINKS_NAV = [
+    { label: "Catálogo de Regalos", path: "/regalos" },
+    { label: "Cómo Funciona", path: "/#como-funciona" },
+    { label: "Para Empresas", path: "/business" },
+    { label: "Nosotros", path: "/nosotros" },
+    { label: "Ayuda y FAQ", path: "/ayuda" },
+  ];
 
-  const LINKS = [
-    { label: "Regalos",    path: "/regalos" },
-    { label: "Empresas",   path: "/business" },
-    { label: "Artesanos",  path: "/business" },
-    { label: "Nosotros",   path: "/nosotros" },
-    { label: "Ayuda",      path: "/ayuda" },
-    { label: "Privacidad", path: "/privacidad" },
+  const LINKS_LEGAL = [
+    { label: "Términos de Servicio", path: "/terminos" },
+    { label: "Política de Privacidad", path: "/privacidad" },
+    { label: "Gestión de Cookies", path: "/cookies" },
   ];
 
   const SOCIAL = [
-    { icon: <Instagram size={18} strokeWidth={2} />, href: "https://www.instagram.com/emotia.gifts1/", label: "Síguenos en Instagram" },
-    { icon: <MessageCircle size={18} strokeWidth={2} />, href: "https://wa.me/59170000000", label: "Contáctanos por WhatsApp" },
-    { icon: <Music size={18} strokeWidth={2} />, href: "https://www.tiktok.com/@emotia.gifts0", label: "Síguenos en TikTok" },
+    { icon: <Instagram size={18} strokeWidth={2} />, href: "https://www.instagram.com/emotia.gifts1/", label: "Instagram" },
+    { icon: <MessageCircle size={18} strokeWidth={2} />, href: "https://wa.me/59170000000", label: "WhatsApp" },
+    { icon: <Music size={18} strokeWidth={2} />, href: "https://www.tiktok.com/@emotia.gifts0", label: "TikTok" },
   ];
-
-  const isValidEmail = email.includes("@") && email.includes(".");
 
   return (
     <>
-      {/* ── NEWSLETTER ── */}
-      <section style={{ background: C.roseLight, padding: "56px 24px", textAlign: "center" }}>
-        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.6rem, 3vw, 2.2rem)", fontWeight: 800, color: C.garnet, marginBottom: 8 }}>
-            Recibe ofertas antes que nadie
-          </h2>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "1rem", color: C.gray, marginBottom: 28, maxWidth: "500px", marginInline: "auto" }}>
-            Suscríbete y recibe un <strong style={{ color: C.garnet, fontWeight: 700 }}>10% de descuento</strong> en tu primer pedido.
-          </p>
+      {/* ── FOOTER ESTILO BUSINESS ADAPTADO PARA CLIENTES ── */}
+      <footer style={{ background: P.bordo, paddingTop: "80px", position: "relative", overflow: "hidden" }}>
 
-          <div style={{ height: "54px", display: "flex", justifyContent: "center", alignItems: "center" }}>
-            <AnimatePresence mode="wait">
-              {status === "success" ? (
-                <motion.div 
-                  key="success"
-                  initial={{ opacity: 0, scale: 0.9 }} 
-                  animate={{ opacity: 1, scale: 1 }}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "#f0fdf4", border: `1.5px solid #22c55e`, borderRadius: 100, padding: "12px 28px", color: "#166534", fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: "0.95rem" }}
-                >
-                  <CheckCircle2 size={20} color="#22c55e" />
-                  ¡Suscrito! Revisa tu correo
-                </motion.div>
-              ) : (
-                <motion.form 
-                  key="form"
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  onSubmit={handleSubscribe} 
-                  style={{ display: "flex", gap: 10, justifyContent: "center", width: "100%", maxWidth: 480, margin: "0 auto" }}
-                >
-                  <input
-                    type="email" 
-                    value={email} 
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="tu@email.com"
-                    aria-label="Correo electrónico para newsletter"
-                    disabled={status === "loading"}
-                    style={{ 
-                      flex: 1, 
-                      border: `1px solid rgba(0,0,0,0.1)`, 
-                      borderRadius: 100, 
-                      padding: "0 20px", 
-                      fontFamily: "'DM Sans', sans-serif", 
-                      fontSize: "0.95rem", 
-                      color: C.choco, 
-                      background: "white",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
-                      transition: "border-color 0.2s, box-shadow 0.2s",
-                      minHeight: "48px"
-                    }}
-                  />
-                  <motion.button 
-                    type="submit" 
-                    disabled={!isValidEmail || status === "loading"}
-                    whileHover={isValidEmail ? { scale: 1.02 } : {}} 
-                    whileTap={isValidEmail ? { scale: 0.98 } : {}}
-                    style={{ 
-                      background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, 
-                      color: "white", 
-                      border: "none", 
-                      borderRadius: 100, 
-                      padding: "0 28px", 
-                      fontFamily: "'DM Sans', sans-serif", 
-                      fontWeight: 700, 
-                      fontSize: "0.95rem", 
-                      cursor: isValidEmail ? "pointer" : "not-allowed", 
-                      whiteSpace: "nowrap", 
-                      boxShadow: isValidEmail ? `0 6px 20px ${C.crimson}40` : "none",
-                      opacity: isValidEmail ? 1 : 0.6,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      minHeight: "48px",
-                      transition: "opacity 0.3s, box-shadow 0.3s"
-                    }}
+        {/* MARCA DE AGUA GIGANTE DE FONDO */}
+        <div style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          fontSize: "22vw",
+          fontWeight: 900,
+          fontFamily: "'Montserrat', sans-serif",
+          color: P.blanco,
+          opacity: 0.02,
+          pointerEvents: "none",
+          userSelect: "none",
+          zIndex: 0,
+          whiteSpace: "nowrap",
+          letterSpacing: "-0.05em"
+        }}>
+          EMOTIA
+        </div>
+
+        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 24px", position: "relative", zIndex: 2 }}>
+
+          {/* GRID PRINCIPAL DE 4 COLUMNAS */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "48px", marginBottom: "60px" }}>
+
+            {/* COLUMNA 1: Logo y Descripción */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ cursor: "pointer" }} onClick={() => router.push("/")}>
+                <img src="/logo/logoextendido.png" alt="Emotia"
+                  style={{ height: 40, width: "auto", objectFit: "contain", display: "block", filter: "brightness(0) invert(1)", opacity: 0.95 }} />
+              </motion.div>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.95rem", color: "rgba(255,255,255,0.75)", lineHeight: 1.7 }}>
+                La primera plataforma inteligente de regalos en Bolivia. Sorprende a los que más quieres con detalles únicos, empaque premium y entrega garantizada en La Paz.
+              </p>
+
+              {/* Redes Sociales */}
+              <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+                {SOCIAL.map((s, i) => (
+                  <motion.a key={i} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
+                    whileHover={{ scale: 1.1, backgroundColor: P.carmesi }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", color: P.blanco, textDecoration: "none", transition: "background-color 0.3s" }}>
+                    {s.icon}
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+
+            {/* COLUMNA 2: Navegación */}
+            <div>
+              <h4 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", fontWeight: 800, color: P.dorado, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 24 }}>
+                Navegación
+              </h4>
+              <nav style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {LINKS_NAV.map((l, i) => (
+                  <motion.button key={i} onClick={() => router.push(l.path)}
+                    style={{ background: "none", border: "none", color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans', sans-serif", fontSize: "0.95rem", textAlign: "left", cursor: "pointer", padding: 0, transition: "color 0.2s" }}
+                    onMouseEnter={e => e.currentTarget.style.color = P.blanco}
+                    onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}
                   >
-                    {status === "loading" ? (
-                      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-                        <Loader2 size={18} />
-                      </motion.div>
-                    ) : "Suscribirme"}
+                    {l.label}
                   </motion.button>
-                </motion.form>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-      </section>
+                ))}
+              </nav>
+            </div>
 
-      {/* ── FOOTER ── */}
-      <footer style={{ background: C.garnet, padding: "48px 24px 24px" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            {/* COLUMNA 3: Legal */}
+            <div>
+              <h4 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", fontWeight: 800, color: P.dorado, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 24 }}>
+                Legal
+              </h4>
+              <nav style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {LINKS_LEGAL.map((l, i) => (
+                  <motion.button key={i} onClick={() => router.push(l.path)}
+                    style={{ background: "none", border: "none", color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans', sans-serif", fontSize: "0.95rem", textAlign: "left", cursor: "pointer", padding: 0, transition: "color 0.2s" }}
+                    onMouseEnter={e => e.currentTarget.style.color = P.blanco}
+                    onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}
+                  >
+                    {l.label}
+                  </motion.button>
+                ))}
+              </nav>
+            </div>
 
-          {/* Top row */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 32, marginBottom: 32 }}>
+            {/* COLUMNA 4: Contacto */}
+            <div>
+              <h4 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", fontWeight: 800, color: P.dorado, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 24 }}>
+                Atención al Cliente
+              </h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", color: "rgba(255,255,255,0.7)" }}>
+                  <MapPin size={18} color={P.dorado} style={{ flexShrink: 0, marginTop: 2 }} />
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.95rem", lineHeight: 1.5 }}>Av. Arce, Zona Sopocachi<br />La Paz, Bolivia</span>
+                </div>
+                <div style={{ display: "flex", gap: 12, alignItems: "center", color: "rgba(255,255,255,0.7)" }}>
+                  <Mail size={18} color={P.dorado} style={{ flexShrink: 0 }} />
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.95rem" }}>hola@emotia.com.bo</span>
+                </div>
 
-            {/* Logo */}
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} style={{ cursor: "pointer" }} onClick={() => router.push("/")} aria-label="Ir al inicio">
-              <img src="/logo/logoextendido.png" alt="Emotia"
-                style={{ height: 38, width: "auto", objectFit: "contain", display: "block", filter: "brightness(0) invert(1)", opacity: 0.95 }} />
-            </motion.div>
-
-            {/* Links */}
-            <nav style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
-              {LINKS.map(({ label, path }) => (
-                <button key={`${label}-${path}`} onClick={() => router.push(path)}
-                  style={{ 
-                    background: "none", 
-                    border: "none", 
-                    color: "rgba(255,255,255,0.75)",
-                    fontFamily: "'DM Sans', sans-serif", 
-                    fontSize: "0.9rem", 
-                    fontWeight: 500, 
-                    cursor: "pointer", 
-                    padding: "8px 12px",
-                    borderRadius: 8, 
-                    transition: "all 0.2s ease" 
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.color = "rgba(255,255,255,1)";
-                    e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)";
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.color = "rgba(255,255,255,0.75)";
-                    e.currentTarget.style.backgroundColor = "transparent";
-                  }}
+                <motion.button
+                  whileHover={{ scale: 1.03, backgroundColor: "rgba(255,255,255,0.08)" }} whileTap={{ scale: 0.97 }}
+                  onClick={() => router.push("/regalos")}
+                  style={{ marginTop: 12, background: "rgba(255,255,255,0.03)", border: `1px solid rgba(255,255,255,0.15)`, borderRadius: 12, padding: "14px 20px", color: P.blanco, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.95rem", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", transition: "background-color 0.3s" }}
                 >
-                  {label}
-                </button>
-              ))}
-            </nav>
-
-            {/* Social */}
-            <div style={{ display: "flex", gap: 12 }}>
-              {SOCIAL.map((s, i) => (
-                <motion.a key={i} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
-                  whileHover={{ scale: 1.1, y: -3, backgroundColor: "rgba(255,255,255,0.2)" }} 
-                  whileTap={{ scale: 0.95 }}
-                  style={{ width: 42, height: 42, borderRadius: "50%", background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", textDecoration: "none", transition: "background-color 0.3s" }}>
-                  {s.icon}
-                </motion.a>
-              ))}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Gift size={18} color={P.dorado} /> Ir al Catálogo
+                  </div>
+                  <ArrowRight size={18} color={P.dorado} />
+                </motion.button>
+              </div>
             </div>
           </div>
 
-          {/* Divider */}
-          <div style={{ height: 1, background: "linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.2), rgba(255,255,255,0.05))", marginBottom: 24 }} />
+          {/* DIVIDER */}
+          <div style={{ height: 1, background: "rgba(255,255,255,0.08)", marginBottom: 24 }} />
 
-          {/* Bottom */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+          {/* BOTTOM ROW (Copyright) */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16, paddingBottom: 24 }}>
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", color: "rgba(255,255,255,0.5)" }}>
-              © {new Date().getFullYear()} Emotia · Todos los derechos reservados
+              © {new Date().getFullYear()} Emotia Technologies Bolivia S.R.L. Todos los derechos reservados.
             </span>
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 4 }}>
-              Hecho con <Heart size={12} fill="currentColor" opacity={0.8} /> en La Paz, Bolivia
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 6 }}>
+              Diseñado con <Heart size={14} color={P.carmesi} fill={P.carmesi} /> en La Paz, Bolivia
             </span>
           </div>
+
         </div>
       </footer>
     </>

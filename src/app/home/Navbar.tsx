@@ -2,9 +2,21 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, LogIn, Menu, X, Search, Sparkles, LogOut, User as UserIcon } from "lucide-react";
+import { LogIn, Menu, X, Sparkles, LogOut, User as UserIcon } from "lucide-react";
 import { useUser, useStackApp } from "@stackframe/stack";
-import { C } from "./constants";
+
+// NUEVA PALETA DE COLORES
+const P = {
+  granate: "#8E1B3A",
+  bordo: "#5A0F24",
+  carmesi: "#AB3A50",
+  chocolate: "#5C3A2E",
+  dorado: "#BC9968",
+  beige: "#F5E6D0",
+  blanco: "#FFFFFF",
+  gris: "#B0B0B0",
+  negro: "#000000"
+};
 
 interface NavbarProps {
   onOpenLogin?: () => void;
@@ -18,7 +30,6 @@ export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
   
   const [scrolled, setScrolled]     = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchVal, setSearchVal]   = useState("");
 
   // Detectar scroll para cambiar el fondo
   useEffect(() => {
@@ -42,40 +53,21 @@ export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
     setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }), 150);
   };
 
-  // 👇 AHORA EL BUSCADOR TE LLEVA A LA PÁGINA DE REGALOS 👇
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchVal.trim()) return;
-    router.push(`/regalos?search=${encodeURIComponent(searchVal)}`);
-    setMobileOpen(false);
-  };
-
   const handleLogout = async () => {
     await stackApp.signOut();
     window.location.reload(); 
   };
 
-  // 👇 LOS ENLACES AHORA TE LLEVAN AL CATÁLOGO EN LUGAR DE HACER SCROLL 👇
   const NAV_LINKS = [
-    { label: "Regalos Físicos", action: () => { setMobileOpen(false); router.push("/regalos"); } },
-    { label: "Experiencias",    action: () => { setMobileOpen(false); router.push("/regalos?categoria=experiencias"); } },
-    { label: "Cómo funciona",   action: () => goTo("como-funciona") },
-    { label: "Nosotros",        action: () => { setMobileOpen(false); router.push("/nosotros"); } },
+    { label: "Catálogo", action: () => { setMobileOpen(false); router.push("/regalos"); } },
+    { label: "Cómo funciona",  action: () => goTo("como-funciona") },
+    { label: "Nosotros",       action: () => { setMobileOpen(false); router.push("/nosotros"); } },
   ];
 
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700;800&display=swap');
-        
-        .nav-search-container {
-          transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .nav-search-container:focus-within {
-          border-color: ${C.garnet} !important;
-          box-shadow: 0 0 0 3px rgba(198,40,79,0.1);
-        }
-        .nav-search-input:focus { outline: none; }
         
         @media(max-width:960px){ 
           .nav-desktop { display: none !important; } 
@@ -85,15 +77,15 @@ export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
 
       <header style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 999,
-        background: scrolled ? "rgba(255,243,230,0.92)" : "transparent",
+        background: scrolled ? "rgba(255,255,255,0.95)" : "transparent",
         backdropFilter: scrolled ? "blur(20px)" : "none",
-        borderBottom: `1px solid rgba(255,209,179,${scrolled ? 0.6 : 0})`,
-        boxShadow: scrolled ? "0 4px 24px rgba(198,40,79,0.06)" : "none",
+        borderBottom: `1px solid ${scrolled ? `${P.beige}80` : 'transparent'}`,
+        boxShadow: scrolled ? `0 4px 24px ${P.granate}08` : "none",
         transition: "background 0.3s, backdrop-filter 0.3s, border-bottom 0.3s, box-shadow 0.3s",
       }}>
 
         {/* ── TOP ROW ── */}
-        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 24px", height: 72, display: "flex", alignItems: "center", gap: 24 }}>
+        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 24px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
 
           {/* Logo */}
           <motion.button
@@ -106,58 +98,39 @@ export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
               style={{ height: 38, width: "auto", objectFit: "contain", display: "block" }} />
           </motion.button>
 
-          {/* Buscador central (Desktop) */}
-          <form onSubmit={handleSearch} className="nav-desktop nav-search-container" 
-            style={{ flex: 1, display: "flex", alignItems: "center", background: "white", border: `1.5px solid rgba(255,209,179,0.8)`, borderRadius: 100, padding: "4px 6px 4px 18px", height: 46, gap: 10, maxWidth: 520, margin: "0 auto" }}>
-            <Search size={16} color={C.garnet} strokeWidth={1.5} style={{ flexShrink: 0 }} />
-            <input
-              className="nav-search-input"
-              value={searchVal}
-              onChange={e => setSearchVal(e.target.value)}
-              placeholder="Busca el regalo perfecto..."
-              aria-label="Buscar regalos"
-              style={{ flex: 1, border: "none", background: "none", fontFamily: "'DM Sans', sans-serif", fontSize: "0.9rem", color: C.choco, width: "100%" }}
-            />
-            <motion.button 
-              type="submit" 
-              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-              style={{ background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, color: "white", border: "none", borderRadius: 100, padding: "8px 20px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer", flexShrink: 0 }}
-            >
-              Buscar
-            </motion.button>
-          </form>
+          {/* Links Desktop Centrados */}
+          <nav className="nav-desktop" style={{ display: "flex", gap: 32, alignItems: "center" }}>
+            {NAV_LINKS.map((l) => (
+              <motion.button key={l.label}
+                onClick={l.action}
+                whileHover={{ color: P.granate }}
+                style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.95rem", color: P.chocolate, transition: "color 0.2s" }}
+              >
+                {l.label}
+              </motion.button>
+            ))}
+          </nav>
 
           {/* Acciones desktop */}
-          <div className="nav-desktop" style={{ display: "flex", alignItems: "center", gap: 12, marginLeft: "auto", flexShrink: 0 }}>
+          <div className="nav-desktop" style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
             
             <motion.button
               onClick={() => router.push("/business")}
-              whileHover={{ scale: 1.03, backgroundColor: "rgba(92,58,46,0.1)" }} whileTap={{ scale: 0.97 }}
-              style={{ background: "rgba(92,58,46,0.05)", border: "none", borderRadius: 100, padding: "8px 16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.8rem", color: C.choco, cursor: "pointer", whiteSpace: "nowrap", transition: "background-color 0.2s" }}
+              whileHover={{ scale: 1.03, backgroundColor: `${P.beige}50` }} whileTap={{ scale: 0.97 }}
+              style={{ background: "transparent", border: "none", borderRadius: 100, padding: "8px 16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.85rem", color: P.chocolate, cursor: "pointer", whiteSpace: "nowrap", transition: "background-color 0.2s" }}
             >
               ¿Eres productor? →
             </motion.button>
 
-            <motion.button
-              onClick={() => router.push("/carrito")}
-              whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }}
-              aria-label="Ver carrito"
-              style={{ position: "relative", background: "white", border: `1px solid rgba(198,40,79,0.15)`, borderRadius: 12, width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.garnet, boxShadow: "0 2px 8px rgba(0,0,0,0.02)" }}
-            >
-              <ShoppingBag size={18} strokeWidth={1.5} />
-              <span style={{ position: "absolute", top: 8, right: 8, width: 8, height: 8, backgroundColor: "#ef4444", borderRadius: "50%", border: "2px solid white" }} />
-            </motion.button>
-
-            {/* 👇 LÓGICA ESTILO AMAZON: Muestra perfil si está logueado, sino Login 👇 */}
             {user ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "8px", paddingLeft: "12px", borderLeft: `1px solid rgba(188, 153, 104, 0.3)` }}>
-                <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", color: C.choco }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "8px", paddingLeft: "16px", borderLeft: `1px solid ${P.beige}` }}>
+                <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", color: P.chocolate }}>
                   Hola, {user.primaryEmail?.split('@')[0] || 'Usuario'}
                 </span>
                 <motion.button
                   onClick={() => router.push("/dashboard")}
                   whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }}
-                  style={{ background: "white", border: `1px solid rgba(198,40,79,0.15)`, borderRadius: 12, width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.garnet }}
+                  style={{ background: P.blanco, border: `1px solid ${P.beige}`, borderRadius: 12, width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: P.granate, boxShadow: "0 2px 8px rgba(0,0,0,0.02)" }}
                 >
                   <UserIcon size={16} strokeWidth={2} />
                 </motion.button>
@@ -173,16 +146,16 @@ export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
               <>
                 <motion.button
                   onClick={onOpenLogin}
-                  whileHover={{ scale: 1.03, backgroundColor: "rgba(198,40,79,0.04)" }} whileTap={{ scale: 0.97 }}
-                  style={{ background: "transparent", border: `1px solid rgba(198,40,79,0.3)`, color: C.garnet, borderRadius: 100, padding: "8px 20px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "background-color 0.2s" }}
+                  whileHover={{ scale: 1.03, backgroundColor: `${P.beige}30` }} whileTap={{ scale: 0.97 }}
+                  style={{ background: "transparent", border: `1px solid ${P.dorado}80`, color: P.granate, borderRadius: 100, padding: "8px 20px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "background-color 0.2s" }}
                 >
                   <LogIn size={15} strokeWidth={1.5} /> Entrar
                 </motion.button>
 
                 <motion.button
                   onClick={onOpenRegister}
-                  whileHover={{ scale: 1.04, y: -1, boxShadow: "0 6px 16px rgba(198,40,79,0.25)" }} whileTap={{ scale: 0.97 }}
-                  style={{ background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, color: "white", border: "none", borderRadius: 100, padding: "10px 22px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.9rem", cursor: "pointer", boxShadow: "0 4px 12px rgba(198,40,79,0.2)" }}
+                  whileHover={{ scale: 1.04, y: -1, boxShadow: `0 6px 16px ${P.granate}30` }} whileTap={{ scale: 0.97 }}
+                  style={{ background: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", borderRadius: 100, padding: "10px 22px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.9rem", cursor: "pointer", boxShadow: `0 4px 12px ${P.granate}20` }}
                 >
                   Registrarse
                 </motion.button>
@@ -196,7 +169,7 @@ export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
             whileTap={{ scale: 0.9 }}
             className="nav-mob-btn"
             aria-label="Abrir menú de navegación"
-            style={{ display: "none", background: "none", border: "none", cursor: "pointer", color: C.garnet, padding: 8, marginLeft: "auto" }}
+            style={{ display: "none", background: "none", border: "none", cursor: "pointer", color: P.granate, padding: 8, marginLeft: "auto" }}
           >
             <Menu size={26} strokeWidth={1.5} />
           </motion.button>
@@ -218,26 +191,15 @@ export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
               role="dialog"
               aria-label="Menú móvil"
-              style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "85vw", maxWidth: 360, background: C.cream, zIndex: 1101, padding: "24px 24px 32px", display: "flex", flexDirection: "column", gap: 16, boxShadow: "-8px 0 24px rgba(0,0,0,0.1)" }}
+              style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "85vw", maxWidth: 360, background: P.blanco, zIndex: 1101, padding: "24px 24px 32px", display: "flex", flexDirection: "column", gap: 16, boxShadow: "-8px 0 24px rgba(0,0,0,0.1)" }}
             >
               {/* Header Drawer */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
                 <img src="/logo/logoextendido.png" alt="Emotia" style={{ height: 32, objectFit: "contain" }} />
-                <motion.button whileTap={{ scale: 0.9 }} onClick={() => setMobileOpen(false)} aria-label="Cerrar menú" style={{ background: "rgba(255,209,179,0.4)", border: "none", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.choco }}>
+                <motion.button whileTap={{ scale: 0.9 }} onClick={() => setMobileOpen(false)} aria-label="Cerrar menú" style={{ background: P.beige, border: "none", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: P.chocolate }}>
                   <X size={20} strokeWidth={1.5} />
                 </motion.button>
               </div>
-
-              {/* Búsqueda mobile */}
-              <form onSubmit={handleSearch} className="nav-search-container" style={{ display: "flex", alignItems: "center", background: "white", border: `1px solid rgba(255,209,179,0.8)`, borderRadius: 12, padding: "10px 14px", gap: 10 }}>
-                <Search size={18} color={C.garnet} strokeWidth={1.5} />
-                <input 
-                  value={searchVal}
-                  onChange={e => setSearchVal(e.target.value)}
-                  placeholder="Buscar regalos..." 
-                  style={{ flex: 1, border: "none", background: "none", fontFamily: "'DM Sans', sans-serif", fontSize: "0.95rem", color: C.choco, outline: "none" }} 
-                />
-              </form>
 
               {/* Links de Navegación */}
               <nav style={{ display: "flex", flexDirection: "column", marginTop: 8 }}>
@@ -245,7 +207,7 @@ export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
                   <motion.button key={l.label}
                     initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 + (i * 0.05) }}
                     onClick={l.action}
-                    style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "1.1rem", color: C.choco, textAlign: "left", padding: "16px 0", borderBottom: "1px solid rgba(255,209,179,0.4)" }}
+                    style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "1.1rem", color: P.chocolate, textAlign: "left", padding: "16px 0", borderBottom: `1px solid ${P.beige}` }}
                   >
                     {l.label}
                   </motion.button>
@@ -254,22 +216,22 @@ export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
                 <motion.button
                   initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.25 }}
                   onClick={() => { setMobileOpen(false); router.push("/business"); }}
-                  style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "1.1rem", color: C.gray, textAlign: "left", padding: "16px 0", borderBottom: "1px solid rgba(255,209,179,0.4)" }}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "1.1rem", color: P.gris, textAlign: "left", padding: "16px 0", borderBottom: `1px solid ${P.beige}` }}
                 >
                   ¿Eres productor? →
                 </motion.button>
               </nav>
 
-              {/* 👇 LÓGICA ESTILO AMAZON PARA EL MENÚ MÓVIL 👇 */}
+              {/* Menú Usuario Mobile */}
               {user ? (
                 <div style={{ marginTop: "auto" }}>
-                  <div style={{ background: "rgba(255,255,255,0.6)", borderRadius: 16, padding: "16px", display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
+                  <div style={{ background: `${P.beige}50`, borderRadius: 16, padding: "16px", display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, display: "flex", alignItems: "center", justifyContent: "center", color: P.blanco }}>
                       <UserIcon size={20} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.8rem", color: C.gray }}>Bienvenido,</div>
-                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "1rem", fontWeight: 700, color: C.choco }}>{user.primaryEmail?.split('@')[0] || 'Usuario'}</div>
+                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.8rem", color: P.gris }}>Bienvenido,</div>
+                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "1rem", fontWeight: 700, color: P.chocolate }}>{user.primaryEmail?.split('@')[0] || 'Usuario'}</div>
                     </div>
                     <motion.button
                       onClick={handleLogout}
@@ -282,7 +244,7 @@ export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
                   <motion.button
                     initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
                     onClick={() => { setMobileOpen(false); router.push("/dashboard"); }}
-                    style={{ width: "100%", background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 24px rgba(198,40,79,0.25)" }}
+                    style={{ width: "100%", background: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", borderRadius: 16, padding: "16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 8px 24px ${P.granate}30` }}
                   >
                     <UserIcon size={18} strokeWidth={1.5} /> Ir a mi Perfil
                   </motion.button>
@@ -293,14 +255,14 @@ export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
                     <motion.button
                       initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
                       onClick={() => { setMobileOpen(false); if(onOpenLogin) onOpenLogin(); }}
-                      style={{ flex: 1, background: "white", color: C.garnet, border: `1px solid rgba(198,40,79,0.3)`, borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer" }}
+                      style={{ flex: 1, background: P.blanco, color: P.granate, border: `1px solid ${P.dorado}80`, borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer" }}
                     >
                       Entrar
                     </motion.button>
                     <motion.button
                       initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}
                       onClick={() => { setMobileOpen(false); if(onOpenRegister) onOpenRegister(); }}
-                      style={{ flex: 1, background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, color: "white", border: "none", borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer" }}
+                      style={{ flex: 1, background: `linear-gradient(135deg, ${P.granate}, ${C.carmesi})`, color: P.blanco, border: "none", borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer" }}
                     >
                       Registrarse
                     </motion.button>
@@ -309,7 +271,7 @@ export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
                   <motion.button
                     initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
                     onClick={() => { setMobileOpen(false); if(onOpenRegister) onOpenRegister(); }}
-                    style={{ marginTop: "auto", background: `linear-gradient(135deg, ${C.garnet}, ${C.crimson})`, color: "white", border: "none", borderRadius: 16, padding: "16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 24px rgba(198,40,79,0.25)" }}
+                    style={{ marginTop: "auto", background: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", borderRadius: 16, padding: "16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 8px 24px ${P.granate}30` }}
                   >
                     <Sparkles size={18} strokeWidth={1.5} /> Usar IA gratis
                   </motion.button>
