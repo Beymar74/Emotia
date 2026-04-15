@@ -1,9 +1,8 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@stackframe/stack";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Star, Truck, Gift, CheckCircle, ShieldCheck, Heart } from "lucide-react";
+import { ArrowRight, Star, Truck, Gift, CheckCircle, Heart, ShieldCheck } from "lucide-react";
 import { EmotiaIcon } from './EmotiaIcon';
 import { TRUST_ITEMS } from "./constants";
 
@@ -20,13 +19,9 @@ const P = {
   negro: "#000000"
 };
 
-interface HeroSectionProps {
-  onOpenRegister?: () => void;
-}
-
-export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
+// Eliminamos props innecesarios al quitar el botón de registro/IA
+export default function HeroSection() {
   const router = useRouter();
-  const user = useUser();
 
   return (
     <>
@@ -81,8 +76,9 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
                 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
                 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "clamp(2.6rem, 4.5vw, 4.2rem)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-0.02em", marginBottom: 16, color: P.bordo }}
               >
-                Regala momentos<br />
-                <span className="hero-grad-text">que nunca olvidan.</span>
+                {/* 👇 TEXTO ACTUALIZADO: EMOTIA regala emociones 👇 */}
+                EMOTIA: Regala emociones<br />
+                <span className="hero-grad-text">inolvidables.</span>
               </motion.h1>
 
               <motion.p
@@ -104,15 +100,7 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
                   <Gift size={16} strokeWidth={2.5} /> Explorar Catálogo
                 </motion.button>
 
-                {!user && (
-                  <motion.button
-                    whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => { if (onOpenRegister) onOpenRegister(); }}
-                    style={{ background: P.blanco, color: P.granate, border: `2px solid ${P.granate}30`, padding: "12px 24px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
-                  >
-                    <Sparkles size={16} /> Usar Asesor IA
-                  </motion.button>
-                )}
+                {/* 👇 BOTÓN ELIMINADO 👇 */}
               </motion.div>
 
               {/* Stats Rápidos */}
@@ -175,7 +163,7 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
           </div>
         </div>
 
-        {/* ── BARRA CONFIANZA ── */}
+        {/* BARRA CONFIANZA */}
         <div style={{ background: P.blanco, borderTop: `1px solid ${P.beige}` }}>
           <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 24px", display: "flex", flexWrap: "wrap" }}>
             {TRUST_ITEMS.map((item, i, arr) => (
