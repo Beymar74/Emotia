@@ -1,8 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { toast } from "sonner";
 import { EmotiaIcon } from "./EmotiaIcon";
 import {
   Star, ArrowRight, MessageCircle, Gift, Sparkles, Store, TrendingUp, ShieldCheck
@@ -113,7 +112,7 @@ export default function ProductsSection() {
             <motion.button
               initial={{ opacity:0, x:18 }} whileInView={{ opacity:1, x:0 }} viewport={{ once:true }}
               whileHover={{ scale:1.04 }} whileTap={{ scale:0.97 }}
-              onClick={() => router.push("/regalos")}
+              onClick={() => router.push("/producto")}
               style={{ background:P.blanco, color:P.granate, border:`1.5px solid ${P.granate}40`, padding:"12px 24px", borderRadius:100, fontFamily:"'DM Sans',sans-serif", fontWeight:800, fontSize:"0.9rem", cursor:"pointer", display:"flex", alignItems:"center", gap:8 }}
             >
               Ir al Catálogo <ArrowRight size={16} strokeWidth={2} />
@@ -127,10 +126,10 @@ export default function ProductsSection() {
               <motion.div 
                 key={`${p.id}-${index}`} 
                 whileHover={{ y:-8, borderColor: P.dorado }}
-                style={{ flex: "0 0 300px", background:P.blanco, borderRadius:20, border:`1px solid ${P.beige}`, overflow:"hidden", display:"flex", flexDirection:"column", cursor:"pointer", boxShadow: `0 10px 30px rgba(0,0,0,0.03)`, transition:"all 0.3s" }}
+                style={{ flex: "0 0 244px", background:P.blanco, borderRadius:20, border:`1px solid ${P.beige}`, overflow:"hidden", display:"flex", flexDirection:"column", cursor:"pointer", boxShadow: `0 10px 30px rgba(0,0,0,0.03)`, transition:"all 0.3s" }}
                 onClick={() => router.push("/regalos")}
               >
-                <div style={{ position:"relative", height:300, overflow:"hidden" }}>
+                <div style={{ position:"relative", height:244, overflow:"hidden" }}>
                   <img src={p.imgSrc} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover", transition:"transform 0.5s ease" }}
                     onMouseEnter={e => { (e.target as HTMLImageElement).style.transform = "scale(1.08)"; }}
                     onMouseLeave={e => { (e.target as HTMLImageElement).style.transform = "scale(1)"; }}
@@ -139,11 +138,11 @@ export default function ProductsSection() {
                   <span style={{ position:"absolute", top:16, left:16, background:P.blanco, color:P.granate, padding:"6px 12px", borderRadius:100, fontSize:"0.65rem", fontWeight:800, letterSpacing:"0.06em", textTransform:"uppercase", boxShadow:`0 4px 10px rgba(0,0,0,0.1)` }}>{p.tag}</span>
                   
                   <div style={{ position: "absolute", bottom: 20, left: 20, right: 20 }}>
-                    <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.75rem", fontWeight:700, color:P.dorado, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom: 6 }}>{p.brand}</div>
-                    <div style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"1.3rem", fontWeight:800, color:P.blanco, lineHeight:1.2, marginBottom: 8 }}>{p.name}</div>
+                    <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.68rem", fontWeight:700, color:P.dorado, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom: 6 }}>{p.brand}</div>
+                    <div style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"1.02rem", fontWeight:800, color:P.blanco, lineHeight:1.2, marginBottom: 8 }}>{p.name}</div>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", borderTop: `1px solid rgba(255,255,255,0.2)`, paddingTop: 10 }}>
-                      <span style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"1.1rem", fontWeight:800, color:P.beige }}>{p.price}</span>
-                      <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.75rem", fontWeight:700, color:P.blanco, display:"flex", alignItems:"center", gap:4 }}>Descubrir <ArrowRight size={14} /></span>
+                      <span style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"0.98rem", fontWeight:800, color:P.beige }}>{p.price}</span>
+                      <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.7rem", fontWeight:700, color:P.blanco, display:"flex", alignItems:"center", gap:4 }}>Descubrir <ArrowRight size={14} /></span>
                     </div>
                   </div>
                 </div>
@@ -297,7 +296,7 @@ export default function ProductsSection() {
                   <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
                     {[...Array(5)].map((_,i) => <Star key={i} size={14} fill={P.dorado} color={P.dorado} />)}
                   </div>
-                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"1.05rem", color:P.chocolate, lineHeight:1.7, fontStyle:"italic", marginBottom:24 }}>"{t.text}"</p>
+                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"1.05rem", color:P.chocolate, lineHeight:1.7, fontStyle:"italic", marginBottom:24 }}>&quot;{t.text}&quot;</p>
                 </div>
                 
                 <div style={{ display:"flex", alignItems:"center", gap:12 }}>
