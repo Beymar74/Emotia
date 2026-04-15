@@ -65,7 +65,6 @@ interface SidebarProps {
 export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
-  // Abre por defecto la sección que contiene la ruta activa
   const defaultOpen = navSections.reduce<Record<string, boolean>>((acc, section) => {
     acc[section.label] = section.items.some(
       (item) => pathname === item.href || pathname.startsWith(item.href + "/")
@@ -77,6 +76,11 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
   const toggle = (label: string) => {
     setOpenSections((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
+
+  const handleLogout = () => {
+    // TODO: conectar con signOut() de NextAuth u otro sistema de auth
+    console.log("Cerrar sesión");
   };
 
   const sidebarContent = (
@@ -121,39 +125,33 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
           return (
             <div key={section.label}>
-              {/* Cabecera de sección — clickeable */}
               <button
                 onClick={() => toggle(section.label)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-all duration-150 ${hasActive
+                className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-all duration-150 ${
+                  hasActive
                     ? "text-[#F5E6D0] bg-[#8E1B3A]/35"
                     : "text-[#F5E6D0]/65 hover:text-[#F5E6D0] hover:bg-[#BC9968]/10"
-                  }`}
+                }`}
               >
                 <div className="flex items-center gap-3">
                   <section.icon className="w-4 h-4 flex-shrink-0" />
                   <span>{section.label}</span>
                 </div>
-                {/* Chevron animado */}
                 <svg
-                  className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 opacity-60 ${isOpen ? "rotate-180" : ""
-                    }`}
+                  className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 opacity-60 ${
+                    isOpen ? "rotate-180" : ""
+                  }`}
                   viewBox="0 0 12 12"
                   fill="none"
                 >
-                  <path
-                    d="M2 4l4 4 4-4"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                  <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
 
-              {/* Submenú colapsable */}
               <div
-                className={`overflow-hidden transition-all duration-200 ease-in-out ${isOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
-                  }`}
+                className={`overflow-hidden transition-all duration-200 ease-in-out ${
+                  isOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
+                }`}
               >
                 <div className="ml-5 pl-4 border-l border-[#BC9968]/20 mb-1 space-y-0.5">
                   {section.items.map((item) => {
@@ -163,14 +161,16 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                         key={item.href}
                         href={item.href}
                         onClick={onClose}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${isActive
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+                          isActive
                             ? "bg-gradient-to-r from-[#8E1B3A]/80 to-[#BC9968]/20 text-[#F5E6D0] font-medium"
                             : "text-[#F5E6D0]/55 hover:bg-[#BC9968]/15 hover:text-[#F5E6D0]"
-                          }`}
+                        }`}
                       >
                         <span
-                          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${isActive ? "bg-[#BC9968]" : "bg-[#F5E6D0]/25"
-                            }`}
+                          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${
+                            isActive ? "bg-[#BC9968]" : "bg-[#F5E6D0]/25"
+                          }`}
                         />
                         {item.label}
                       </Link>
@@ -184,7 +184,8 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-4 border-t border-[#BC9968]/18">
+      <div className="px-4 py-4 border-t border-[#BC9968]/18 space-y-3">
+        {/* Perfil */}
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] flex items-center justify-center text-xs font-bold text-[#F5E6D0] flex-shrink-0">
             SA
@@ -197,6 +198,19 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
             </span>
           </div>
         </div>
+
+        {/* Botón cerrar sesión */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm text-[#F5E6D0]/60 hover:text-[#F5E6D0] hover:bg-[#8E1B3A]/40 transition-all duration-150 border border-[#BC9968]/15"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M5 12H3a1 1 0 01-1-1V3a1 1 0 011-1h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+            <path d="M9.5 10L12 7l-2.5-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 7H5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+          </svg>
+          Cerrar sesión
+        </button>
       </div>
     </aside>
   );
@@ -211,12 +225,10 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
       {/* Mobile sidebar — overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
             onClick={onClose}
           />
-          {/* Sidebar panel */}
           <div className="relative h-full w-64 animate-slide-in">
             {sidebarContent}
           </div>
