@@ -6,7 +6,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { type, data } = body
 
-    // Solo procesamos eventos de usuario
+    // Si no hay data (como en los tests de Stack), retornar ok
+    if (!data || !data.primary_email) {
+      return NextResponse.json({ ok: true })
+    }
+
     if (type !== 'user.created' && type !== 'user.updated') {
       return NextResponse.json({ ok: true })
     }
@@ -14,10 +18,6 @@ export async function POST(req: NextRequest) {
     const email = data.primary_email
     const displayName = data.display_name || ''
     const stackId = data.id
-
-    if (!email) {
-      return NextResponse.json({ error: 'Email requerido' }, { status: 400 })
-    }
 
     const partes = displayName.split(' ')
     const nombre = partes[0] || 'Usuario'
