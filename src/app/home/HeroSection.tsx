@@ -98,7 +98,7 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
               >
                 <motion.button
                   whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
-                  onClick={() => router.push("/regalos")}
+                  onClick={() => router.push("/producto")}
                   style={{ background: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", padding: "14px 28px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", boxShadow: `0 8px 25px ${P.granate}40`, display: "flex", alignItems: "center", gap: 8 }}
                 >
                   <Gift size={16} strokeWidth={2.5} /> Explorar Catálogo
