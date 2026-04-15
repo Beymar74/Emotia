@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import prisma from "@/lib/prisma";
 import { usuarios } from "@/generated/prisma/client";
 
@@ -32,13 +34,13 @@ export default async function UsuariosPage() {
   // Tipo combinado para TypeScript: Usuario + el conteo de pedidos
   type UsuarioConConteo = usuarios & { _count: { pedidos: number } };
 
-  // Calcular métricas tipando la 'u' como 'usuarios'
+  // Calcular mÃ©tricas tipando la 'u' como 'usuarios'
   const totalUsuarios = usuariosReales.length;
   const usuariosPremium = usuariosReales.filter((u: usuarios) => u.plan === 'premium').length;
   const usuariosSuspendidos = usuariosReales.filter((u: usuarios) => u.activo === false).length; 
   const activosEsteMes = usuariosReales.filter((u: usuarios) => u.activo === true).length; 
 
-  // Función para obtener iniciales para el avatar
+  // FunciÃ³n para obtener iniciales para el avatar
   const getAvatar = (nombre: string, apellido?: string | null) => {
     const first = nombre ? nombre.charAt(0).toUpperCase() : '?';
     const second = apellido ? apellido.charAt(0).toUpperCase() : '';
@@ -51,14 +53,14 @@ export default async function UsuariosPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Usuarios & Accesos</p>
-          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Gestión de usuarios</h1>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">GestiÃ³n de usuarios</h1>
         </div>
         <button className="bg-[#8E1B3A] text-white text-sm px-5 py-2.5 rounded-lg font-medium hover:opacity-85 transition-opacity self-start sm:self-auto">
           + Nuevo usuario
         </button>
       </div>
 
-      {/* Stats rápidas (Conectadas a BD) */}
+      {/* Stats rÃ¡pidas (Conectadas a BD) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: "Total usuarios", valor: totalUsuarios.toString(), color: "#8E1B3A" },
@@ -85,7 +87,7 @@ export default async function UsuariosPage() {
           <select className="flex-1 sm:flex-none text-sm border border-[#8E1B3A]/15 rounded-lg px-3 sm:px-4 py-2 outline-none text-[#7A5260]">
             <option>Todos los planes</option>
             <option>Premium</option>
-            <option>Básico</option>
+            <option>BÃ¡sico</option>
           </select>
           <select className="flex-1 sm:flex-none text-sm border border-[#8E1B3A]/15 rounded-lg px-3 sm:px-4 py-2 outline-none text-[#7A5260]">
             <option>Todos los estados</option>
