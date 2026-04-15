@@ -1,115 +1,74 @@
-type Estado = "aprobado" | "pendiente" | "suspendido";
+import Link from "next/link";
+import { proveedores } from "@/generated/prisma/client";
 
-interface Proveedor {
-  initials: string;
-  nombre: string;
-  categoria: string;
-  calificacion: string;
-  ventas: string;
-  estado: Estado;
+interface Props {
+  data: proveedores[];
 }
 
-const proveedores: Proveedor[] = [
-  { initials: "RT", nombre: "Rosas & Tulipanes", categoria: "Flores",       calificacion: "4.8", ventas: "Bs 6,240", estado: "aprobado"   },
-  { initials: "CL", nombre: "Chocolates Luna",   categoria: "Dulces",       calificacion: "4.6", ventas: "Bs 4,890", estado: "aprobado"   },
-  { initials: "AV", nombre: "Arte Vivo",          categoria: "Manualidades", calificacion: "—",   ventas: "—",        estado: "pendiente"  },
-  { initials: "JR", nombre: "Joyería Real",       categoria: "Accesorios",   calificacion: "4.9", ventas: "Bs 5,870", estado: "aprobado"   },
-  { initials: "SP", nombre: "Sweet Perfumes",     categoria: "Perfumería",   calificacion: "3.1", ventas: "Bs 1,200", estado: "suspendido" },
-];
-
-const estadoPill: Record<Estado, string> = {
-  aprobado:   "bg-[#EEF8F0] text-[#2D7A47]",
-  pendiente:  "bg-[#FDF5E6] text-[#8C5E08]",
-  suspendido: "bg-[#FBF0F0] text-[#A32D2D]",
-};
-
-const estadoLabel: Record<Estado, string> = {
-  aprobado:   "Aprobado",
-  pendiente:  "Pendiente",
-  suspendido: "Suspendido",
-};
-
-function AccionesPorEstado({ estado }: { estado: Estado }) {
-  if (estado === "aprobado") {
-    return (
-      <div className="flex gap-2">
-        <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FDF5E6] text-[#8C5E08] font-medium hover:opacity-80 transition-opacity">
-          Suspender
-        </button>
-        <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FBF0F0] text-[#A32D2D] font-medium hover:opacity-80 transition-opacity">
-          Eliminar
-        </button>
-      </div>
-    );
-  }
-  if (estado === "pendiente") {
-    return (
-      <div className="flex gap-2">
-        <button className="text-xs px-3 py-1.5 rounded-lg bg-[#EEF8F0] text-[#2D7A47] font-medium hover:opacity-80 transition-opacity">
-          Aprobar
-        </button>
-        <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FBF0F0] text-[#A32D2D] font-medium hover:opacity-80 transition-opacity">
-          Rechazar
-        </button>
-      </div>
-    );
-  }
+export default function ProveedoresTable({ data }: Props) {
   return (
-    <div className="flex gap-2">
-      <button className="text-xs px-3 py-1.5 rounded-lg bg-[#EEF8F0] text-[#2D7A47] font-medium hover:opacity-80 transition-opacity">
-        Reactivar
-      </button>
-      <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FBF0F0] text-[#A32D2D] font-medium hover:opacity-80 transition-opacity">
-        Eliminar
-      </button>
-    </div>
-  );
-}
-
-export default function ProveedoresTable() {
-  return (
-    <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-serif text-xl font-semibold text-[#5A0F24]">
-          Proveedores registrados
-        </h3>
-        <button className="text-sm text-[#BC9968] hover:underline">
+    <div className="bg-white rounded-sm border border-[#F5E6D0] p-5 shadow-sm">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-[#5C3A2E] font-serif text-lg">Proveedores registrados</h3>
+        <Link
+          href="/admin/proveedores"
+          className="text-[#BC9968] text-[10px] uppercase tracking-wider hover:underline"
+        >
           Ver todos →
-        </button>
+        </Link>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+        <table className="w-full text-left text-[11px]">
           <thead>
-            <tr>
-              {["Negocio", "Categoría", "Cal.", "Ventas", "Estado", "Acciones"].map((h) => (
-                <th key={h} className="text-left px-3 py-2 text-xs tracking-widest uppercase text-[#7A5260] font-medium border-b border-[#8E1B3A]/10">
-                  {h}
-                </th>
-              ))}
+            <tr className="text-[#7A5260] uppercase tracking-[1px] border-b border-[#F5E6D0]">
+              <th className="pb-3 font-medium">Negocio</th>
+              <th className="pb-3 font-medium">Cal.</th>
+              <th className="pb-3 font-medium">Ventas</th>
+              <th className="pb-3 font-medium">Estado</th>
+              <th className="pb-3 font-medium text-right">Acciones</th>
             </tr>
           </thead>
-          <tbody>
-            {proveedores.map((p) => (
-              <tr key={p.nombre} className="border-b border-[#8E1B3A]/5 last:border-0 hover:bg-[#FAF3EC]/50 transition-colors">
-                <td className="px-3 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                      {p.initials}
+          <tbody className="divide-y divide-[#F5E6D0]/50">
+            {data.map((prov) => (
+              <tr key={prov.id} className="hover:bg-[#FDF8F3] transition-colors">
+                <td className="py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[#F5E6D0] flex items-center justify-center text-[#8E1B3A] font-bold">
+                      {prov.nombre_negocio[0]}
                     </div>
-                    <span className="text-sm text-[#2A0E18] font-medium">{p.nombre}</span>
+                    <div>
+                      <p className="text-[#5C3A2E] font-medium">{prov.nombre_negocio}</p>
+                      <p className="text-[#7A5260]/60 text-[9px]">{prov.email}</p>
+                    </div>
                   </div>
                 </td>
-                <td className="px-3 py-3 text-sm text-[#7A5260]">{p.categoria}</td>
-                <td className="px-3 py-3 text-sm text-[#2A0E18]">{p.calificacion}</td>
-                <td className="px-3 py-3 text-sm text-[#2A0E18]">{p.ventas}</td>
-                <td className="px-3 py-3">
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${estadoPill[p.estado]}`}>
-                    {estadoLabel[p.estado]}
+                <td className="py-4 text-[#BC9968] font-medium">
+                  ★ {prov.calificacion_prom ? Number(prov.calificacion_prom).toFixed(1) : "N/A"}
+                </td>
+                <td className="py-4 text-[#5C3A2E]">
+                  Bs {Number(prov.total_vendido || 0).toLocaleString()}
+                </td>
+                <td className="py-4">
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[9px] uppercase tracking-tighter ${
+                      prov.estado === "aprobado"
+                        ? "bg-green-100 text-green-700"
+                        : prov.estado === "pendiente"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {prov.estado}
                   </span>
                 </td>
-                <td className="px-3 py-3">
-                  <AccionesPorEstado estado={p.estado} />
+                <td className="py-4 text-right">
+                  <Link
+                    href="/admin/proveedores"
+                    className="text-[#7A5260] hover:text-[#8E1B3A] text-[10px] font-medium px-2 transition-colors"
+                  >
+                    Gestionar →
+                  </Link>
                 </td>
               </tr>
             ))}

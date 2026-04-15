@@ -2,100 +2,185 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 const navSections = [
   {
     label: "Principal",
+    icon: IconDashboard,
     items: [
-      { href: "/admin", label: "Dashboard", icon: IconDashboard },
+      { href: "/admin", label: "Dashboard" },
     ],
   },
   {
     label: "Usuarios & Accesos",
+    icon: IconUser,
     items: [
-      { href: "/admin/usuarios", label: "Gestión de usuarios", icon: IconUser },
-      { href: "/admin/perfiles", label: "Cuentas y perfiles", icon: IconProfile },
+      { href: "/admin/usuarios", label: "Gestión de usuarios" },
+      { href: "/admin/perfiles", label: "Cuentas y perfiles" },
     ],
   },
   {
     label: "Proveedores",
+    icon: IconCheck,
     items: [
-      { href: "/admin/proveedores", label: "Aprobar / rechazar", icon: IconCheck },
-      { href: "/admin/proveedores/actividad", label: "Supervisar actividad", icon: IconClock },
-      { href: "/admin/proveedores/rendimiento", label: "Rendimiento", icon: IconChart },
+      { href: "/admin/proveedores", label: "Aprobar / rechazar" },
+      { href: "/admin/proveedores/actividad", label: "Supervisar actividad" },
+      { href: "/admin/proveedores/rendimiento", label: "Rendimiento" },
     ],
   },
   {
     label: "Catálogo",
+    icon: IconBag,
     items: [
-      { href: "/admin/productos", label: "Todos los productos", icon: IconBag },
-      { href: "/admin/productos/destacados", label: "Destacados", icon: IconStar },
+      { href: "/admin/productos", label: "Todos los productos" },
+      { href: "/admin/productos/destacados", label: "Destacados" },
     ],
   },
   {
     label: "Pedidos & Pagos",
+    icon: IconBox,
     items: [
-      { href: "/admin/pedidos", label: "Todos los pedidos", icon: IconBox },
-      { href: "/admin/pagos", label: "Métodos de pago", icon: IconCard },
+      { href: "/admin/pedidos", label: "Todos los pedidos" },
+      { href: "/admin/pagos", label: "Métodos de pago" },
     ],
   },
   {
     label: "Reportes & Sistema",
+    icon: IconReport,
     items: [
-      { href: "/admin/reportes", label: "Reportes de ventas", icon: IconReport },
-      { href: "/admin/asistente", label: "Asistente IA", icon: IconIA },
-      { href: "/admin/auditoria", label: "Log de auditoría", icon: IconLog },
-      { href: "/admin/configuracion", label: "Configuración", icon: IconConfig },
+      { href: "/admin/reportes", label: "Reportes de ventas" },
+      { href: "/admin/asistente", label: "Asistente IA" },
+      { href: "/admin/auditoria", label: "Log de auditoría" },
+      { href: "/admin/configuracion", label: "Configuración" },
     ],
   },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
-  return (
-    <aside className="w-64 bg-[#5A0F24] flex flex-col flex-shrink-0 relative">
+  // Abre por defecto la sección que contiene la ruta activa
+  const defaultOpen = navSections.reduce<Record<string, boolean>>((acc, section) => {
+    acc[section.label] = section.items.some(
+      (item) => pathname === item.href || pathname.startsWith(item.href + "/")
+    );
+    return acc;
+  }, {});
+
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(defaultOpen);
+
+  const toggle = (label: string) => {
+    setOpenSections((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
+
+  const sidebarContent = (
+    <aside className="w-64 bg-[#5A0F24] flex flex-col flex-shrink-0 relative h-screen">
+      {/* Línea decorativa derecha */}
       <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#BC9968]/40 to-transparent" />
 
       {/* Header */}
-      <div className="px-5 py-6 border-b border-[#BC9968]/20">
-        <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium mb-1">
-          Sistema PREPE
-        </p>
-        <h1 className="font-serif text-3xl font-bold text-[#F5E6D0] leading-none">
-          Emotia
-        </h1>
-        <p className="text-xs text-[#F5E6D0]/50 mt-1.5">
-          Panel de Administración Total
-        </p>
+      <div className="px-5 py-6 border-b border-[#BC9968]/20 flex items-start justify-between">
+        <div>
+          <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium mb-1">
+            Sistema PREPE
+          </p>
+          <h1 className="font-serif text-3xl font-bold text-[#F5E6D0] leading-none">
+            Emotia
+          </h1>
+          <p className="text-xs text-[#F5E6D0]/50 mt-1.5">
+            Panel de Administración Total
+          </p>
+        </div>
+        {/* Botón cerrar en mobile */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="lg:hidden text-[#F5E6D0]/60 hover:text-[#F5E6D0] p-1 -mr-1 -mt-1 transition-colors"
+            aria-label="Cerrar menú"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-2">
-        {navSections.map((section) => (
-          <div key={section.label}>
-            <p className="px-4 pt-5 pb-1.5 text-xs tracking-widest uppercase text-[#BC9968]/50 font-medium">
-              {section.label}
-            </p>
-            {section.items.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
-                    isActive
-                      ? "bg-gradient-to-r from-[#8E1B3A]/85 to-[#BC9968]/20 text-[#F5E6D0] font-medium"
-                      : "text-[#F5E6D0]/65 hover:bg-[#BC9968]/15 hover:text-[#F5E6D0]"
+        {navSections.map((section) => {
+          const isOpen = !!openSections[section.label];
+          const hasActive = section.items.some(
+            (item) => pathname === item.href || pathname.startsWith(item.href + "/")
+          );
+
+          return (
+            <div key={section.label}>
+              {/* Cabecera de sección — clickeable */}
+              <button
+                onClick={() => toggle(section.label)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-all duration-150 ${hasActive
+                    ? "text-[#F5E6D0] bg-[#8E1B3A]/35"
+                    : "text-[#F5E6D0]/65 hover:text-[#F5E6D0] hover:bg-[#BC9968]/10"
                   }`}
+              >
+                <div className="flex items-center gap-3">
+                  <section.icon className="w-4 h-4 flex-shrink-0" />
+                  <span>{section.label}</span>
+                </div>
+                {/* Chevron animado */}
+                <svg
+                  className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 opacity-60 ${isOpen ? "rotate-180" : ""
+                    }`}
+                  viewBox="0 0 12 12"
+                  fill="none"
                 >
-                  <item.icon className="w-4 h-4 flex-shrink-0" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
+                  <path
+                    d="M2 4l4 4 4-4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+
+              {/* Submenú colapsable */}
+              <div
+                className={`overflow-hidden transition-all duration-200 ease-in-out ${isOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
+                  }`}
+              >
+                <div className="ml-5 pl-4 border-l border-[#BC9968]/20 mb-1 space-y-0.5">
+                  {section.items.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={onClose}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${isActive
+                            ? "bg-gradient-to-r from-[#8E1B3A]/80 to-[#BC9968]/20 text-[#F5E6D0] font-medium"
+                            : "text-[#F5E6D0]/55 hover:bg-[#BC9968]/15 hover:text-[#F5E6D0]"
+                          }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${isActive ? "bg-[#BC9968]" : "bg-[#F5E6D0]/25"
+                            }`}
+                        />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </nav>
 
       {/* Footer */}
@@ -115,8 +200,33 @@ export default function Sidebar() {
       </div>
     </aside>
   );
+
+  return (
+    <>
+      {/* Desktop sidebar — always visible */}
+      <div className="hidden lg:block sticky top-0 h-screen">
+        {sidebarContent}
+      </div>
+
+      {/* Mobile sidebar — overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+            onClick={onClose}
+          />
+          {/* Sidebar panel */}
+          <div className="relative h-full w-64 animate-slide-in">
+            {sidebarContent}
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
+/* ── Iconos ── */
 function IconDashboard({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 14 14" fill="none">
@@ -135,34 +245,11 @@ function IconUser({ className }: { className?: string }) {
     </svg>
   );
 }
-function IconProfile({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 14 14" fill="none">
-      <rect x="2" y="2" width="10" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M5 7h4M7 5v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
-}
 function IconCheck({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 14 14" fill="none">
       <rect x="1.5" y="3" width="11" height="8" rx="1.3" stroke="currentColor" strokeWidth="1.2" />
       <path d="M4.5 6.5h5M4.5 8.5h3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
-}
-function IconClock({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 14 14" fill="none">
-      <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M7 4.5V7l1.5 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function IconChart({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 14 14" fill="none">
-      <path d="M2 11l2.5-4 2.5 2.5L10 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -174,13 +261,6 @@ function IconBag({ className }: { className?: string }) {
     </svg>
   );
 }
-function IconStar({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 14 14" fill="none">
-      <path d="M7 1.5l1.5 3 3.5.5-2.5 2.5.6 3.5L7 9.5l-3.1 1.5.6-3.5L2 5l3.5-.5z" stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round" />
-    </svg>
-  );
-}
 function IconBox({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 14 14" fill="none">
@@ -189,43 +269,10 @@ function IconBox({ className }: { className?: string }) {
     </svg>
   );
 }
-function IconCard({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 14 14" fill="none">
-      <rect x="2" y="3" width="10" height="7" rx="1.2" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M2 6h10" stroke="currentColor" strokeWidth="1.2" />
-      <circle cx="5" cy="8.5" r="0.8" fill="currentColor" />
-    </svg>
-  );
-}
 function IconReport({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 14 14" fill="none">
       <path d="M2 11l2.5-4 2.5 2.5L10 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function IconIA({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 14 14" fill="none">
-      <path d="M7 9.5a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M3.5 13c0-1.1.5-2 1.5-2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
-}
-function IconLog({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 14 14" fill="none">
-      <path d="M2 3h10v8H2z" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-      <path d="M5 6.5h4M5 8.5h2.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-    </svg>
-  );
-}
-function IconConfig({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 14 14" fill="none">
-      <circle cx="7" cy="7" r="2" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M3 3l1 1M10 10l1 1M3 11l1-1M10 4l1-1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   );
 }

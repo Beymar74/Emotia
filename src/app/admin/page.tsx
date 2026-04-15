@@ -1,5 +1,5 @@
+import prisma from "@/lib/prisma";
 import MetricCard from "./_components/MetricCard";
-import AlertStrip from "./_components/AlertStrip";
 import QuickActions from "./_components/QuickActions";
 import ProveedoresTable from "./_components/ProveedoresTable";
 import ActividadReciente from "./_components/ActividadReciente";
@@ -8,7 +8,44 @@ import SolicitudesPendientes from "./_components/SolicitudesPendientes";
 import AsistenteIA from "./_components/AsistenteIA";
 import LogAuditoria from "./_components/LogAuditoria";
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  // --- CONSULTAS A LA BASE DE DATOS ---
+
+  // 1. Ingresos totales (Sumamos el total de los pedidos con estado 'entregado')
+  const ingresosResult = await prisma.pedidos.aggregate({
+    _sum: { total: true },
+    where: { estado: 'entregado' }
+  });
+  const ingresosTotales = ingresosResult._sum.total || 0;
+
+  // 2. Pedidos completados
+  const pedidosCompletados = await prisma.pedidos.count({
+    where: { estado: 'entregado' }
+  });
+
+  // 3. Usuarios activos
+  const usuariosActivos = await prisma.usuarios.count({
+    where: {
+      activo: true,
+      tipo: 'usuario' // Filtramos para no contar a los administradores
+    }
+  });
+
+  // 4. Proveedores aprobados
+  const proveedoresAprobados = await prisma.proveedores.count({
+    where: { estado: 'aprobado' }
+  });
+
+  // 5. Últimos proveedores registrados (para la tabla)
+  const ultimosProveedores = await prisma.proveedores.findMany({
+    take: 5,
+    orderBy: { created_at: 'desc' },
+  });
+
+  // --- FUNCIONES AUXILIARES ---
+  const formatBs = (monto: number) => `Bs ${monto.toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
+  const formatNum = (num: number) => num.toLocaleString('en-US');
+
   return (
     <div className="space-y-5">
 
@@ -17,17 +54,17 @@ export default function AdminPage() {
         <p className="text-[8.5px] tracking-[2.5px] uppercase text-[#7A5260] font-medium mb-3">
           Resumen — Abril 2026
         </p>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
           <MetricCard
-            value="Bs 48,320"
+            value={formatBs(Number(ingresosTotales))}
             label="Ingresos totales"
-            delta="+12.4%"
+            delta="+12.4%" 
             deltaType="up"
             barFrom="#8E1B3A"
             barTo="#BC9968"
           />
           <MetricCard
-            value="1,247"
+            value={formatNum(pedidosCompletados)}
             label="Pedidos completados"
             delta="+8.1%"
             deltaType="up"
@@ -35,7 +72,7 @@ export default function AdminPage() {
             barTo="#BC9968"
           />
           <MetricCard
-            value="384"
+            value={formatNum(usuariosActivos)}
             label="Usuarios activos"
             delta="+5.6%"
             deltaType="up"
@@ -43,7 +80,7 @@ export default function AdminPage() {
             barTo="#BC9968"
           />
           <MetricCard
-            value="42"
+            value={formatNum(proveedoresAprobados)}
             label="Proveedores aprobados"
             delta="Estable"
             deltaType="neutral"
@@ -52,12 +89,6 @@ export default function AdminPage() {
           />
         </div>
       </div>
-
-      {/* Alerta de solicitudes */}
-      <AlertStrip
-        message="5 proveedores esperan tu aprobación"
-        sub="Revisión requerida — RF-87: Aprobación o rechazo de solicitud del proveedor"
-      />
 
       {/* Acciones rápidas */}
       <div>
@@ -68,8 +99,10 @@ export default function AdminPage() {
       </div>
 
       {/* Grid principal */}
-      <div className="grid grid-cols-[1.6fr_1fr] gap-3">
-        <ProveedoresTable />
+      <div className="grid grid-cols-1 xl:grid-cols-[1.6fr_1fr] gap-3">
+        {/* Aquí pasamos los datos reales al componente */}
+        <ProveedoresTable data={ultimosProveedores} />
+        
         <div className="flex flex-col gap-3">
           <ActividadReciente />
           <VentasCategorias />
@@ -77,7 +110,7 @@ export default function AdminPage() {
       </div>
 
       {/* Grid inferior */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         <SolicitudesPendientes />
         <AsistenteIA />
         <LogAuditoria />
