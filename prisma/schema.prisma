@@ -5,7 +5,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL") // <--- ESTA ES LA LÍNEA QUE FALTA
 }
 
 model audit_log {

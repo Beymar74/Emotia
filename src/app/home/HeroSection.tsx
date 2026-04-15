@@ -20,7 +20,11 @@ const P = {
 };
 
 // Eliminamos props innecesarios al quitar el botón de registro/IA
-export default function HeroSection() {
+interface HeroSectionProps {
+  onOpenRegister?: () => void;
+}
+
+export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
   const router = useRouter();
 
   return (
