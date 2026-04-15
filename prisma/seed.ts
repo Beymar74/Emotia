@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import { PrismaClient } from '../src/generated/prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { seedCategorias } from './seeds/categorias'
 import { seedProveedores } from './seeds/proveedores'
 import { seedUsuarios } from './seeds/usuarios'
@@ -14,14 +15,7 @@ import { seedRecordatorios } from './seeds/recordatorios'
 import { seedNotificaciones } from './seeds/notificaciones'
 import { seedAuditLog } from './seeds/audit_log'
 
-// @ts-ignore
-import { Pool } from 'pg'
-// @ts-ignore
-import { PrismaPg } from '@prisma/adapter-pg'
-
-// @ts-ignore
-const pool = new Pool({ connectionString: process.env.DATABASE_URL! })
-const adapter = new PrismaPg(pool)
+const adapter = new PrismaPg(process.env.DATABASE_URL!)
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
@@ -45,7 +39,6 @@ async function main() {
     ])
     console.log('✅ Base de datos limpia\n')
 
-    // Orden importa por las relaciones entre tablas
     await seedCategorias(prisma)
     console.log('✅ Categorías')
 
@@ -91,7 +84,6 @@ async function main() {
 main()
     .catch((e) => {
         console.error('❌ Error en seed:', e)
-        // @ts-ignore
         process.exit(1)
     })
     .finally(async () => {

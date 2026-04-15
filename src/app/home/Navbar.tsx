@@ -262,7 +262,7 @@ export default function Navbar({ onOpenLogin, onOpenRegister }: NavbarProps) {
                     <motion.button
                       initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}
                       onClick={() => { setMobileOpen(false); if(onOpenRegister) onOpenRegister(); }}
-                      style={{ flex: 1, background: `linear-gradient(135deg, ${P.granate}, ${C.carmesi})`, color: P.blanco, border: "none", borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer" }}
+                      style={{ flex: 1, background: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer" }}
                     >
                       Registrarse
                     </motion.button>
