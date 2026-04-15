@@ -60,7 +60,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'register' }:
         if (result.status === 'ok') {
           setSuccess('¡Cuenta creada! Ingresando...');
           // 👇 CAMBIADO A /regalos 👇
-          setTimeout(() => { onClose(); window.location.href = '/regalos'; }, 1500);
+          setTimeout(() => { onClose(); window.location.href = '/producto'; }, 1500);
         } else {
           setError('No se pudo crear la cuenta. Verifica tus datos.');
         }
@@ -69,7 +69,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'register' }:
         if (result.status === 'ok') {
           setSuccess('¡Bienvenido de nuevo!');
           // 👇 CAMBIADO A /regalos 👇
-          setTimeout(() => { onClose(); window.location.href = '/regalos'; }, 1500);
+          setTimeout(() => { onClose(); window.location.href = '/producto'; }, 1500);
         } else {
           setError('Credenciales incorrectas. Intenta nuevamente.');
         }
@@ -85,7 +85,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'register' }:
     setError('');
     try {
       // 👇 CAMBIADO A /regalos 👇
-      await stackApp.signInWithOAuth('google', { returnTo: '/regalos' });
+      await stackApp.signInWithOAuth('google', { returnTo: '/producto' });
     } catch {
       setError('Error al continuar con Google.');
     }

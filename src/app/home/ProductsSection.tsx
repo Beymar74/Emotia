@@ -120,7 +120,7 @@ export default function ProductsSection() {
             <motion.button
               initial={{ opacity: 0, x: 18 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
               whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-              onClick={() => router.push("/regalos")}
+              onClick={() => router.push("/producto")}
               style={{ background: P.blanco, color: P.granate, border: `1.5px solid ${P.granate}40`, padding: "12px 24px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.9rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
             >
               Ir al Catálogo <ArrowRight size={16} strokeWidth={2} />
@@ -135,7 +135,7 @@ export default function ProductsSection() {
                 key={`${p.id}-${index}`}
                 whileHover={{ y: -8, borderColor: P.dorado }}
                 style={{ flex: "0 0 300px", background: P.blanco, borderRadius: 20, border: `1px solid ${P.beige}`, overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", boxShadow: `0 10px 30px rgba(0,0,0,0.03)`, transition: "all 0.3s" }}
-                onClick={() => router.push("/regalos")}
+                onClick={() => router.push("/producto")}
               >
                 <div style={{ position: "relative", height: 300, overflow: "hidden" }}>
                   <img src={p.imgSrc} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.5s ease" }}
