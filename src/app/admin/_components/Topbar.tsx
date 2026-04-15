@@ -1,20 +1,36 @@
-export default function Topbar() {
+interface TopbarProps {
+  onMenuToggle?: () => void;
+}
+
+export default function Topbar({ onMenuToggle }: TopbarProps) {
   return (
-    <header className="bg-white border-b border-[#8E1B3A]/10 px-8 h-16 flex items-center justify-between flex-shrink-0">
-      <div>
-        <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">
-          Sistema PREPE — Administración
-        </p>
-        <h2 className="font-serif text-2xl font-semibold text-[#5A0F24] leading-tight">
-          Dashboard General
-        </h2>
+    <header className="bg-white border-b border-[#8E1B3A]/10 px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between flex-shrink-0">
+      <div className="flex items-center gap-3">
+        {/* Hamburger — solo visible en mobile */}
+        <button
+          onClick={onMenuToggle}
+          className="lg:hidden p-1.5 -ml-1 text-[#5A0F24] hover:bg-[#8E1B3A]/8 rounded-lg transition-colors"
+          aria-label="Abrir menú"
+        >
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M4 6h14M4 11h14M4 16h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
+        <div>
+          <p className="text-[10px] sm:text-xs tracking-widest uppercase text-[#BC9968] font-medium">
+            Sistema PREPE — Administración
+          </p>
+          <h2 className="font-serif text-lg sm:text-2xl font-semibold text-[#5A0F24] leading-tight">
+            Dashboard General
+          </h2>
+        </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <span className="text-xs bg-[#8E1B3A]/10 text-[#8E1B3A] px-4 py-1.5 rounded-full font-medium tracking-wide">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <span className="hidden sm:inline text-xs bg-[#8E1B3A]/10 text-[#8E1B3A] px-4 py-1.5 rounded-full font-medium tracking-wide">
           Acceso total
         </span>
-        <span className="text-sm text-[#7A5260] bg-[#F5E6D0] px-4 py-1.5 rounded-full">
+        <span className="hidden md:inline text-sm text-[#7A5260] bg-[#F5E6D0] px-4 py-1.5 rounded-full">
           Abril 2026
         </span>
         <button className="relative p-1.5">
