@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useStackApp } from "@stackframe/stack";
 
 const navSections = [
   {
@@ -78,9 +79,10 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
     setOpenSections((prev) => ({ ...prev, [label]: !prev[label] }));
   };
 
-  const handleLogout = () => {
-    // TODO: conectar con signOut() de NextAuth u otro sistema de auth
-    console.log("Cerrar sesión");
+  const app = useStackApp();
+
+  const handleLogout = async () => {
+    await app.signOut();
   };
 
   const sidebarContent = (
