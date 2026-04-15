@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -170,7 +170,6 @@ export default function ProductsSection() {
           </h3>
         </div>
 
-        {/* Usamos el mismo wrapper pero le quitamos el padding vertical excesivo */}
         <div className="marquee-wrapper" style={{ padding: "10px 0" }}>
           <div className="marquee-track-slow" style={{ alignItems: "center" }}>
             {marqueePartners.map((partnerName, index) => (
@@ -195,7 +194,6 @@ export default function ProductsSection() {
                   e.currentTarget.style.transform = "scale(1)";
                 }}
               >
-                {/* Simulación de un Logo con Tipografía Elegante */}
                 <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.6rem", fontWeight: 900, color: P.bordo, whiteSpace: "nowrap" }}>
                   {partnerName}
                 </span>
@@ -213,7 +211,6 @@ export default function ProductsSection() {
           <motion.div initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             style={{ borderRadius: 24, background: `linear-gradient(135deg, ${P.bordo} 0%, ${P.granate} 100%)`, padding: "56px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 32, flexWrap: "wrap", position: "relative", overflow: "hidden", boxShadow: `0 24px 60px ${P.bordo}30` }}>
 
-            {/* Decoraciones abstractas fondo */}
             <div style={{ position: "absolute", top: -60, right: -60, width: 300, height: 300, borderRadius: "50%", border: `40px solid ${P.blanco}05` }} />
             <div style={{ position: "absolute", bottom: -40, left: 20, width: 150, height: 150, borderRadius: "50%", border: `20px solid ${P.dorado}10` }} />
 
