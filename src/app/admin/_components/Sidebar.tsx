@@ -18,7 +18,6 @@ const navSections = [
     icon: IconUser,
     items: [
       { href: "/admin/usuarios", label: "Gestión de usuarios" },
-      { href: "/admin/perfiles", label: "Cuentas y perfiles" },
     ],
   },
   {

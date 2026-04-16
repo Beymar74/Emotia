@@ -2,15 +2,14 @@ export const dynamic = 'force-dynamic';
 
 import prisma from "@/lib/prisma";
 import { usuarios } from "@/generated/prisma/client";
-// Importar Lucide para darle vida a los iconos
-import { Search, Filter, MoreVertical, ShieldCheck, UserMinus } from "lucide-react";
-// Importar nuestro nuevo componente cliente para el Modal
+import { Search, Filter, ShieldCheck, UserMinus, Star, Globe, Shield } from "lucide-react";
 import ModalNuevoUsuario from "@/components/ModalNuevoUsuario"; 
+import BotonesAccion from "./_components/BotonesAccion";
 
 type EstadoUsuario = "activo" | "inactivo" | "suspendido";
 type Plan = "premium" | "basico";
 
-const estadoPill: Record<EstadoUsuario, string> = {
+const estadoPill: Record<string, string> = {
   activo: "bg-[#EEF8F0] text-[#2D7A47] border border-[#2D7A47]/10",
   inactivo: "bg-[#F1EFE8] text-[#5F5E5A] border border-[#5F5E5A]/10",
   suspendido: "bg-[#FBF0F0] text-[#A32D2D] border border-[#A32D2D]/10",
@@ -24,7 +23,6 @@ const planPill: Record<Plan, string> = {
 export default async function UsuariosPage() {
   // --- 1. CONSULTAS A LA BASE DE DATOS ---
   const usuariosReales = await prisma.usuarios.findMany({
-    where: { tipo: 'usuario' },
     orderBy: { created_at: 'desc' },
     include: {
       _count: {
@@ -35,11 +33,12 @@ export default async function UsuariosPage() {
 
   type UsuarioConConteo = usuarios & { _count: { pedidos: number } };
 
-  // Métricas calculadas
+  // --- 2. CÁLCULO DE MÉTRICAS ---
   const totalUsuarios = usuariosReales.length;
-  const usuariosPremium = usuariosReales.filter((u: UsuarioConConteo) => u.plan === 'premium').length;
-  const usuariosInactivos = usuariosReales.filter((u: UsuarioConConteo) => !u.activo).length; 
-  const activosAhora = usuariosReales.filter((u: UsuarioConConteo) => u.activo).length; 
+  const usuariosPremium = usuariosReales.filter((u: usuarios) => u.plan === 'premium').length;
+  const usuariosAdmins = usuariosReales.filter((u: usuarios) => u.tipo === 'admin').length;
+  const usuariosSuspendidos = usuariosReales.filter((u: usuarios) => !u.activo).length; 
+  const accesoGoogle = usuariosReales.filter((u: usuarios) => u.google_id !== null).length;
 
   const getAvatar = (nombre: string, apellido?: string | null) => {
     const first = nombre ? nombre.charAt(0).toUpperCase() : '?';
@@ -47,16 +46,24 @@ export default async function UsuariosPage() {
     return `${first}${second}`;
   };
 
+  const formatFecha = (fecha: Date) => {
+    return new Intl.DateTimeFormat('es-BO', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: false
+    }).format(fecha);
+  };
+
   return (
     <div className="space-y-7 p-2 sm:p-0">
       
-      {/* Header (Sin el botón) */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <p className="text-[10px] tracking-[3px] uppercase text-[#BC9968] font-bold mb-1">
             Sistemas & Accesos
           </p>
           <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">Gestión de Usuarios</h1>
+          <p className="text-xs text-[#7A5260] mt-1">Control total de cuentas, roles y suscripciones premium.</p>
         </div>
       </div>
 
@@ -66,12 +73,13 @@ export default async function UsuariosPage() {
         {/* Componente Modal funcionando como Tarjeta Interactiva */}
         <ModalNuevoUsuario variante="tarjeta" />
 
-        {/* Tarjetas de Métricas Estáticas */}
+        {/* Tarjetas de Métricas */}
         {[
-          { label: "Total Registrados", valor: totalUsuarios, color: "#8E1B3A", icon: <ShieldCheck size={14}/> },
-          { label: "Miembros Premium", valor: usuariosPremium, color: "#BC9968", icon: "★" },
-          { label: "Usuarios Activos", valor: activosAhora, color: "#5C3A2E", icon: "●" },
-          { label: "Suspendidos", valor: usuariosInactivos, color: "#AB3A50", icon: <UserMinus size={14}/> },
+          { label: "Total Cuentas", valor: totalUsuarios, color: "#8E1B3A", icon: <ShieldCheck size={14}/> },
+          { label: "Administradores", valor: usuariosAdmins, color: "#5A0F24", icon: <Shield size={14}/> },
+          { label: "Cuentas Premium", valor: usuariosPremium, color: "#BC9968", icon: <Star size={14}/> },
+          { label: "Acceso Google", valor: accesoGoogle, color: "#5C3A2E", icon: <Globe size={14}/> },
+          { label: "Suspendidos", valor: usuariosSuspendidos, color: "#AB3A50", icon: <UserMinus size={14}/> },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded-2xl border border-[#8E1B3A]/5 p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -79,24 +87,29 @@ export default async function UsuariosPage() {
             </div>
             <p className="text-[10px] uppercase tracking-wider text-[#7A5260] font-bold mb-1">{s.label}</p>
             <div className="flex items-baseline gap-2">
-              <span className="font-serif text-3xl font-bold text-[#2A0E18]">{s.valor}</span>
+              <span className="font-serif text-2xl sm:text-3xl font-bold text-[#2A0E18]">{s.valor}</span>
               <div className="h-1 w-8 rounded-full" style={{ backgroundColor: s.color }} />
             </div>
           </div>
         ))}
       </div>
 
-      {/* Barra de Herramientas (Filtros) */}
+      {/* Filtros */}
       <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-[#8E1B3A]/10 p-4 flex flex-col lg:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7A5260]/50" size={18} />
           <input
             type="text"
             placeholder="Buscar por nombre, email o ID..."
-            className="w-full bg-white text-sm border border-[#8E1B3A]/10 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all"
+            className="w-full bg-white text-sm border border-[#8E1B3A]/10 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all text-[#2A0E18]"
           />
         </div>
         <div className="flex gap-2">
+          <select className="bg-white text-xs font-semibold border border-[#8E1B3A]/10 rounded-xl px-4 py-2.5 outline-none text-[#7A5260] cursor-pointer hover:bg-[#FDFBF9]">
+            <option>Todos los Tipos</option>
+            <option>Usuario</option>
+            <option>Admin</option>
+          </select>
           <select className="bg-white text-xs font-semibold border border-[#8E1B3A]/10 rounded-xl px-4 py-2.5 outline-none text-[#7A5260] cursor-pointer hover:bg-[#FDFBF9]">
             <option>Todos los Planes</option>
             <option>Premium</option>
@@ -108,12 +121,12 @@ export default async function UsuariosPage() {
         </div>
       </div>
 
-      {/* Tabla de Usuarios */}
+      {/* Tabla Unified */}
       <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-[#8E1B3A]/5 bg-[#FDFBF9]/50 flex justify-between items-center">
-          <h3 className="font-serif text-lg font-bold text-[#5A0F24]">Listado Maestro</h3>
+          <h3 className="font-serif text-lg font-bold text-[#5A0F24]">Listado Maestro de Cuentas</h3>
           <span className="bg-[#8E1B3A]/10 text-[#8E1B3A] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-tighter">
-            {totalUsuarios} Registros
+            {totalUsuarios} Registros Activos
           </span>
         </div>
 
@@ -121,7 +134,7 @@ export default async function UsuariosPage() {
           <table className="w-full text-left border-separate border-spacing-0">
             <thead>
               <tr className="bg-[#FDFBF9]/30">
-                {["Perfil", "Plan", "Pedidos", "Estado", "Acciones"].map((h) => (
+                {["Perfil", "Tipo/Plan", "Auth/Acceso", "Pedidos", "Estado", "Acciones"].map((h) => (
                   <th key={h} className="px-6 py-4 text-[10px] tracking-[2px] uppercase text-[#7A5260] font-bold border-b border-[#8E1B3A]/5">
                     {h}
                   </th>
@@ -131,6 +144,9 @@ export default async function UsuariosPage() {
             <tbody className="divide-y divide-[#8E1B3A]/5">
               {usuariosReales.map((u: UsuarioConConteo) => {
                 const estadoActual = u.activo ? "activo" : "suspendido";
+                const esGoogle = u.google_id !== null;
+                const esAdmin = u.tipo === "admin";
+
                 return (
                   <tr key={u.id} className="hover:bg-[#FDFBF9] transition-colors group">
                     <td className="px-6 py-4">
@@ -140,19 +156,36 @@ export default async function UsuariosPage() {
                         </div>
                         <div>
                           <p className="text-sm font-bold text-[#2A0E18]">{u.nombre} {u.apellido}</p>
-                          <p className="text-xs text-[#7A5260]/70">{u.email}</p>
+                          <p className="text-xs text-[#7A5260]/70 truncate max-w-[150px]">{u.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${planPill[(u.plan || 'basico') as Plan]}`}>
-                        {u.plan}
-                      </span>
+                      <div className="flex flex-col gap-1.5">
+                        <span className={`inline-block w-fit px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${esAdmin ? "bg-[#5A0F24] text-white" : "bg-[#E6F1FB] text-[#185FA5]"}`}>
+                          {u.tipo}
+                        </span>
+                        {!esAdmin && (
+                           <span className={`inline-block w-fit px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${planPill[(u.plan || 'basico') as Plan]}`}>
+                            {u.plan}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1">
+                        <span className={`text-[10px] font-medium ${esGoogle ? "text-[#2D7A47]" : "text-[#7A5260]"}`}>
+                          {esGoogle ? "Google ID" : "Email / Password"}
+                        </span>
+                        <p className="text-[10px] text-[#B0B0B0]">
+                          {formatFecha(u.updated_at)}
+                        </p>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-[#5A0F24]">{u._count.pedidos}</span>
-                        <span className="text-[10px] text-[#7A5260] uppercase">órdenes</span>
+                        <span className="text-sm font-bold text-[#5A0F24]">{u.tipo === 'admin' ? "—" : u._count.pedidos}</span>
+                        {u.tipo !== 'admin' && <span className="text-[10px] text-[#7A5260] uppercase tracking-tighter">órdenes</span>}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -161,11 +194,7 @@ export default async function UsuariosPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button className="p-2 hover:bg-[#8E1B3A]/5 rounded-lg text-[#8E1B3A] transition-colors" title="Editar">
-                          <MoreVertical size={16} />
-                        </button>
-                      </div>
+                      <BotonesAccion usuario={u} esAdmin={esAdmin} />
                     </td>
                   </tr>
                 );

@@ -8,9 +8,9 @@ export async function toggleEstadoUsuario(id: number, estadoActual: boolean) {
   try {
     await prisma.usuarios.update({
       where: { id },
-      data: { activo: !estadoActual } // Si está activo lo desactiva, y viceversa
+      data: { activo: !estadoActual }
     });
-    revalidatePath('/perfiles'); // Ajusta a la ruta donde esté tu página
+    revalidatePath('/admin/usuarios');
     return { success: true };
   } catch (error) {
     return { error: "Error al cambiar el estado del usuario." };
@@ -37,7 +37,7 @@ export async function editarUsuarioAction(formData: FormData) {
         tipo,
       }
     });
-    revalidatePath('/perfiles');
+    revalidatePath('/admin/usuarios');
     return { success: true };
   } catch (error) {
     return { error: "Error al actualizar el usuario." };
