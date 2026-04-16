@@ -13,9 +13,9 @@ services:
       - /app/node_modules
       - /app/.next
     environment:
-      # ← agrega esto
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
+    command: npm run dev  # 👈 asegúrate de tener esto
 
   db:
     image: postgres:16
