@@ -1,9 +1,9 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { proveedores } from "@/generated/prisma/client";
+import ActividadProveedoresClient from "./_components/ActividadProveedoresClient";
 
 const subPages = [
-  { href: "/admin/proveedores", label: "Aprobar / Rechazar", icon: "⚑" },
   { href: "/admin/proveedores/actividad", label: "Supervisar actividad", icon: "◷", active: true },
   { href: "/admin/proveedores/rendimiento", label: "Rendimiento", icon: "▲" },
 ];
@@ -31,14 +31,21 @@ export default async function ActividadProveedoresPage() {
   });
 
   // --- 3. CONSULTA DE PROVEEDORES (Para la tabla) ---
-  const proveedoresReales = await prisma.proveedores.findMany({
-    where: { estado: 'aprobado' },
+  const proveedoresRaw = await prisma.proveedores.findMany({
+    where: { estado: { in: ['aprobado', 'suspendido'] } },
     orderBy: { updated_at: 'desc' },
-    take: 6 // Tomamos los 6 con actividad más reciente
+    take: 10
   });
 
+  // Serializar Decimal ya que Next.js no puede pasarlos a Client Components
+  const proveedoresReales = proveedoresRaw.map((p: proveedores) => ({
+    ...p,
+    calificacion_prom: p.calificacion_prom ? Number(p.calificacion_prom) : 0,
+    total_vendido: p.total_vendido ? Number(p.total_vendido) : 0
+  }));
+
   // --- 4. CONSULTA DE AUDITORÍA (Para el Log de abajo) ---
-  // Utilizamos la tabla audit_log definida en tu RF-97
+  // Utilizamos la tabla audit_log definida en tu esquema
   const logActividadDB = await prisma.audit_log.findMany({
     take: 6,
     orderBy: { created_at: 'desc' }
@@ -75,9 +82,18 @@ export default async function ActividadProveedoresPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Proveedores</p>
-        <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Supervisar actividad</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Proveedores</p>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Supervisar actividad</h1>
+        </div>
+        <Link 
+          href="/admin/proveedores/nuevo"
+          className="bg-[#8E1B3A] text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#5A0F24] transition-all shadow-lg shadow-[#8E1B3A]/20 flex items-center justify-center gap-2 active:scale-95"
+        >
+          <span className="text-xl leading-none">+</span>
+          Agregar Proveedor
+        </Link>
       </div>
 
       {/* Sub-navegación */}
@@ -114,116 +130,11 @@ export default async function ActividadProveedoresPage() {
         ))}
       </div>
 
-      {/* Tabla actividad por proveedor */}
+      {/* Tabla actividad por proveedor (Componente de Cliente) */}
       <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-3 sm:p-5">
         <h3 className="font-serif text-lg sm:text-xl font-semibold text-[#5A0F24] mb-4">Actividad por proveedor</h3>
-
-        {/* Mobile: cards */}
-        <div className="block lg:hidden space-y-3">
-          {proveedoresReales.map((p: proveedores) => {
-            // Cálculos dinámicos para mantener la UI sin romper Prisma
-            const ventas = Number(p.total_vendido || 0);
-            const simuladoCompletados = Math.floor(ventas / 150) + 1; // Estimación simple
-            const simuladoCancelados = Math.floor(simuladoCompletados * 0.1); 
-            
-            return (
-              <div key={p.id} className="border border-[#8E1B3A]/8 rounded-xl p-4 space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                    {getInitials(p.nombre_negocio)}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-[#2A0E18]">{p.nombre_negocio}</p>
-                    <p className="text-xs text-[#7A5260]">★ {p.calificacion_prom ? Number(p.calificacion_prom).toFixed(1) : "—"}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-xs text-center">
-                  <div className="bg-[#FAF3EC] rounded-lg p-2">
-                    <p className="font-semibold text-[#5A0F24] text-base">{simuladoCompletados + simuladoCancelados + 2}</p>
-                    <p className="text-[#7A5260]">Recibidos</p>
-                  </div>
-                  <div className="bg-[#EEF8F0] rounded-lg p-2">
-                    <p className="font-semibold text-[#2D7A47] text-base">{simuladoCompletados}</p>
-                    <p className="text-[#7A5260]">Completados</p>
-                  </div>
-                  <div className="bg-[#FBF0F0] rounded-lg p-2">
-                    <p className={`font-semibold text-base ${simuladoCancelados > 0 ? "text-[#A32D2D]" : "text-[#2A0E18]"}`}>
-                      {simuladoCancelados}
-                    </p>
-                    <p className="text-[#7A5260]">Cancelados</p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <p className="text-xs text-[#7A5260] truncate flex-1">Actualizado · {getTiempoTranscurrido(p.updated_at)}</p>
-                  <Link
-                    href="/admin/proveedores"
-                    className="text-xs px-3 py-1.5 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-medium hover:opacity-80 ml-2 flex-shrink-0"
-                  >
-                    Ver perfil
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Desktop: tabla */}
-        <div className="hidden lg:block overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr>
-                {["Proveedor", "Recibidos", "Completados", "Cancelados", "Cal.", "Última actividad", "Hace", "Acción"].map((h) => (
-                  <th key={h} className="text-left px-3 py-2 text-xs tracking-widest uppercase text-[#7A5260] font-medium border-b border-[#8E1B3A]/10">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {proveedoresReales.map((p: proveedores) => {
-                const ventas = Number(p.total_vendido || 0);
-                const simuladoCompletados = Math.floor(ventas / 150) + 1;
-                const simuladoCancelados = Math.floor(simuladoCompletados * 0.1); 
-
-                return (
-                  <tr key={p.id} className="border-b border-[#8E1B3A]/5 last:border-0 hover:bg-[#FAF3EC]/50 transition-colors">
-                    <td className="px-3 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                          {getInitials(p.nombre_negocio)}
-                        </div>
-                        <span className="text-sm font-medium text-[#2A0E18]">{p.nombre_negocio}</span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-sm text-[#2A0E18] font-medium">{simuladoCompletados + simuladoCancelados + 2}</td>
-                    <td className="px-3 py-3">
-                      <span className="text-sm font-medium text-[#2D7A47]">{simuladoCompletados}</span>
-                    </td>
-                    <td className="px-3 py-3">
-                      <span className={`text-sm font-medium ${simuladoCancelados > 0 ? "text-[#A32D2D]" : "text-[#2A0E18]"}`}>
-                        {simuladoCancelados}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 text-sm text-[#2A0E18]">
-                      {p.calificacion_prom ? Number(p.calificacion_prom).toFixed(1) : "—"}
-                    </td>
-                    <td className="px-3 py-3 text-sm text-[#7A5260] max-w-[200px] truncate">
-                      Actualización de perfil/stock
-                    </td>
-                    <td className="px-3 py-3 text-sm text-[#7A5260] whitespace-nowrap">
-                      {getTiempoTranscurrido(p.updated_at)}
-                    </td>
-                    <td className="px-3 py-3">
-                      <button className="text-xs px-3 py-1.5 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-medium hover:opacity-80">
-                        Ver perfil
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        
+        <ActividadProveedoresClient proveedoresReales={proveedoresReales} />
       </div>
 
       {/* Log de actividad reciente (BD real) */}
@@ -234,7 +145,7 @@ export default async function ActividadProveedoresPage() {
            <p className="text-sm text-[#7A5260] py-4 text-center">No hay registros de auditoría recientes.</p>
         ) : (
           <div className="divide-y divide-[#8E1B3A]/6">
-            {/* Como TypeScript no conoce la estructura exacta de audit_log sin importarla, usamos any temporalmente para mapear */}
+            {/* Usamos any temporalmente para mapear si TypeScript no reconoce la estructura */}
             {logActividadDB.map((l: any) => (
               <div key={l.id} className="flex items-start gap-3 sm:gap-4 py-3 first:pt-0 last:pb-0">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-0.5">

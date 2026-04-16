@@ -1,28 +1,30 @@
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 import prisma from "@/lib/prisma";
 import { usuarios } from "@/generated/prisma/client";
+// Importar Lucide para darle vida a los iconos
+import { Search, Filter, MoreVertical, ShieldCheck, UserMinus } from "lucide-react";
+// Importar nuestro nuevo componente cliente para el Modal
+import ModalNuevoUsuario from "@/components/ModalNuevoUsuario"; 
 
 type EstadoUsuario = "activo" | "inactivo" | "suspendido";
 type Plan = "premium" | "basico";
 
 const estadoPill: Record<EstadoUsuario, string> = {
-  activo: "bg-[#EEF8F0] text-[#2D7A47]",
-  inactivo: "bg-[#F1EFE8] text-[#5F5E5A]",
-  suspendido: "bg-[#FBF0F0] text-[#A32D2D]",
+  activo: "bg-[#EEF8F0] text-[#2D7A47] border border-[#2D7A47]/10",
+  inactivo: "bg-[#F1EFE8] text-[#5F5E5A] border border-[#5F5E5A]/10",
+  suspendido: "bg-[#FBF0F0] text-[#A32D2D] border border-[#A32D2D]/10",
 };
 
 const planPill: Record<Plan, string> = {
-  premium: "bg-[#BC9968]/15 text-[#5C3A2E]",
-  basico: "bg-[#8E1B3A]/8 text-[#8E1B3A]",
+  premium: "bg-[#BC9968]/15 text-[#5C3A2E] border border-[#BC9968]/20",
+  basico: "bg-[#8E1B3A]/8 text-[#8E1B3A] border border-[#8E1B3A]/10",
 };
 
 export default async function UsuariosPage() {
   // --- 1. CONSULTAS A LA BASE DE DATOS ---
-  
-  // Obtener usuarios reales y contar sus pedidos asociados
   const usuariosReales = await prisma.usuarios.findMany({
-    where: { tipo: 'usuario' }, // Excluir admins
+    where: { tipo: 'usuario' },
     orderBy: { created_at: 'desc' },
     include: {
       _count: {
@@ -31,16 +33,14 @@ export default async function UsuariosPage() {
     }
   });
 
-  // Tipo combinado para TypeScript: Usuario + el conteo de pedidos
   type UsuarioConConteo = usuarios & { _count: { pedidos: number } };
 
-  // Calcular mÃ©tricas tipando la 'u' como 'usuarios'
+  // Métricas calculadas
   const totalUsuarios = usuariosReales.length;
-  const usuariosPremium = usuariosReales.filter((u: usuarios) => u.plan === 'premium').length;
-  const usuariosSuspendidos = usuariosReales.filter((u: usuarios) => u.activo === false).length; 
-  const activosEsteMes = usuariosReales.filter((u: usuarios) => u.activo === true).length; 
+  const usuariosPremium = usuariosReales.filter((u: UsuarioConConteo) => u.plan === 'premium').length;
+  const usuariosInactivos = usuariosReales.filter((u: UsuarioConConteo) => !u.activo).length; 
+  const activosAhora = usuariosReales.filter((u: UsuarioConConteo) => u.activo).length; 
 
-  // FunciÃ³n para obtener iniciales para el avatar
   const getAvatar = (nombre: string, apellido?: string | null) => {
     const first = nombre ? nombre.charAt(0).toUpperCase() : '?';
     const second = apellido ? apellido.charAt(0).toUpperCase() : '';
@@ -48,138 +48,123 @@ export default async function UsuariosPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="space-y-7 p-2 sm:p-0">
+      
+      {/* Header (Sin el botón) */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Usuarios & Accesos</p>
-          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">GestiÃ³n de usuarios</h1>
+          <p className="text-[10px] tracking-[3px] uppercase text-[#BC9968] font-bold mb-1">
+            Sistemas & Accesos
+          </p>
+          <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">Gestión de Usuarios</h1>
         </div>
-        <button className="bg-[#8E1B3A] text-white text-sm px-5 py-2.5 rounded-lg font-medium hover:opacity-85 transition-opacity self-start sm:self-auto">
-          + Nuevo usuario
-        </button>
       </div>
 
-      {/* Stats rÃ¡pidas (Conectadas a BD) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* Stats Cards - Cuadrícula de 5 columnas */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        
+        {/* Componente Modal funcionando como Tarjeta Interactiva */}
+        <ModalNuevoUsuario variante="tarjeta" />
+
+        {/* Tarjetas de Métricas Estáticas */}
         {[
-          { label: "Total usuarios", valor: totalUsuarios.toString(), color: "#8E1B3A" },
-          { label: "Usuarios premium", valor: usuariosPremium.toString(), color: "#BC9968" },
-          { label: "Activos actualmente", valor: activosEsteMes.toString(), color: "#5C3A2E" },
-          { label: "Suspendidos/Inactivos", valor: usuariosSuspendidos.toString(), color: "#AB3A50" },
+          { label: "Total Registrados", valor: totalUsuarios, color: "#8E1B3A", icon: <ShieldCheck size={14}/> },
+          { label: "Miembros Premium", valor: usuariosPremium, color: "#BC9968", icon: "★" },
+          { label: "Usuarios Activos", valor: activosAhora, color: "#5C3A2E", icon: "●" },
+          { label: "Suspendidos", valor: usuariosInactivos, color: "#AB3A50", icon: <UserMinus size={14}/> },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-xl border border-[#8E1B3A]/10 p-4 sm:p-5 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: s.color }} />
-            <p className="font-serif text-2xl sm:text-4xl font-bold text-[#5A0F24]">{s.valor}</p>
-            <p className="text-xs sm:text-sm text-[#7A5260] mt-1">{s.label}</p>
+          <div key={s.label} className="bg-white rounded-2xl border border-[#8E1B3A]/5 p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+              {s.icon}
+            </div>
+            <p className="text-[10px] uppercase tracking-wider text-[#7A5260] font-bold mb-1">{s.label}</p>
+            <div className="flex items-baseline gap-2">
+              <span className="font-serif text-3xl font-bold text-[#2A0E18]">{s.valor}</span>
+              <div className="h-1 w-8 rounded-full" style={{ backgroundColor: s.color }} />
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Filtros */}
-      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-        <input
-          type="text"
-          placeholder="Buscar por nombre o email..."
-          className="flex-1 text-sm border border-[#8E1B3A]/15 rounded-lg px-3 sm:px-4 py-2 outline-none focus:border-[#8E1B3A]/40 text-[#2A0E18] placeholder:text-[#B0B0B0]"
-        />
-        <div className="flex gap-2 sm:gap-3">
-          <select className="flex-1 sm:flex-none text-sm border border-[#8E1B3A]/15 rounded-lg px-3 sm:px-4 py-2 outline-none text-[#7A5260]">
-            <option>Todos los planes</option>
+      {/* Barra de Herramientas (Filtros) */}
+      <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-[#8E1B3A]/10 p-4 flex flex-col lg:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7A5260]/50" size={18} />
+          <input
+            type="text"
+            placeholder="Buscar por nombre, email o ID..."
+            className="w-full bg-white text-sm border border-[#8E1B3A]/10 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all"
+          />
+        </div>
+        <div className="flex gap-2">
+          <select className="bg-white text-xs font-semibold border border-[#8E1B3A]/10 rounded-xl px-4 py-2.5 outline-none text-[#7A5260] cursor-pointer hover:bg-[#FDFBF9]">
+            <option>Todos los Planes</option>
             <option>Premium</option>
-            <option>BÃ¡sico</option>
+            <option>Básico</option>
           </select>
-          <select className="flex-1 sm:flex-none text-sm border border-[#8E1B3A]/15 rounded-lg px-3 sm:px-4 py-2 outline-none text-[#7A5260]">
-            <option>Todos los estados</option>
-            <option>Activo</option>
-            <option>Inactivo</option>
-          </select>
+          <button className="bg-white p-2.5 border border-[#8E1B3A]/10 rounded-xl text-[#7A5260] hover:bg-[#FDFBF9]">
+            <Filter size={18} />
+          </button>
         </div>
       </div>
 
-      {/* Tabla */}
-      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-3 sm:p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-serif text-lg sm:text-xl font-semibold text-[#5A0F24]">Listado de usuarios</h3>
-          <span className="text-xs sm:text-sm text-[#7A5260]">{totalUsuarios} usuarios</span>
+      {/* Tabla de Usuarios */}
+      <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#8E1B3A]/5 bg-[#FDFBF9]/50 flex justify-between items-center">
+          <h3 className="font-serif text-lg font-bold text-[#5A0F24]">Listado Maestro</h3>
+          <span className="bg-[#8E1B3A]/10 text-[#8E1B3A] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-tighter">
+            {totalUsuarios} Registros
+          </span>
         </div>
 
-        {/* Vista mobile: cards */}
-        <div className="block md:hidden space-y-3">
-          {usuariosReales.map((u: UsuarioConConteo) => {
-            const estadoActual = u.activo ? "activo" : "suspendido"; 
-            return (
-              <div key={u.id} className="border border-[#8E1B3A]/8 rounded-xl p-4 space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                    {getAvatar(u.nombre, u.apellido)}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-[#2A0E18] truncate">{u.nombre} {u.apellido}</p>
-                    <p className="text-xs text-[#7A5260] truncate">{u.email}</p>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2 items-center">
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium capitalize ${planPill[(u.plan || 'basico') as Plan]}`}>
-                    {u.plan}
-                  </span>
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium capitalize ${estadoPill[estadoActual as EstadoUsuario]}`}>
-                    {estadoActual}
-                  </span>
-                  <span className="text-xs text-[#7A5260]">{u._count.pedidos} pedidos</span>
-                </div>
-                <div className="flex gap-2">
-                  <button className="text-xs px-3 py-1.5 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-medium hover:opacity-80">Ver</button>
-                  <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FDF5E6] text-[#8C5E08] font-medium hover:opacity-80">Editar</button>
-                  <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FBF0F0] text-[#A32D2D] font-medium hover:opacity-80">Suspender</button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Vista desktop: tabla */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full border-collapse">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-separate border-spacing-0">
             <thead>
-              <tr>
-                {["Usuario", "Email", "Plan", "Pedidos", "Estado", "Acciones"].map((h) => (
-                  <th key={h} className="text-left px-3 py-2 text-xs tracking-widest uppercase text-[#7A5260] font-medium border-b border-[#8E1B3A]/10">
+              <tr className="bg-[#FDFBF9]/30">
+                {["Perfil", "Plan", "Pedidos", "Estado", "Acciones"].map((h) => (
+                  <th key={h} className="px-6 py-4 text-[10px] tracking-[2px] uppercase text-[#7A5260] font-bold border-b border-[#8E1B3A]/5">
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[#8E1B3A]/5">
               {usuariosReales.map((u: UsuarioConConteo) => {
                 const estadoActual = u.activo ? "activo" : "suspendido";
                 return (
-                  <tr key={u.id} className="border-b border-[#8E1B3A]/5 last:border-0 hover:bg-[#FAF3EC]/50 transition-colors">
-                    <td className="px-3 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                  <tr key={u.id} className="hover:bg-[#FDFBF9] transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#5A0F24] to-[#BC9968] flex items-center justify-center text-xs font-bold text-white shadow-sm group-hover:scale-110 transition-transform">
                           {getAvatar(u.nombre, u.apellido)}
                         </div>
-                        <span className="text-sm font-medium text-[#2A0E18]">{u.nombre} {u.apellido}</span>
+                        <div>
+                          <p className="text-sm font-bold text-[#2A0E18]">{u.nombre} {u.apellido}</p>
+                          <p className="text-xs text-[#7A5260]/70">{u.email}</p>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-3 py-3 text-sm text-[#7A5260]">{u.email}</td>
-                    <td className="px-3 py-3">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium capitalize ${planPill[(u.plan || 'basico') as Plan]}`}>
+                    <td className="px-6 py-4">
+                      <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${planPill[(u.plan || 'basico') as Plan]}`}>
                         {u.plan}
                       </span>
                     </td>
-                    <td className="px-3 py-3 text-sm text-[#2A0E18]">{u._count.pedidos}</td>
-                    <td className="px-3 py-3">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium capitalize ${estadoPill[estadoActual as EstadoUsuario]}`}>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-[#5A0F24]">{u._count.pedidos}</span>
+                        <span className="text-[10px] text-[#7A5260] uppercase">órdenes</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${estadoPill[estadoActual as EstadoUsuario]}`}>
                         {estadoActual}
                       </span>
                     </td>
-                    <td className="px-3 py-3">
+                    <td className="px-6 py-4">
                       <div className="flex gap-2">
-                        <button className="text-xs px-3 py-1.5 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-medium hover:opacity-80">Ver</button>
-                        <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FDF5E6] text-[#8C5E08] font-medium hover:opacity-80">Editar</button>
-                        <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FBF0F0] text-[#A32D2D] font-medium hover:opacity-80">Suspender</button>
+                        <button className="p-2 hover:bg-[#8E1B3A]/5 rounded-lg text-[#8E1B3A] transition-colors" title="Editar">
+                          <MoreVertical size={16} />
+                        </button>
                       </div>
                     </td>
                   </tr>

@@ -1,3 +1,4 @@
+// src/app/admin/productos/page.tsx
 import prisma from "@/lib/prisma";
 import ProductosClient from "./_components/ProductosClient";
 
@@ -23,13 +24,11 @@ export default async function ProductosPage() {
     stock: number;
     calificacion: string;
     estado: EstadoProd;
-    destacado: boolean;
     activo: boolean;
   };
 
   const productosMapeados: ProductoData[] = productosDB.map((p: any) => {
     const mockCalificacion = (4.0 + (p.id % 10) * 0.1).toFixed(1);
-    const isDestacado = p.stock > 10;
 
     return {
       id: p.id,
@@ -40,7 +39,6 @@ export default async function ProductosPage() {
       stock: p.stock,
       calificacion: mockCalificacion,
       estado: p.activo ? "activo" : "desactivado",
-      destacado: isDestacado,
       activo: p.activo,
     };
   });

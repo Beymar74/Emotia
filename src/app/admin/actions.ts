@@ -26,34 +26,6 @@ export async function rechazarProveedor(formData: FormData) {
   revalidatePath("/admin/proveedores");
 }
 
-// --- PRODUCTOS ---
-export async function toggleProducto(id: number, estadoActual: boolean) {
-  try {
-    await prisma.productos.update({
-      where: { id },
-      data: { activo: !estadoActual },
-    });
-    revalidatePath("/admin/productos");
-    return { success: true };
-  } catch (error) {
-    console.error(error);
-    return { success: false };
-  }
-}
-
-export async function eliminarProducto(id: number) {
-  try {
-    // Soft delete para no romper historial de pedidos
-    await prisma.productos.update({
-      where: { id },
-      data: { activo: false },
-    });
-    revalidatePath("/admin/productos");
-    return { success: true };
-  } catch (error) {
-    return { success: false };
-  }
-}
 
 // --- PEDIDOS ---
 export async function cancelarPedido(id: number) {

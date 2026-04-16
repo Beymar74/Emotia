@@ -1,5 +1,7 @@
 import prisma from "@/lib/prisma";
 import { usuarios } from "@/generated/prisma/client";
+// Importamos el componente cliente desde la carpeta local
+import BotonesAccion from "./components/BotonesAccion";
 
 export default async function PerfilesPage() {
     // --- CONSULTAS A LA BASE DE DATOS ---
@@ -123,13 +125,9 @@ export default async function PerfilesPage() {
                                     <span>Último: {formatFecha(p.updated_at)}</span>
                                     <span>{p._count.pedidos} pedidos</span>
                                 </div>
-                                <div className="flex gap-2">
-                                    <button className="text-xs px-3 py-1.5 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-medium hover:opacity-80">Ver</button>
-                                    <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FDF5E6] text-[#8C5E08] font-medium hover:opacity-80">Editar</button>
-                                    {!esAdmin && (
-                                        <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FBF0F0] text-[#A32D2D] font-medium hover:opacity-80">Suspender</button>
-                                    )}
-                                </div>
+                                
+                                {/* BOTONES MÓVIL IMPORTADOS */}
+                                <BotonesAccion usuario={p} esAdmin={esAdmin} />
                             </div>
                         );
                     })}
@@ -189,14 +187,10 @@ export default async function PerfilesPage() {
                                         <td className="px-3 py-3 text-sm text-[#2A0E18]">
                                             {esAdmin ? "—" : p._count.pedidos}
                                         </td>
+
+                                        {/* BOTONES DESKTOP IMPORTADOS */}
                                         <td className="px-3 py-3">
-                                            <div className="flex gap-2">
-                                                <button className="text-xs px-3 py-1.5 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-medium hover:opacity-80">Ver</button>
-                                                <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FDF5E6] text-[#8C5E08] font-medium hover:opacity-80">Editar</button>
-                                                {!esAdmin && (
-                                                    <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FBF0F0] text-[#A32D2D] font-medium hover:opacity-80">Suspender</button>
-                                                )}
-                                            </div>
+                                            <BotonesAccion usuario={p} esAdmin={esAdmin} />
                                         </td>
                                     </tr>
                                 );
