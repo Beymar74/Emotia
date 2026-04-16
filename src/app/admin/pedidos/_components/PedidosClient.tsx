@@ -52,7 +52,7 @@ export default function PedidosClient({ pedidos, stats }: PedidosClientProps) {
                 {p.estado}
               </span>
               {p.estado !== "cancelado" && (
-                <button 
+                <button
                   disabled={isPending}
                   onClick={() => onCancelar(p.idNum)}
                   className="text-xs bg-white border border-red-200 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50"

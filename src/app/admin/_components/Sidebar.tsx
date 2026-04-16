@@ -25,7 +25,6 @@ const navSections = [
     label: "Proveedores",
     icon: IconCheck,
     items: [
-      { href: "/admin/proveedores", label: "Aprobar / rechazar" },
       { href: "/admin/proveedores/actividad", label: "Supervisar actividad" },
       { href: "/admin/proveedores/rendimiento", label: "Rendimiento" },
     ],
@@ -35,7 +34,6 @@ const navSections = [
     icon: IconBag,
     items: [
       { href: "/admin/productos", label: "Todos los productos" },
-      { href: "/admin/productos/destacados", label: "Destacados" },
     ],
   },
   {

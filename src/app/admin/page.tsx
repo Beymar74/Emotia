@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 import prisma from "@/lib/prisma";
 import MetricCard from "./_components/MetricCard";
@@ -13,7 +13,7 @@ import LogAuditoria from "./_components/LogAuditoria";
 export default async function AdminPage() {
   // --- CONSULTAS A LA BASE DE DATOS ---
 
-  // 1. Ingresos totales (Sumamos el total de los pedidos con estado 'entregado')
+  // 1. Ingresos totales (Pedidos con estado 'entregado')
   const ingresosResult = await prisma.pedidos.aggregate({
     _sum: { total: true },
     where: { estado: 'entregado' }
@@ -25,11 +25,11 @@ export default async function AdminPage() {
     where: { estado: 'entregado' }
   });
 
-  // 3. Usuarios activos
+  // 3. Usuarios activos (Excluyendo administradores)
   const usuariosActivos = await prisma.usuarios.count({
     where: {
       activo: true,
-      tipo: 'usuario' // Filtramos para no contar a los administradores
+      tipo: 'usuario'
     }
   });
 
@@ -38,36 +38,36 @@ export default async function AdminPage() {
     where: { estado: 'aprobado' }
   });
 
-  // 5. Ãšltimos proveedores registrados (para la tabla)
+  // 5. Últimos proveedores registrados
   const ultimosProveedores = await prisma.proveedores.findMany({
     take: 5,
     orderBy: { created_at: 'desc' },
   });
 
   // --- FUNCIONES AUXILIARES ---
-  const formatBs = (monto: number) => `Bs ${monto.toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
-  const formatNum = (num: number) => num.toLocaleString('en-US');
+  const formatBs = (monto: number) => `Bs ${monto.toLocaleString('es-BO', { minimumFractionDigits: 0 })}`;
+  const formatNum = (num: number) => num.toLocaleString('es-BO');
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6 p-4">
 
-      {/* MÃ©tricas */}
-      <div>
-        <p className="text-[8.5px] tracking-[2.5px] uppercase text-[#7A5260] font-medium mb-3">
-          Resumen â€” Abril 2026
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+      {/* Sección de Métricas */}
+      <section>
+        <h2 className="text-[9px] tracking-[2.5px] uppercase text-[#7A5260] font-bold mb-4 opacity-80">
+          Resumen — Abril 2026
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <MetricCard
             value={formatBs(Number(ingresosTotales))}
-            label="Ingresos totales"
-            delta="+12.4%" 
+            label="Ingresos Totales"
+            delta="+12.4%"
             deltaType="up"
             barFrom="#8E1B3A"
             barTo="#BC9968"
           />
           <MetricCard
             value={formatNum(pedidosCompletados)}
-            label="Pedidos completados"
+            label="Pedidos Completados"
             delta="+8.1%"
             deltaType="up"
             barFrom="#AB3A50"
@@ -75,7 +75,7 @@ export default async function AdminPage() {
           />
           <MetricCard
             value={formatNum(usuariosActivos)}
-            label="Usuarios activos"
+            label="Usuarios Activos"
             delta="+5.6%"
             deltaType="up"
             barFrom="#5C3A2E"
@@ -83,36 +83,35 @@ export default async function AdminPage() {
           />
           <MetricCard
             value={formatNum(proveedoresAprobados)}
-            label="Proveedores aprobados"
+            label="Proveedores Aprobados"
             delta="Estable"
             deltaType="neutral"
             barFrom="#BC9968"
             barTo="#F5E6D0"
           />
         </div>
-      </div>
+      </section>
 
-      {/* Acciones rÃ¡pidas */}
-      <div>
-        <p className="text-[8.5px] tracking-[2.5px] uppercase text-[#7A5260] font-medium mb-3">
-          Acciones rÃ¡pidas del administrador
-        </p>
+      {/* Acciones Rápidas */}
+      <section>
+        <h2 className="text-[9px] tracking-[2.5px] uppercase text-[#7A5260] font-bold mb-4 opacity-80">
+          Acciones rápidas de administración
+        </h2>
         <QuickActions />
-      </div>
+      </section>
 
-      {/* Grid principal */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1.6fr_1fr] gap-3">
-        {/* AquÃ­ pasamos los datos reales al componente */}
+      {/* Grid Principal: Tabla y Actividad */}
+      <div className="grid grid-cols-1 xl:grid-cols-[1.6fr_1fr] gap-4">
         <ProveedoresTable data={ultimosProveedores} />
-        
-        <div className="flex flex-col gap-3">
+
+        <div className="flex flex-col gap-4">
           <ActividadReciente />
           <VentasCategorias />
         </div>
       </div>
 
-      {/* Grid inferior */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+      {/* Grid Inferior: Herramientas y Auditoría */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         <SolicitudesPendientes />
         <AsistenteIA />
         <LogAuditoria />
