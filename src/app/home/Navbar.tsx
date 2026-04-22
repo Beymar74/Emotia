@@ -21,7 +21,7 @@ export default function Navbar({ onOpenLogin, onOpenRegister, darkBackground = f
   const router = useRouter();
   const user = useUser();
   const stackApp = useStackApp();
-  
+
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -48,13 +48,13 @@ export default function Navbar({ onOpenLogin, onOpenRegister, darkBackground = f
 
   const handleLogout = async () => {
     await stackApp.signOut();
-    window.location.reload(); 
+    window.location.reload();
   };
 
   const NAV_LINKS = [
     { label: "Catálogo", action: () => { setMobileOpen(false); router.push("/producto"); } },
-    { label: "Cómo funciona",  action: () => goTo("como-funciona") },
-    { label: "Nosotros",       action: () => { setMobileOpen(false); router.push("/nosotros"); } },
+    { label: "Cómo funciona", action: () => goTo("como-funciona") },
+    { label: "Nosotros", action: () => { setMobileOpen(false); router.push("/nosotros"); } },
   ];
 
   // Lógica de colores basada en si el fondo es oscuro y si se hizo scroll
@@ -161,10 +161,10 @@ export default function Navbar({ onOpenLogin, onOpenRegister, darkBackground = f
               ) : (
                 <>
                   <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-                    <motion.button initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} onClick={() => { setMobileOpen(false); if(onOpenLogin) onOpenLogin(); }} style={{ flex: 1, background: P.blanco, color: P.granate, border: `1px solid ${P.dorado}80`, borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer" }}>Entrar</motion.button>
-                    <motion.button initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }} onClick={() => { setMobileOpen(false); if(onOpenRegister) onOpenRegister(); }} style={{ flex: 1, background: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer" }}>Registrarse</motion.button>
+                    <motion.button initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} onClick={() => { setMobileOpen(false); if (onOpenLogin) onOpenLogin(); }} style={{ flex: 1, background: P.blanco, color: P.granate, border: `1px solid ${P.dorado}80`, borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer" }}>Entrar</motion.button>
+                    <motion.button initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }} onClick={() => { setMobileOpen(false); if (onOpenRegister) onOpenRegister(); }} style={{ flex: 1, background: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", borderRadius: 100, padding: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer" }}>Registrarse</motion.button>
                   </div>
-                  <motion.button initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }} onClick={() => { setMobileOpen(false); if(onOpenRegister) onOpenRegister(); }} style={{ marginTop: "auto", background: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", borderRadius: 16, padding: "16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 8px 24px ${P.granate}30` }}><Sparkles size={18} strokeWidth={1.5} /> Usar IA gratis</motion.button>
+                  <motion.button initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }} onClick={() => { setMobileOpen(false); if (onOpenRegister) onOpenRegister(); }} style={{ marginTop: "auto", background: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", borderRadius: 16, padding: "16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 8px 24px ${P.granate}30` }}><Sparkles size={18} strokeWidth={1.5} /> Usar IA gratis</motion.button>
                 </>
               )}
             </motion.aside>
