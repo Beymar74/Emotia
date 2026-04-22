@@ -45,9 +45,26 @@ export default function ProductsSection() {
   const marqueePartners = [...PARTNERS, ...PARTNERS, ...PARTNERS, ...PARTNERS];
 
   const STEPS = [
-    { num: "01", icon: <MessageCircle size={24} color={P.granate} strokeWidth={1.5} />, title: "Cuéntanos la historia", desc: "Dinos para quién es el regalo, qué celebran y tu presupuesto. La IA hace el resto." },
-    { num: "02", icon: <Sparkles size={24} color={P.granate} strokeWidth={1.5} />, title: "La IA encuentra el match", desc: "En segundos analizamos el catálogo y seleccionamos las opciones más significativas." },
-    { num: "03", icon: <Gift size={24} color={P.granate} strokeWidth={1.5} />, title: "Sorprende de verdad", desc: "Elige tu favorito y lo entregamos con empaque premium y tarjeta dedicatoria incluida." },
+    {
+      num: "01",
+      icon: <MessageCircle size={24} color={P.granate} strokeWidth={1.5} />,
+      title: "Análisis Inteligente",
+      desc: "Nuestra IA analiza para quién es el regalo y el motivo de la celebración para entender la emoción que buscas transmitir.",
+      btnText: "Probar IA ahora",
+      action: () => router.push("/registro")
+    },
+    {
+      num: "02",
+      icon: <Sparkles size={24} color={P.granate} strokeWidth={1.5} />,
+      title: "Match Perfecto",
+      desc: "En segundos, filtramos nuestro catálogo de productores locales para ofrecerte las opciones que conecten genuinamente."
+    },
+    {
+      num: "03",
+      icon: <Gift size={24} color={P.granate} strokeWidth={1.5} />,
+      title: "Entrega Premium",
+      desc: "Tú eliges el obsequio y nosotros nos encargamos del empaque de lujo, la dedicatoria y el envío seguro en La Paz."
+    },
   ];
 
   return (
@@ -249,42 +266,66 @@ export default function ProductsSection() {
       {/* ══════════════════════════
           CÓMO FUNCIONA
       ══════════════════════════ */}
-      <div id="como-funciona" style={{ background: `${P.beige}30`, padding: "80px 24px" }}>
-        <div style={{ maxWidth: 1320, margin: "0 auto" }}>
-          <motion.div initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: "center", marginBottom: 56 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-              <span style={{ width: 30, height: 2, background: P.dorado, display: "inline-block" }} />
-              <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.75rem", fontWeight: 800, color: P.dorado, letterSpacing: "0.2em", textTransform: "uppercase" }}>La Experiencia</span>
-              <span style={{ width: 30, height: 2, background: P.dorado, display: "inline-block" }} />
+      {/* ══════════════════════════
+          CÓMO FUNCIONA
+      ══════════════════════════ */}
+      <div id="como-funciona" style={{ background:`${P.beige}30`, padding:"80px 24px" }}>
+        <div style={{ maxWidth:1320, margin:"0 auto" }}>
+          <motion.div initial={{ opacity:0, y:18 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} style={{ textAlign:"center", marginBottom:56 }}>
+            <div style={{ display:"inline-flex", alignItems:"center", gap:12, marginBottom:12 }}>
+              <span style={{ width:30, height:2, background:P.dorado, display:"inline-block" }} />
+              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.75rem", fontWeight:800, color:P.dorado, letterSpacing:"0.2em", textTransform:"uppercase" }}>La Experiencia</span>
+              <span style={{ width:30, height:2, background:P.dorado, display:"inline-block" }} />
             </div>
-            <h2 style={{ fontFamily: "'Montserrat',sans-serif", fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)", fontWeight: 900, color: P.bordo }}>El arte de regalar, en 3 pasos</h2>
+            <h2 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"clamp(1.8rem, 3.5vw, 2.6rem)", fontWeight:900, color:P.bordo }}>El arte de regalar, en 3 pasos</h2>
           </motion.div>
-
+          
           <div className="steps-grid">
-            {STEPS.map((s, i) => (
+            {STEPS.map((s,i) => (
               <React.Fragment key={s.num}>
                 <motion.div
-                  initial={{ opacity: 0, y: 26 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15, duration: 0.5 }}
-                  whileHover={{ y: -8, boxShadow: `0 24px 50px ${P.granate}10` }}
-                  style={{ background: P.blanco, borderRadius: 24, padding: "40px 32px", position: "relative", overflow: "hidden", border: `1px solid ${P.beige}`, transition: "all 0.3s ease" }}
+                  initial={{ opacity:0, y:26 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ delay:i*0.15, duration:0.5 }}
+                  whileHover={{ y:-8, boxShadow:`0 24px 50px ${P.granate}10` }}
+                  onClick={s.action ? s.action : undefined}
+                  style={{ 
+                    background:P.blanco, 
+                    borderRadius:24, 
+                    padding:"40px 32px", 
+                    position:"relative", 
+                    overflow:"hidden", 
+                    border:`1px solid ${P.beige}`, 
+                    transition:"all 0.3s ease",
+                    cursor: s.action ? "pointer" : "default", // Cambia el cursor si se puede hacer clic
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%"
+                  }}
                 >
-                  <div style={{ position: "absolute", top: -10, right: -10, fontFamily: "'Montserrat',sans-serif", fontSize: "8rem", fontWeight: 900, color: `${P.granate}08`, lineHeight: 1, userSelect: "none", pointerEvents: "none" }}>{s.num}</div>
-
-                  <div style={{ width: 56, height: 56, borderRadius: 16, background: `${P.beige}60`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+                  <div style={{ position:"absolute", top:-10, right:-10, fontFamily:"'Montserrat',sans-serif", fontSize:"8rem", fontWeight:900, color:`${P.granate}08`, lineHeight:1, userSelect:"none", pointerEvents:"none" }}>{s.num}</div>
+                  
+                  <div style={{ width:56, height:56, borderRadius:16, background:`${P.beige}60`, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:24 }}>
                     {s.icon}
                   </div>
+                  
+                  <h3 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"1.2rem", fontWeight:800, color:P.bordo, marginBottom:12, lineHeight:1.3 }}>{s.title}</h3>
+                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.95rem", color:P.chocolate, lineHeight:1.7, margin:0, flexGrow: 1 }}>{s.desc}</p>
 
-                  <h3 style={{ fontFamily: "'Montserrat',sans-serif", fontSize: "1.2rem", fontWeight: 800, color: P.bordo, marginBottom: 12, lineHeight: 1.3 }}>{s.title}</h3>
-                  <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.95rem", color: P.chocolate, lineHeight: 1.7, margin: 0 }}>{s.desc}</p>
+                  {/* 👇 SI LA TARJETA TIENE ACCIÓN, MOSTRAMOS UN BOTÓN DISCRETO 👇 */}
+                  {s.action && (
+                    <div style={{ marginTop: 24, display: "flex", alignItems: "center", gap: 8, color: P.granate, fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.9rem" }}>
+                      {s.btnText} <ArrowRight size={16} strokeWidth={2} />
+                    </div>
+                  )}
+
                 </motion.div>
-
+                
                 {i < 2 && (
                   <motion.div className="step-arrow"
-                    initial={{ opacity: 0, scale: 0.4 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.15 + 0.3, type: "spring", stiffness: 200 }}
-                    style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "0 16px" }}
+                    initial={{ opacity:0, scale:0.4 }} whileInView={{ opacity:1, scale:1 }} viewport={{ once:true }} transition={{ delay:i*0.15+0.3, type:"spring", stiffness:200 }}
+                    style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"0 16px" }}
                   >
-                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: P.blanco, border: `1.5px solid ${P.dorado}50`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 8px 20px ${P.dorado}15`, color: P.dorado }}>
-                      <ArrowRight size={20} strokeWidth={2} />
+                    <div style={{ width:48, height:48, borderRadius:"50%", background:P.blanco, border:`1.5px solid ${P.dorado}50`, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 8px 20px ${P.dorado}15`, color: P.dorado }}>
+                      <ArrowRight size={20} strokeWidth={2}/>
                     </div>
                   </motion.div>
                 )}
