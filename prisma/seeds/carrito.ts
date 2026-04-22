@@ -13,44 +13,15 @@ export async function seedCarrito(prisma: PrismaClient) {
     const cactus = productos.find((p: any) => p.nombre === 'Cactus decorativo')!
     const torta = productos.find((p: any) => p.nombre === 'Torta personalizada')!
 
-    await prisma.carrito.createMany({
-        skipDuplicates: true,
-        data: [
-            {
-                usuario_id: einard.id,
-                producto_id: pulsera.id,
-                cantidad: 1,
-                mensaje_personal: 'Para mi hermana',
-                empaque_especial: true,
-                precio_unitario: 54.00,
-                subtotal: 54.00,
-            },
-            {
-                usuario_id: einard.id,
-                producto_id: taza.id,
-                cantidad: 2,
-                mensaje_personal: 'Recuerdo especial',
-                empaque_especial: false,
-                precio_unitario: 48.00,
-                subtotal: 96.00,
-            },
-            {
-                usuario_id: maria.id,
-                producto_id: cactus.id,
-                cantidad: 1,
-                empaque_especial: true,
-                precio_unitario: 42.00,
-                subtotal: 42.00,
-            },
-            {
-                usuario_id: maria.id,
-                producto_id: torta.id,
-                cantidad: 1,
-                mensaje_personal: 'Feliz cumple papá',
-                empaque_especial: false,
-                precio_unitario: 180.00,
-                subtotal: 180.00,
-            },
-        ],
-    })
+    // subtotal es columna GENERATED en Postgres, no se puede insertar manualmente
+    await prisma.$executeRaw`
+        INSERT INTO carrito
+            (usuario_id, producto_id, cantidad, mensaje_personal, empaque_especial, precio_unitario)
+        VALUES
+            (${einard.id}, ${pulsera.id}, 1, 'Para mi hermana', true, 54.00),
+            (${einard.id}, ${taza.id}, 2, 'Recuerdo especial', false, 48.00),
+            (${maria.id}, ${cactus.id}, 1, null, true, 42.00),
+            (${maria.id}, ${torta.id}, 1, 'Feliz cumple papá', false, 180.00)
+        ON CONFLICT (usuario_id, producto_id) DO NOTHING
+    `
 }

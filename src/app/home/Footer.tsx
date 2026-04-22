@@ -19,7 +19,7 @@ export default function Footer() {
   const router = useRouter();
 
   const LINKS_NAV = [
-    { label: "Catálogo de Regalos", path: "/regalos" },
+    { label: "Catálogo de Regalos", path: "/producto" },
     { label: "Cómo Funciona", path: "/#como-funciona" },
     { label: "Para Empresas", path: "/business" },
     { label: "Nosotros", path: "/nosotros" },
@@ -144,7 +144,7 @@ export default function Footer() {
 
                 <motion.button
                   whileHover={{ scale: 1.03, backgroundColor: "rgba(255,255,255,0.08)" }} whileTap={{ scale: 0.97 }}
-                  onClick={() => router.push("/regalos")}
+                  onClick={() => router.push("/producto")}
                   style={{ marginTop: 12, background: "rgba(255,255,255,0.03)", border: `1px solid rgba(255,255,255,0.15)`, borderRadius: 12, padding: "14px 20px", color: P.blanco, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.95rem", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", transition: "background-color 0.3s" }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -137,7 +137,7 @@ export default function ProductsSection() {
             <motion.button
               initial={{ opacity: 0, x: 18 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
               whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-              onClick={() => router.push("/regalos")}
+              onClick={() => router.push("/producto")}
               style={{ background: P.blanco, color: P.granate, border: `1.5px solid ${P.granate}40`, padding: "12px 24px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.9rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
             >
               Ir al Catálogo <ArrowRight size={16} strokeWidth={2} />
@@ -152,7 +152,7 @@ export default function ProductsSection() {
                 key={`${p.id}-${index}`}
                 whileHover={{ y: -8, borderColor: P.dorado }}
                 style={{ flex: "0 0 300px", background: P.blanco, borderRadius: 20, border: `1px solid ${P.beige}`, overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", boxShadow: `0 10px 30px rgba(0,0,0,0.03)`, transition: "all 0.3s" }}
-                onClick={() => router.push("/regalos")}
+                onClick={() => router.push("/producto")}
               >
                 <div style={{ position: "relative", height: 300, overflow: "hidden" }}>
                   <img src={p.imgSrc} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.5s ease" }}
@@ -187,7 +187,6 @@ export default function ProductsSection() {
           </h3>
         </div>
 
-        {/* Usamos el mismo wrapper pero le quitamos el padding vertical excesivo */}
         <div className="marquee-wrapper" style={{ padding: "10px 0" }}>
           <div className="marquee-track-slow" style={{ alignItems: "center" }}>
             {marqueePartners.map((partnerName, index) => (
@@ -212,7 +211,6 @@ export default function ProductsSection() {
                   e.currentTarget.style.transform = "scale(1)";
                 }}
               >
-                {/* Simulación de un Logo con Tipografía Elegante */}
                 <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.6rem", fontWeight: 900, color: P.bordo, whiteSpace: "nowrap" }}>
                   {partnerName}
                 </span>
@@ -230,7 +228,6 @@ export default function ProductsSection() {
           <motion.div initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             style={{ borderRadius: 24, background: `linear-gradient(135deg, ${P.bordo} 0%, ${P.granate} 100%)`, padding: "56px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 32, flexWrap: "wrap", position: "relative", overflow: "hidden", boxShadow: `0 24px 60px ${P.bordo}30` }}>
 
-            {/* Decoraciones abstractas fondo */}
             <div style={{ position: "absolute", top: -60, right: -60, width: 300, height: 300, borderRadius: "50%", border: `40px solid ${P.blanco}05` }} />
             <div style={{ position: "absolute", bottom: -40, left: 20, width: 150, height: 150, borderRadius: "50%", border: `20px solid ${P.dorado}10` }} />
 
