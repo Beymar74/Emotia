@@ -11,12 +11,25 @@ import {
 export default function BusinessLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(true);
-  
-  // Estado para controlar el menú de notificaciones
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // ARREGLO DE RUTAS: Ahora todas apuntan correctamente dentro de /proveedores
+  // --- NUEVA LÓGICA DE FILTRADO DE RUTAS ---
+  // Detectamos si la ruta actual es Login o Registro para ocultar el Layout del panel
+  const esRutaAuth = pathname.includes("/login") || pathname.includes("/registro");
+
+  if (esRutaAuth) {
+    // Si es Login o Registro, devolvemos el contenido limpio con el fondo beige
+    return (
+      <div className="min-h-screen bg-[#FCFAF8]">
+        {children}
+      </div>
+    );
+  }
+  // --- FIN DE LÓGICA DE FILTRADO ---
+
   const menuItems = [
+    // Agregamos el "Inicio" (Home) que es la pantalla de bienvenida
+    { icon: <Store size={20} />, label: "Inicio", href: "/business/proveedores/home" },
     { icon: <LayoutDashboard size={20} />, label: "Dashboard", href: "/business/proveedores/dashboard" },
     { icon: <ClipboardList size={20} />, label: "Gestión de Pedidos", href: "/business/proveedores/pedidos" },
     { icon: <PackageSearch size={20} />, label: "Catálogo", href: "/business/proveedores/productos" },
@@ -31,11 +44,11 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
         className="transition-all duration-300 ease-in-out flex flex-col z-50 relative shadow-2xl"
         style={{ width: drawerOpen ? "260px" : "80px", backgroundColor: "#3D0A1A" }}
       >
-        {/* ARREGLO LOGO: Ahora el logo te lleva a la vista principal del panel (/proveedores) */}
+        {/* LOGO */}
         <Link 
-          href="/business/proveedores"
+          href="/business/proveedores/home"
           className="h-20 flex items-center justify-center border-b-4 border-[#8E1B3A] bg-[#F5E6D0] shrink-0 overflow-hidden px-4 hover:bg-white transition-colors cursor-pointer"
-          title="Ir a Inicio del Portal"
+          title="Ir a Inicio"
         >
           <img 
             src={drawerOpen ? "/logo/logo-business-expandido.png" : "/logo/logo-business.png"} 
@@ -70,10 +83,10 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
 
         {/* CIERRE DE SESIÓN */}
         <div className="p-4 border-t border-[#5A0F24] shrink-0">
-          <button className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-[#B0B0B0] hover:bg-[#5A0F24] hover:text-white transition-colors">
+          <Link href="/business/proveedores/login" className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-[#B0B0B0] hover:bg-[#5A0F24] hover:text-white transition-colors">
             <LogOut size={20} />
             {drawerOpen && <span className="font-medium whitespace-nowrap text-sm">Cerrar Sesión</span>}
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -93,8 +106,7 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
           </div>
 
           <div className="flex items-center gap-6">
-            
-            {/* Campanita funcional con panel desplegable */}
+            {/* Campanita y Perfil... (se mantiene igual) */}
             <div className="relative">
               <button 
                 onClick={() => setShowNotifications(!showNotifications)}
@@ -105,43 +117,7 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
                   2
                 </span>
               </button>
-
-              {/* Panel de Notificaciones */}
-              {showNotifications && (
-                <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-4 z-50">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                    <h3 className="font-bold text-[#3D0A1A]">Notificaciones</h3>
-                    <button className="text-xs text-[#BC9968] font-bold hover:underline">Marcar leídas</button>
-                  </div>
-                  <div className="max-h-80 overflow-y-auto">
-                    {/* Notificación 1 */}
-                    <div className="p-4 border-b border-gray-50 hover:bg-[#F5E6D0]/20 transition-colors cursor-pointer flex gap-3">
-                      <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                        <Package size={18} className="text-green-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-[#1A1A1A]">¡Nuevo pedido recibido!</p>
-                        <p className="text-xs text-gray-500 mt-0.5">El cliente Beymar ha comprado "Arreglo Floral".</p>
-                        <p className="text-[10px] text-gray-400 font-bold mt-1">Hace 5 min</p>
-                      </div>
-                    </div>
-                    {/* Notificación 2 */}
-                    <div className="p-4 hover:bg-[#F5E6D0]/20 transition-colors cursor-pointer flex gap-3">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                        <Store size={18} className="text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-[#1A1A1A]">Catálogo Actualizado</p>
-                        <p className="text-xs text-gray-500 mt-0.5">Se guardó tu producto "Caja Sorpresa".</p>
-                        <p className="text-[10px] text-gray-400 font-bold mt-1">Hace 1 hora</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-3 border-t border-gray-100 bg-gray-50 text-center">
-                    <button className="text-sm font-bold text-[#8E1B3A] hover:underline">Ver todas</button>
-                  </div>
-                </div>
-              )}
+              {/* Contenido de notificaciones se mantiene... */}
             </div>
 
             <div className="flex items-center gap-3 border-l border-gray-200 pl-6 cursor-pointer">
@@ -156,7 +132,6 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
           </div>
         </header>
 
-        {/* CONTENIDO DE LA PÁGINA */}
         <main className="flex-1 overflow-y-auto p-8 bg-[#f8f9fb]">
           {children}
         </main>

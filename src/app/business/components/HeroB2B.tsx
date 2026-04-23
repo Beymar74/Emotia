@@ -20,40 +20,6 @@ const P = {
   negro: "#1A1A1A"
 };
 
-// ==========================================
-// COMPONENTE 1: NAVBAR B2B
-// ==========================================
-const NavbarB2B = () => {
-  const router = useRouter();
-  
-  return (
-    <header className="absolute top-0 left-0 w-full z-50 py-6 px-6 md:px-12 flex justify-between items-center">
-      {/* LOGO */}
-      <div className="cursor-pointer" onClick={() => router.push("/")}>
-        <img 
-          src="/logo/logo-business-expandido.png" 
-          alt="Emotia Business" 
-          className="h-8 md:h-10 object-contain"
-        />
-      </div>
-      
-      {/* BOTÓN SECUNDARIO (Iniciar Sesión) */}
-      <button 
-        onClick={() => router.push("/business/proveedores")}
-        className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 hover:scale-105 backdrop-blur-md"
-        style={{ 
-          color: P.bordoNegro, 
-          backgroundColor: "rgba(245, 230, 208, 0.7)", // Beige con transparencia
-          border: `1px solid rgba(188, 153, 104, 0.3)` // Borde dorado sutil
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.borderColor = P.dorado}
-        onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(188, 153, 104, 0.3)'}
-      >
-        Iniciar Sesión <ArrowRight size={16} />
-      </button>
-    </header>
-  );
-};
 
 // ==========================================
 // COMPONENTE 2: HERO PRINCIPAL B2B
@@ -114,10 +80,6 @@ export default function HeroB2B() {
           style={{ background: P.bordoOscuro }}
         ></div>
       </div>
-
-      {/* Navbar */}
-      <NavbarB2B />
-
       {/* Contenido Central */}
       <div className="max-w-[1320px] mx-auto px-6 md:px-12 pt-32 pb-20 relative z-10 flex flex-col lg:flex-row items-center gap-16 lg:gap-20 w-full">
         
@@ -164,7 +126,7 @@ export default function HeroB2B() {
           >
             <motion.button
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-              onClick={() => router.push("/business/proveedores")}
+              onClick={() => router.push("/business/proveedores/registro")} // <-- RUTA ACTUALIZADA
               className="flex items-center justify-center gap-3 px-10 py-4 rounded-full font-bold text-lg text-white shadow-xl w-full sm:w-auto"
               style={{ 
                 background: P.bordoNegro,
