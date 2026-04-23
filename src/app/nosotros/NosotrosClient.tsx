@@ -2,16 +2,15 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import Navbar    from "../home/Navbar";
-import Footer    from "../home/Footer";
-import Hero      from "./components/Hero";
+import Navbar from "../home/Navbar";
+import Footer from "../home/Footer";
+import Hero from "./components/Hero";
 import MisionVision from "./components/MisionVision";
-import Valores   from "./components/Valores";
-import Equipo    from "./components/Equipo";
+import Valores from "./components/Valores";
+import Equipo from "./components/Equipo";
 import Propuesta from "./components/Propuesta";
-import AuthModal from "../home/AuthModal"; // 👇 AHORA SÍ IMPORTAMOS EL MODAL 👇
+import AuthModal from "../home/AuthModal";
 
-// NUEVA PALETA DE COLORES
 const P = {
   granate: "#8E1B3A", bordo: "#5A0F24", carmesi: "#AB3A50", chocolate: "#5C3A2E",
   dorado: "#BC9968", beige: "#F5E6D0", blanco: "#FFFFFF", gris: "#B0B0B0"
@@ -20,7 +19,6 @@ const P = {
 export default function NosotrosClient() {
   const router = useRouter();
 
-  // 👇 ESTADOS PARA EL MODAL 👇
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<'login' | 'register'>('register');
 
@@ -35,28 +33,27 @@ export default function NosotrosClient() {
         p, span, li, a { font-family: 'DM Sans', sans-serif !important; }
       `}</style>
 
-      {/* 👇 LE PASAMOS LAS FUNCIONES Y LE DECIMOS QUE EL FONDO ES OSCURO 👇 */}
-      <Navbar 
-        onOpenLogin={openLogin} 
-        onOpenRegister={openRegister} 
-        darkBackground={true} 
+      <Navbar
+        onOpenLogin={openLogin}
+        onOpenRegister={openRegister}
+        darkBackground={false}
       />
-      
-      <main style={{ paddingTop: "76px", backgroundColor: P.bordo }}>
+
+      {/* 👇 ELIMINAMOS EL PADDING Y EL BACKGROUND AQUÍ 👇 */}
+      <main>
         <Hero />
         <MisionVision />
         <Valores />
         <Equipo />
         <Propuesta />
       </main>
-      
+
       <Footer />
 
-      {/* 👇 RENDERIZAMOS EL MODAL FLOTANTE 👇 */}
-      <AuthModal 
-        isOpen={isAuthOpen} 
-        onClose={() => setIsAuthOpen(false)} 
-        initialView={authView} 
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        initialView={authView}
       />
     </div>
   );

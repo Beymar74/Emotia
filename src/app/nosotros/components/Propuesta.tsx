@@ -14,7 +14,10 @@ const CSS = `
   @media (max-width: 900px) { .propuesta-grid { grid-template-columns: 1fr; } .sticky-gallery { position: relative !important; top: 0 !important; margin-bottom: 2rem; } }
   .gallery-img-container { position: absolute; inset: 0; opacity: 0; transform: scale(1.03); transition: opacity 0.6s ease, transform 1s ease; border-radius: 24px; overflow: hidden; pointer-events: none; }
   .gallery-img-container.active { opacity: 1; transform: scale(1); z-index: 2; }
-  .accordion-item { padding: 1.5rem 0; border-bottom: 1px solid ${P.beige}; cursor: pointer; position: relative; transition: all 0.3s ease; }
+  
+  /* 👇 AQUÍ SE QUITA LA MANITO (cursor: default en vez de pointer) 👇 */
+  .accordion-item { padding: 1.5rem 0; border-bottom: 1px solid ${P.beige}; cursor: default; position: relative; transition: all 0.3s ease; }
+  
   .accordion-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.2rem; color: ${P.gris}; transition: color 0.3s ease; display: flex; alignItems: center; gap: 1rem; }
   .accordion-item.active .accordion-title { color: ${P.bordo}; }
   .accordion-content-wrapper { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s ease; }
