@@ -2,7 +2,11 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Mail, MapPin, Gift, Instagram, Facebook, Heart, X, Music } from "lucide-react";
+// 1. Iconos de Interfaz (Lucide) - SIN las redes sociales
+import { ArrowRight, Mail, MapPin, Phone, Gift, Heart, X } from "lucide-react";
+// 2. Iconos de Marcas (React Icons - FontAwesome 6)
+// POR ESTO (La ruta estable sin el 6):
+import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
 
 const P = {
@@ -59,10 +63,38 @@ export default function Footer() {
                 La primera plataforma inteligente de regalos en Bolivia. Sorprende con detalles únicos, empaque premium y entrega garantizada.
               </p>
               <div className="flex gap-4 pt-2">
-                <a href="https://www.instagram.com/emotia.gifts1/" target="_blank" rel="noopener noreferrer" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}><Instagram size={20} /></a>
-                <a href="#" target="_blank" rel="noopener noreferrer" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}><Facebook size={20} /></a>
-                {/* 👇 TIKTOK DE VUELTA 👇 */}
-                <a href="https://www.tiktok.com/@emotia.gifts0" target="_blank" rel="noopener noreferrer" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}><Music size={20} /></a>
+                {/* INSTAGRAM */}
+                <a 
+                  href="https://www.instagram.com/emotia.gifts1/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="p-3 rounded-full transition-colors hover:bg-white/10 flex items-center justify-center" 
+                  style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}
+                >
+                  <FaInstagram size={20} />
+                </a>
+
+                {/* FACEBOOK */}
+                <a 
+                  href="#" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="p-3 rounded-full transition-colors hover:bg-white/10 flex items-center justify-center" 
+                  style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}
+                >
+                  <FaFacebook size={20} />
+                </a>
+
+                {/* TIKTOK */}
+                <a 
+                  href="https://www.tiktok.com/@emotia.gifts0" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="p-3 rounded-full transition-colors hover:bg-white/10 flex items-center justify-center" 
+                  style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}
+                >
+                  <FaTiktok size={19} /> {/* Tamaño 19 para que encaje perfecto con los demás */}
+                </a>
               </div>
             </div>
 
