@@ -163,14 +163,22 @@ model productos {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model proveedores {
-  id                Int               @id @default(autoincrement())
-  nombre_negocio    String            @db.VarChar(150)
-  descripcion       String?
-  logo_url          String?
-  email             String            @unique @db.VarChar(150)
-  password_hash     String            @db.VarChar(255)
-  telefono          String?           @db.VarChar(20)
-  estado            String            @default("pendiente") @db.VarChar(20)
+  id                  Int               @id @default(autoincrement())
+  nombre_negocio      String            @db.VarChar(150)
+  descripcion         String?
+  logo_url            String?
+  email               String            @unique @db.VarChar(150)
+  password_hash       String            @db.VarChar(255)
+  telefono            String?           @db.VarChar(20)
+  direccion           String?           @db.VarChar(255)
+  
+  // Datos del representante
+  rep_nombre          String?           @db.VarChar(150)
+  rep_telefono        String?           @db.VarChar(20)
+  rep_email           String?           @db.VarChar(150)
+  rep_anio_nacimiento Int?
+
+  estado              String            @default("pendiente") @db.VarChar(20)
   calificacion_prom Decimal?          @default(0.00) @db.Decimal(3, 2)
   total_vendido     Decimal?          @default(0.00) @db.Decimal(12, 2)
   created_at        DateTime          @default(now()) @db.Timestamptz(6)

@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { PrismaClient } from '../src/generated/prisma/client'
+import { PrismaClient } from '../src/generated/prisma'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { seedCategorias } from './seeds/categorias'
 import { seedProveedores } from './seeds/proveedores'
