@@ -30,5 +30,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  adminer:
+    image: adminer
+    container_name: emotia_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./adminer.css:/var/www/html/adminer.css
+    depends_on:
+      - db
+
 volumes:
   postgres_data:
