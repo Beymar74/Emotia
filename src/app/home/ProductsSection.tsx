@@ -22,10 +22,10 @@ const PARTNERS = [
   "Casa Real", "Artesanías Waliki", "La Francesa", "Gustu"
 ];
 
-export default function ProductsSection() {
+export default function ProductsSection({ initialProducts }: { initialProducts?: any[] }) {
   const router = useRouter();
   
-  const visibleProducts = PRODUCTS.slice(0, MAX_VISIBLE); 
+  const visibleProducts = initialProducts && initialProducts.length > 0 ? initialProducts.slice(0, MAX_VISIBLE) : PRODUCTS.slice(0, MAX_VISIBLE); 
   const marqueeItems = [...visibleProducts, ...visibleProducts];
   const marqueeTestimonials = [...TESTIMONIALS, ...TESTIMONIALS, ...TESTIMONIALS]; 
   const marqueePartners = [...PARTNERS, ...PARTNERS, ...PARTNERS, ...PARTNERS]; 

@@ -16,12 +16,12 @@ export async function seedCarrito(prisma: PrismaClient) {
     // subtotal es columna GENERATED en Postgres, no se puede insertar manualmente
     await prisma.$executeRaw`
         INSERT INTO carrito
-            (usuario_id, producto_id, cantidad, mensaje_personal, empaque_especial, precio_unitario, subtotal)
+            (usuario_id, producto_id, cantidad, mensaje_personal, empaque_especial, precio_unitario)
         VALUES
-            (${einard.id}, ${pulsera.id}, 1, 'Para mi hermana', true, 54.00, 54.00),
-            (${einard.id}, ${taza.id}, 2, 'Recuerdo especial', false, 48.00, 96.00),
-            (${maria.id}, ${cactus.id}, 1, null, true, 42.00, 42.00),
-            (${maria.id}, ${torta.id}, 1, 'Feliz cumple papá', false, 180.00, 180.00)
+            (${einard.id}, ${pulsera.id}, 1, 'Para mi hermana', true, 54.00),
+            (${einard.id}, ${taza.id}, 2, 'Recuerdo especial', false, 48.00),
+            (${maria.id}, ${cactus.id}, 1, null, true, 42.00),
+            (${maria.id}, ${torta.id}, 1, 'Feliz cumple papá', false, 180.00)
         ON CONFLICT (usuario_id, producto_id) DO NOTHING
     `
 }
