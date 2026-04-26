@@ -21,7 +21,7 @@ export async function actualizarDestacadosAction(formData: FormData) {
     // Tomamos los N productos con mayor calificación y los marcamos activos
     const topProductos = await prisma.productos.findMany({
       where: { activo: true },
-      orderBy: [{ calificacion_prom: "desc" }, { created_at: "desc" }],
+      orderBy: { created_at: "desc" },
       take: limite,
       select: { id: true },
     });
