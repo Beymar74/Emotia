@@ -43,7 +43,7 @@ export default function ConfiguracionPage() {
     const fd = new FormData(e.currentTarget);
     startP(async () => {
       const r = await actualizarInfoPlataformaAction(fd);
-      setMsgPlataforma("error" in r ? { t: "err", m: r.error ?? "Error" } : { t: "ok", m: "Información guardada correctamente." });
+      setMsgPlataforma("error" in r ? { t: "err", m: String(r.error) || "Error" } : { t: "ok", m: "Información guardada correctamente." });
       setTimeout(() => setMsgPlataforma(null), 3000);
     });
   };
@@ -53,7 +53,7 @@ export default function ConfiguracionPage() {
     const fd = new FormData(e.currentTarget);
     startD(async () => {
       const r = await actualizarDestacadosAction(fd);
-      setMsgDestacados("error" in r ? { t: "err", m: r.error ?? "Error" } : { t: "ok", m: "Configuración de productos guardada." });
+      setMsgDestacados("error" in r ? { t: "err", m: String(r.error) || "Error" } : { t: "ok", m: "Configuración de productos guardada." });
       setTimeout(() => setMsgDestacados(null), 3000);
     });
   };
@@ -63,7 +63,7 @@ export default function ConfiguracionPage() {
     const fd = new FormData(e.currentTarget);
     startA(async () => {
       const r = await actualizarAdminAction(fd);
-      setMsgAdmin("error" in r ? { t: "err", m: r.error ?? "Error" } : { t: "ok", m: "Credenciales actualizadas." });
+      setMsgAdmin("error" in r ? { t: "err", m: String(r.error) || "Error" } : { t: "ok", m: "Credenciales actualizadas." });
       setTimeout(() => setMsgAdmin(null), 3000);
     });
   };
