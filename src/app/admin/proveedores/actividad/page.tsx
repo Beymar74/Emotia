@@ -71,12 +71,12 @@ export default async function ActividadProveedoresPage() {
 
   // Formatea hora (ej. 09:48)
   const formatHora = (fecha: Date) => {
-    return new Intl.DateTimeFormat('es-BO', { hour: '2-digit', minute: '2-digit', hour12: false }).format(fecha);
+    return new Intl.DateTimeFormat('es-BO', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/La_Paz' }).format(fecha);
   };
 
   // Formatea fecha (ej. 14/04/2026)
   const formatFechaCorta = (fecha: Date) => {
-    return new Intl.DateTimeFormat('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(fecha);
+    return new Intl.DateTimeFormat('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/La_Paz' }).format(fecha);
   };
 
   return (
@@ -149,11 +149,12 @@ export default async function ActividadProveedoresPage() {
             {logActividadDB.map((l: any) => (
               <div key={l.id} className="flex items-start gap-3 sm:gap-4 py-3 first:pt-0 last:pb-0">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-0.5">
-                  {getInitials(l.actor || "SA")}
+                  {getInitials(l.actor_tipo || "SA")}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-[#2A0E18]">
-                    <span className="font-medium">{l.actor || "Sistema"}</span> — {l.accion}
+                    <span className="font-medium">{l.actor_tipo ?? "Sistema"}</span>
+                    {l.actor_id ? ` #${l.actor_id}` : ""} — {l.accion}
                   </p>
                   <p className="text-xs text-[#7A5260] mt-0.5">
                     {formatFechaCorta(l.created_at)} · {formatHora(l.created_at)}

@@ -2,28 +2,18 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 
 export default async function QuickActions() {
-  // --- 1. CONSULTAS A LA BASE DE DATOS ---
-  // Obtenemos los conteos reales para que las alertas sean precisas
-  
-  const provPendientes = await prisma.proveedores.count({
-    where: { estado: 'pendiente' }
-  });
+  const [provPendientes, prodInactivos, pedidosPendientes, carritosActivos] = await Promise.all([
+    prisma.proveedores.count({ where: { estado: "pendiente" } }),
+    prisma.productos.count({ where: { activo: false } }),
+    prisma.pedidos.count({ where: { estado: "pendiente" } }),
+    prisma.carrito.count(),
+  ]);
 
-  const prodInactivos = await prisma.productos.count({
-    where: { activo: false }
-  });
-
-  const pedidosCancelados = await prisma.pedidos.count({
-    where: { estado: 'cancelado' }
-  });
-
-  // --- 2. CONFIGURACIÓN DE LAS ACCIONES ---
-  // Integramos los conteos reales y añadimos la ruta 'href' a cada uno
   const actions = [
     {
-      label: "Aprobar proveedor",
-      sub: `${provPendientes} ${provPendientes === 1 ? 'pendiente' : 'pendientes'}`,
-      href: "/admin/proveedores", // Ajusta esta ruta según la estructura de tus carpetas
+      label: "Aprobar proveedores",
+      sub: `${provPendientes} ${provPendientes === 1 ? "pendiente" : "pendientes"}`,
+      href: "/admin/proveedores/actividad",
       bg: "bg-[#8E1B3A]/10",
       icon: (
         <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
@@ -33,9 +23,9 @@ export default async function QuickActions() {
       ),
     },
     {
-      label: "Desactivar producto",
-      sub: `${prodInactivos} a revisar`,
-      href: "/admin/productos", // Ruta a tu catálogo de productos
+      label: "Revisar catálogo",
+      sub: `${prodInactivos} productos inactivos`,
+      href: "/admin/productos",
       bg: "bg-[#BC9968]/15",
       icon: (
         <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
@@ -46,8 +36,8 @@ export default async function QuickActions() {
     },
     {
       label: "Gestionar pedidos",
-      sub: `${pedidosCancelados} cancelaciones`,
-      href: "/admin/pedidos", // Ruta a tus pedidos
+      sub: `${pedidosPendientes} pendientes`,
+      href: "/admin/pedidos",
       bg: "bg-[#5C3A2E]/10",
       icon: (
         <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
@@ -57,31 +47,56 @@ export default async function QuickActions() {
       ),
     },
     {
-      label: "Exportar reporte PDF",
-      sub: "Ventas del mes",
-      href: "/admin/reportes", // Te lleva a reportes donde estará el botón de PDF
+      label: "Carritos activos",
+      sub: `${carritosActivos} sin completar`,
+      href: "/admin/carritos",
       bg: "bg-[#AB3A50]/8",
       icon: (
         <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
-          <path d="M2 13l3-4 3 3 4-7" stroke="#AB3A50" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M2 2h1.5l1.8 7h7l1.2-5H5" stroke="#AB3A50" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="7" cy="13" r="1" fill="#AB3A50" />
+          <circle cx="11" cy="13" r="1" fill="#AB3A50" />
+        </svg>
+      ),
+    },
+    {
+      label: "Notificaciones",
+      sub: "Gestionar comunicación",
+      href: "/admin/notificaciones",
+      bg: "bg-[#5A0F24]/8",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
+          <path d="M8 2a4 4 0 014 4v2.5l1 1.5H3l1-1.5V6a4 4 0 014-4z" stroke="#5A0F24" strokeWidth="1.3" strokeLinejoin="round" />
+          <path d="M6.5 12.5a1.5 1.5 0 003 0" stroke="#5A0F24" strokeWidth="1.3" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      label: "Ver reportes",
+      sub: "Ventas y métricas",
+      href: "/admin/reportes",
+      bg: "bg-[#2D7A47]/10",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
+          <path d="M2 13l3-4 3 3 4-7" stroke="#2D7A47" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       {actions.map((action) => (
         <Link
           key={action.label}
           href={action.href}
-          className="bg-white border border-[#8E1B3A]/10 rounded-xl p-5 text-center cursor-pointer hover:border-[#8E1B3A]/40 hover:shadow-sm transition-all block"
+          className="bg-white border border-[#8E1B3A]/10 rounded-xl p-4 text-center cursor-pointer hover:border-[#8E1B3A]/40 hover:shadow-sm transition-all block"
         >
-          <div className={`w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center ${action.bg}`}>
+          <div className={`w-11 h-11 rounded-xl mx-auto mb-3 flex items-center justify-center ${action.bg}`}>
             {action.icon}
           </div>
-          <p className="text-sm text-[#2A0E18] font-medium">{action.label}</p>
-          <p className="text-xs text-[#7A5260] mt-1">{action.sub}</p>
+          <p className="text-xs text-[#2A0E18] font-semibold leading-tight">{action.label}</p>
+          <p className="text-[10px] text-[#7A5260] mt-1 leading-tight">{action.sub}</p>
         </Link>
       ))}
     </div>
