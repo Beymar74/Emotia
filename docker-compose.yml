@@ -15,7 +15,7 @@ services:
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
-    command: npm run dev  # 👈 asegúrate de tener esto
+    command: npm run dev
 
   db:
     image: postgres:16
