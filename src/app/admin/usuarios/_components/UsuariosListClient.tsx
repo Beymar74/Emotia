@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Search, Filter } from "lucide-react";
 import BotonesAccion from "./BotonesAccion";
 
@@ -26,7 +27,6 @@ export default function UsuariosListClient({ usuarios }: UsuariosListClientProps
   const [filterTipo, setFilterTipo] = useState("Todos");
   const [filterPlan, setFilterPlan] = useState("Todos");
 
-  // --- LÓGICA DE FILTRADO ---
   const usuariosFiltrados = usuarios.filter((u) => {
     const term = searchTerm.toLowerCase();
     const matchesSearch = 
@@ -58,7 +58,7 @@ export default function UsuariosListClient({ usuarios }: UsuariosListClientProps
 
   return (
     <div className="space-y-7">
-      {/* Barra de Filtros Interactiva */}
+      {/* Barra de Filtros */}
       <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-[#8E1B3A]/10 p-4 flex flex-col lg:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7A5260]/50" size={18} />
@@ -78,6 +78,7 @@ export default function UsuariosListClient({ usuarios }: UsuariosListClientProps
           >
             <option value="Todos">Todos los Tipos</option>
             <option value="Usuario">Usuario</option>
+            <option value="Operador">Operador</option>
             <option value="Admin">Admin</option>
           </select>
           <select 
@@ -95,7 +96,7 @@ export default function UsuariosListClient({ usuarios }: UsuariosListClientProps
         </div>
       </div>
 
-      {/* Tabla de Resultados */}
+      {/* Tabla */}
       <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-[#8E1B3A]/5 bg-[#FDFBF9]/50 flex justify-between items-center">
           <h3 className="font-serif text-lg font-bold text-[#5A0F24]">Listado Maestro de Cuentas</h3>
@@ -127,14 +128,29 @@ export default function UsuariosListClient({ usuarios }: UsuariosListClientProps
                   const estadoActual = u.activo ? "activo" : "suspendido";
                   const esGoogle = u.google_id !== null;
                   const esAdmin = u.tipo === "admin";
+                  const esOperador = u.tipo === "operador";
 
                   return (
                     <tr key={u.id} className="hover:bg-[#FDFBF9] transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#5A0F24] to-[#BC9968] flex items-center justify-center text-xs font-bold text-white shadow-sm group-hover:scale-110 transition-transform">
-                            {getAvatar(u.nombre, u.apellido)}
+                          {/* Avatar: foto si tiene, iniciales si no */}
+                          <div className="relative w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 shadow-sm group-hover:scale-110 transition-transform">
+                            {u.foto_perfil ? (
+                              <Image
+                                src={u.foto_perfil}
+                                alt={`${u.nombre} ${u.apellido}`}
+                                fill
+                                className="object-cover"
+                                sizes="40px"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-tr from-[#5A0F24] to-[#BC9968] flex items-center justify-center text-xs font-bold text-white">
+                                {getAvatar(u.nombre, u.apellido)}
+                              </div>
+                            )}
                           </div>
+
                           <div>
                             <p className="text-sm font-bold text-[#2A0E18]">{u.nombre} {u.apellido}</p>
                             <p className="text-xs text-[#7A5260]/70 truncate max-w-[150px]">{u.email}</p>
@@ -143,10 +159,14 @@ export default function UsuariosListClient({ usuarios }: UsuariosListClientProps
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1.5">
-                          <span className={`inline-block w-fit px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${esAdmin ? "bg-[#5A0F24] text-white" : "bg-[#E6F1FB] text-[#185FA5]"}`}>
+                          <span className={`inline-block w-fit px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                            esAdmin ? "bg-[#5A0F24] text-white" :
+                            esOperador ? "bg-[#2D5C7A] text-white" :
+                            "bg-[#E6F1FB] text-[#185FA5]"
+                          }`}>
                             {u.tipo}
                           </span>
-                          {!esAdmin && (
+                          {!esAdmin && !esOperador && (
                             <span className={`inline-block w-fit px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${planPill[(u.plan || 'basico') as Plan]}`}>
                               {u.plan}
                             </span>
@@ -165,8 +185,8 @@ export default function UsuariosListClient({ usuarios }: UsuariosListClientProps
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-[#5A0F24]">{u.tipo === 'admin' ? "—" : u._count?.pedidos || 0}</span>
-                          {u.tipo !== 'admin' && <span className="text-[10px] text-[#7A5260] uppercase tracking-tighter">órdenes</span>}
+                          <span className="text-sm font-bold text-[#5A0F24]">{(esAdmin || esOperador) ? "—" : u._count?.pedidos || 0}</span>
+                          {!esAdmin && !esOperador && <span className="text-[10px] text-[#7A5260] uppercase tracking-tighter">órdenes</span>}
                         </div>
                       </td>
                       <td className="px-6 py-4">

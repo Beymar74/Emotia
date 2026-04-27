@@ -2,6 +2,13 @@ import { stackServerApp } from "./lib/stack";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// Rutas que solo el admin puede ver (el operador es redirigido)
+const SOLO_ADMIN = [
+  "/admin/usuarios",
+  "/admin/configuracion",
+  "/admin/auditoria",
+];
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -15,8 +22,14 @@ export async function middleware(request: NextRequest) {
     }
 
     const metadata = user.clientMetadata as { role?: string } | null;
-    if (metadata?.role !== "admin") {
+    const role = metadata?.role;
+
+    if (role !== "admin" && role !== "operador") {
       return NextResponse.redirect(new URL("/", request.url));
+    }
+
+    if (role === "operador" && SOLO_ADMIN.some((r) => pathname.startsWith(r))) {
+      return NextResponse.redirect(new URL("/admin", request.url));
     }
   }
 

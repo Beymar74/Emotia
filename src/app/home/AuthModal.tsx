@@ -1,18 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, X, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Mail, LockKeyhole, User, X, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useStackApp } from "@stackframe/stack";
 
-// NUEVA PALETA DE COLORES DE BEYMAR
-const P = {
-  granate: "#8E1B3A", bordo: "#5A0F24", carmesi: "#AB3A50", chocolate: "#5C3A2E",
-  dorado: "#BC9968", beige: "#F5E6D0", blanco: "#FFFFFF", gris: "#B0B0B0"
-};
-
+// Icono exacto de Google
 const GoogleIcon = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+  <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -23,172 +18,256 @@ const GoogleIcon = () => (
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialView?: 'login' | 'register';
+  initialView?: "login" | "register";
 }
 
-export default function AuthModal({ isOpen, onClose, initialView = 'register' }: AuthModalProps) {
-  const stackApp = useStackApp();
+export default function AuthModal({ isOpen, onClose, initialView = "login" }: AuthModalProps) {
+  const [view, setView] = useState<"login" | "register">(initialView);
+  const [showPassword, setShowPassword] = useState(false);
   
-  const [view, setView] = useState<'login' | 'register'>(initialView);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const stackApp = useStackApp();
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "";
+    if (isOpen) {
+      setView(initialView);
+      setErrorMsg(null);
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      setShowPassword(false);
+    }
     return () => { document.body.style.overflow = ""; };
-  }, [isOpen]);
-
-  useEffect(() => {
-    setError(''); setSuccess(''); setView(initialView); 
-  }, [initialView, isOpen]);
+  }, [isOpen, initialView]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); setError(''); setSuccess(''); setLoading(true);
+    e.preventDefault();
+    setErrorMsg(null);
+    setLoading(true);
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    // const name = formData.get("name") as string; // Optional name
 
     try {
-      if (view === 'register') {
-        const result = await stackApp.signUpWithCredential({ email, password });
-        if (result.status === 'ok') {
-          setSuccess('¡Cuenta creada! Ingresando...');
-          setTimeout(() => { onClose(); window.location.href = '/producto'; }, 1500);
-        } else setError('No se pudo crear la cuenta. Verifica tus datos.');
-      } else {
+      if (view === "login") {
         const result = await stackApp.signInWithCredential({ email, password });
-        if (result.status === 'ok') {
-          setSuccess('¡Bienvenido de nuevo!');
-          setTimeout(() => { onClose(); window.location.href = '/producto'; }, 1500);
-        } else setError('Credenciales incorrectas. Intenta nuevamente.');
+        if (result.status === "error") {
+            throw new Error(result.error.message);
+        }
+      } else {
+        const result = await stackApp.signUpWithCredential({ email, password });
+        if (result.status === "error") {
+            throw new Error(result.error.message);
+        }
       }
-    } catch {
-      setError('Ocurrió un error inesperado. Intenta de nuevo.');
+      onClose();
+      window.location.href = "/producto";
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.message || "Ocurrió un error. Verifica tus datos.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleAuth = async () => {
-    setError('');
-    try { await stackApp.signInWithOAuth('google', { returnTo: '/producto' }); } 
-    catch { setError('Error al continuar con Google.'); }
+  const handleGoogleSignIn = async () => {
+    try {
+      const oauthCallbackUrl = new URL(stackApp.urls.oauthCallback, window.location.origin);
+      oauthCallbackUrl.searchParams.set("after_auth_return_to", "/producto");
+      await stackApp.signInWithOAuth("google", { returnTo: oauthCallbackUrl.toString() });
+    } catch (err: any) {
+      console.error("Error signing in with Google:", err);
+      setErrorMsg("Ocurrió un error al iniciar sesión con Google.");
+    }
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          <style>{`
-            .auth-input-field {
-              width: 100%; background: transparent; border: none; outline: none;
-              padding: 14px 16px 14px 44px; font-size: 0.95rem; color: ${P.chocolate};
-              font-family: 'DM Sans', sans-serif;
-            }
-            .auth-input-field::placeholder { color: ${P.gris}; opacity: 0.8; }
-            .auth-input-group {
-              position: relative; background: ${P.beige}30;
-              border: 1.5px solid ${P.beige}; border-radius: 16px;
-              transition: all 0.3s ease;
-            }
-            .auth-input-group:focus-within {
-              background: ${P.blanco}; border-color: ${P.granate};
-              box-shadow: 0 0 0 4px ${P.granate}15;
-            }
-            .auth-input-icon {
-              position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
-              color: ${P.dorado}; pointer-events: none;
-            }
-          `}</style>
-
-          {/* BACKDROP */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(20,10,12,0.7)', backdropFilter: 'blur(8px)', zIndex: 9999 }}
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          {/* Overlay Oscuro */}
+          <motion.div
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-pointer"
+            aria-hidden="true"
           />
 
-          {/* MODAL */}
-          <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, pointerEvents: 'none' }}>
-            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              style={{ width: '100%', maxWidth: '440px', pointerEvents: 'auto', margin: '20px' }}
+          {/* Contenedor Principal (Ahora Horizontal con max-w-[800px] y flex-row) */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", duration: 0.5 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="auth-modal-title"
+            className="relative w-full max-w-[800px] bg-[#FEFCF8] rounded-xl shadow-2xl z-10 font-sans flex flex-col md:flex-row overflow-hidden max-h-[95vh]"
+          >
+            {/* Botón Cerrar Absoluto */}
+            <button 
+              onClick={onClose} 
+              type="button"
+              aria-label="Cerrar ventana"
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-black/5 text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C13550] z-20"
             >
-              <div style={{ background: P.blanco, borderRadius: '32px', padding: '40px 36px', boxShadow: `0 24px 60px ${P.bordo}40`, position: 'relative', overflow: 'hidden' }}>
-                
-                <div style={{ position: 'absolute', top: -60, right: -60, width: 180, height: 180, background: P.beige, borderRadius: '50%', filter: 'blur(50px)', opacity: 0.5, pointerEvents: 'none' }} />
-                
-                <button onClick={onClose} style={{ position: 'absolute', top: 20, right: 20, background: `${P.beige}60`, border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: P.chocolate, transition: 'background 0.2s' }}>
-                  <X size={20} strokeWidth={2} />
+              <X size={20} strokeWidth={2.5} />
+            </button>
+
+            {/* --- LADO IZQUIERDO: Branding y Bienvenida --- */}
+            <div className="w-full md:w-[45%] bg-[#FFF5E6] p-8 md:p-10 flex flex-col justify-center items-center text-center border-b md:border-b-0 md:border-r border-[#F5E6D0]">
+              <img 
+                src="/logo/logoextendido.png" 
+                alt="Emotia Logo" 
+                className="h-10 object-contain mb-6"
+                style={{ filter: "brightness(0) saturate(100%) invert(13%) sepia(50%) saturate(4000%) hue-rotate(330deg)" }} 
+              />
+              <h2 id="auth-modal-title" className="text-[1.6rem] font-black text-[#3D0A1A] mb-3" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+                Accede a Emotia
+              </h2>
+              <p className="text-[0.95rem] text-[#5C3A2E] leading-relaxed" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                Inicia sesión o crea tu cuenta para empezar a sorprender a los que más quieres con regalos inolvidables.
+              </p>
+            </div>
+
+            {/* --- LADO DERECHO: Formulario --- */}
+            <div className="w-full md:w-[55%] p-8 md:p-10 flex flex-col overflow-y-auto">
+              
+              {/* Pestañas (Tabs) */}
+              <div className="flex w-full border-b border-[#F5E6D0] mb-6 mt-2 md:mt-0">
+                <button 
+                  type="button"
+                  onClick={() => setView("login")}
+                  className={`flex-1 pb-3 text-sm font-bold transition-colors ${view === "login" ? "border-b-2 border-[#C13550] text-[#C13550]" : "text-[#B0B0B0] hover:text-[#5A0F24]"}`}
+                >
+                  Iniciar sesión
                 </button>
-
-                <div style={{ textAlign: "center", marginBottom: "32px", position: 'relative', zIndex: 2 }}>
-                  <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 56, height: 56, borderRadius: 16, background: `${P.beige}40`, color: P.granate, marginBottom: 16 }}>
-                    <Sparkles size={28} strokeWidth={1.5} />
-                  </div>
-                  <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "1.8rem", fontWeight: 900, color: P.bordo, marginBottom: "8px", letterSpacing: "-0.02em" }}>
-                    {view === 'register' ? 'Únete a Emotia' : 'Bienvenido de nuevo'}
-                  </h2>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", color: P.chocolate, fontSize: "0.95rem" }}>
-                    {view === 'register' ? 'Ingresa tus datos para empezar a sorprender.' : 'Ingresa a tu espacio emocional.'}
-                  </p>
-                </div>
-
-                {error && <div style={{ background: `${P.granate}10`, border: `1px solid ${P.granate}30`, borderRadius: "12px", padding: "12px", color: P.granate, fontSize: "0.85rem", textAlign: "center", marginBottom: "20px", fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>{error}</div>}
-                {success && <div style={{ background: "rgba(34, 197, 94, 0.1)", border: "1px solid rgba(34, 197, 94, 0.3)", borderRadius: "12px", padding: "12px", color: "#16a34a", fontSize: "0.85rem", textAlign: "center", marginBottom: "20px", fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>{success}</div>}
-
-                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px", position: 'relative', zIndex: 2 }}>
-                  {view === 'register' && (
-                    <div className="auth-input-group">
-                      <User className="auth-input-icon" size={18} strokeWidth={2} />
-                      <input type="text" placeholder="Nombre completo" className="auth-input-field" value={name} onChange={(e) => setName(e.target.value)} required />
-                    </div>
-                  )}
-
-                  <div className="auth-input-group">
-                    <Mail className="auth-input-icon" size={18} strokeWidth={2} />
-                    <input type="email" placeholder="Correo electrónico" className="auth-input-field" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                  </div>
-
-                  <div className="auth-input-group">
-                    <Lock className="auth-input-icon" size={18} strokeWidth={2} />
-                    <input type="password" placeholder="Contraseña" className="auth-input-field" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
-                  </div>
-
-                  {view === 'register' && (
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", margin: "4px 0" }}>
-                      <input type="checkbox" id="terms" required style={{ accentColor: P.granate, width: "18px", height: "18px", cursor: "pointer", marginTop: "2px" }} />
-                      <label htmlFor="terms" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", color: P.chocolate, cursor: "pointer", lineHeight: 1.5 }}>
-                        Acepto los <span style={{ color: P.granate, fontWeight: 700 }}>Términos</span> y <span style={{ color: P.granate, fontWeight: 700 }}>Privacidad</span>.
-                      </label>
-                    </div>
-                  )}
-
-                  <button type="submit" disabled={loading} style={{ background: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", borderRadius: "100px", padding: "16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, transition: "all 0.3s ease", boxShadow: `0 8px 25px ${P.granate}40`, marginTop: "8px" }}>
-                    {loading ? 'Procesando...' : (view === 'register' ? 'Crear mi cuenta' : 'Ingresar')}
-                  </button>
-                </form>
-
-                <div style={{ display: "flex", alignItems: "center", color: P.gris, fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", margin: "24px 0" }}>
-                  <div style={{ flex: 1, borderBottom: `1px solid ${P.beige}` }} />
-                  <span style={{ padding: "0 16px" }}>o continúa con</span>
-                  <div style={{ flex: 1, borderBottom: `1px solid ${P.beige}` }} />
-                </div>
-
-                <button type="button" onClick={handleGoogleAuth} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", width: "100%", padding: "14px", background: P.blanco, border: `1.5px solid ${P.beige}`, borderRadius: "100px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.95rem", color: P.chocolate, cursor: "pointer", transition: "all 0.3s ease" }} onMouseEnter={e => e.currentTarget.style.borderColor = P.dorado} onMouseLeave={e => e.currentTarget.style.borderColor = P.beige}>
-                  <GoogleIcon /> Google
+                <button 
+                  type="button"
+                  onClick={() => setView("register")}
+                  className={`flex-1 pb-3 text-sm font-bold transition-colors ${view === "register" ? "border-b-2 border-[#C13550] text-[#C13550]" : "text-[#B0B0B0] hover:text-[#5A0F24]"}`}
+                >
+                  Registrarse
                 </button>
-
-                <div style={{ marginTop: "28px", textAlign: "center", fontFamily: "'DM Sans', sans-serif", fontSize: "0.9rem", color: P.chocolate }}>
-                  {view === 'register' ? '¿Ya tienes una cuenta?' : '¿Aún no tienes cuenta?'}
-                  <button type="button" onClick={() => setView(view === 'register' ? 'login' : 'register')} style={{ background: "none", border: "none", color: P.granate, fontWeight: 800, cursor: "pointer", textDecoration: "underline", marginLeft: "8px", fontSize: "0.9rem" }}>
-                    {view === 'register' ? 'Inicia sesión' : 'Regístrate aquí'}
-                  </button>
-                </div>
-
               </div>
-            </motion.div>
-          </div>
-        </>
+
+              {/* Formulario */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                
+                {errorMsg && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
+                    <AlertCircle size={18} className="shrink-0" />
+                    <span>{errorMsg}</span>
+                  </div>
+                )}
+                
+                {/* Campo Nombre (Solo en Registro) */}
+                <AnimatePresence mode="popLayout">
+                  {view === "register" && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <label className="block text-[0.7rem] font-bold text-[#5C3A2E] uppercase tracking-widest mb-1.5 ml-1">Nombre completo</label>
+                      <div className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-[#F5E6D0] bg-[#FFFBF5] focus-within:border-[#C13550] transition-colors">
+                        <User size={18} className="text-[#C13550]" />
+                        <input required type="text" name="name" placeholder="Tu nombre" className="w-full outline-none text-sm text-[#5C3A2E] bg-transparent placeholder-[#B0B0B0]" />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Campo Correo Electrónico */}
+                <div>
+                  <label className="block text-[0.7rem] font-bold text-[#5C3A2E] uppercase tracking-widest mb-1.5 ml-1">Correo electrónico</label>
+                  <div className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-[#F5E6D0] bg-[#FFFBF5] focus-within:border-[#C13550] transition-colors">
+                    <Mail size={18} className="text-[#C13550]" />
+                    <input required type="email" name="email" placeholder="tu@correo.com" className="w-full outline-none text-sm text-[#5C3A2E] bg-transparent placeholder-[#B0B0B0]" />
+                  </div>
+                </div>
+
+                {/* Campo Contraseña */}
+                <div>
+                  <div className="flex justify-between items-center mb-1.5 ml-1 pr-1">
+                    <label className="text-[0.7rem] font-bold text-[#5C3A2E] uppercase tracking-widest">Contraseña</label>
+                    {view === "login" && (
+                      <button type="button" className="text-[0.75rem] font-bold text-[#5A0F24] hover:underline focus:outline-none">
+                        ¿La olvidaste?
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-[#F5E6D0] bg-[#FFFBF5] focus-within:border-[#C13550] transition-colors">
+                    <LockKeyhole size={18} className="text-[#C13550]" />
+                    <input 
+                      required
+                      name="password"
+                      minLength={8}
+                      type={showPassword ? "text" : "password"} 
+                      placeholder="Mínimo 8 caracteres" 
+                      className="w-full outline-none text-sm text-[#5C3A2E] bg-transparent placeholder-[#B0B0B0]" 
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowPassword(!showPassword)} 
+                      className="text-[#B0B0B0] hover:text-[#5A0F24] focus:outline-none"
+                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Botón Principal */}
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 mt-2 rounded-full font-bold text-white text-[0.95rem] bg-[#C13550] hover:bg-[#A32940] transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C13550] disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Cargando..." : (view === "login" ? "Ingresar" : "Crear cuenta")}
+                </button>
+              </form>
+
+              {/* Divisor */}
+              <div className="flex items-center gap-4 my-6">
+                <div className="flex-1 h-px bg-[#F5E6D0]"></div>
+                <span className="text-[0.7rem] font-bold text-[#B0B0B0] uppercase tracking-wider">O continúa con</span>
+                <div className="flex-1 h-px bg-[#F5E6D0]"></div>
+              </div>
+
+              {/* Botón Google */}
+              <button 
+                type="button"
+                onClick={handleGoogleSignIn}
+                className="flex items-center justify-center gap-3 w-full py-3 rounded-full border border-[#F5E6D0] bg-white hover:bg-[#FFFBF5] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#F5E6D0]"
+              >
+                <GoogleIcon />
+                <span className="text-sm font-bold text-[#5C3A2E]">Google</span>
+              </button>
+
+              {/* Texto Inferior Dinámico */}
+              <div className="mt-6 text-center">
+                <p className="text-sm text-[#5C3A2E]">
+                  {view === "register" ? "¿Ya tienes una cuenta?" : "¿Aún no tienes cuenta?"}{" "}
+                  <button 
+                    type="button"
+                    onClick={() => setView(view === "register" ? "login" : "register")} 
+                    className="font-bold text-[#C13550] hover:underline focus:outline-none"
+                  >
+                    {view === "register" ? "Inicia sesión" : "Regístrate"}
+                  </button>
+                </p>
+              </div>
+
+            </div>
+          </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );

@@ -11,7 +11,6 @@ const CSS = `
   .nos-fade { opacity: 0; transform: translateY(30px) scale(0.95); transition: opacity 1s ease, transform 1s ease; }
   .nos-fade.nos-active { opacity: 1; transform: translateY(0) scale(1); }
   @keyframes blobPulse { 0% { transform: scale(1) translate(0, 0); opacity: 0.1; } 50% { transform: scale(1.1) translate(20px, -20px); opacity: 0.15; } 100% { transform: scale(1) translate(0, 0); opacity: 0.1; } }
-  .glass-pill { background: ${P.blanco}; border: 1px solid ${P.dorado}40; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
 `;
 
 export default function HeroDinamico() {
@@ -39,7 +38,6 @@ export default function HeroDinamico() {
               Nuestra Esencia
             </span>
 
-            {/* 👇 NUEVO ESLOGAN OFICIAL 👇 */}
             <h1 className="nos-fade" style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "clamp(3rem, 5.5vw, 5rem)", lineHeight: 1.1, color: P.bordo, marginBottom: "1.5rem", letterSpacing: "-0.02em" }}>
               Regala emociones,<br />
               personaliza <div style={{ position: "relative", display: "inline-block", color: P.granate }}>
@@ -50,19 +48,9 @@ export default function HeroDinamico() {
               </div>
             </h1>
 
-            {/* 👇 PÁRRAFO AJUSTADO SIN MENCIONAR EMI 👇 */}
-            <p className="nos-fade" style={{ fontSize: "1.1rem", color: P.chocolate, marginBottom: "3rem", lineHeight: 1.6, maxWidth: "480px" }}>
+            <p className="nos-fade" style={{ fontSize: "1.1rem", color: P.chocolate, marginBottom: "1rem", lineHeight: 1.6, maxWidth: "480px" }}>
               Nacimos con un propósito claro: revolucionar la manera en que las personas expresan sus sentimientos, fusionando el talento de nuestros artesanos locales con el poder de la inteligencia artificial.
             </p>
-
-            <div className="nos-fade" style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-              {[ { label: "Talento Boliviano", icon: "🇧🇴" }, { label: "Innovación Tecnológica", icon: "💡" }, { label: "Hecho con Pasión", icon: "♥" } ].map((item, idx) => (
-                <div key={idx} className="glass-pill" style={{ padding: "10px 20px", borderRadius: "100px", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span style={{ fontSize: "1.2rem", lineHeight: 0 }}>{item.icon}</span>
-                  <span style={{ color: P.bordo, fontSize: "0.85rem", fontWeight: 700 }}>{item.label}</span>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* COLUMNA DERECHA: PROMESA */}

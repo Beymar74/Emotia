@@ -41,11 +41,12 @@ export default function NosotrosClient() {
 
       {/* 👇 ELIMINAMOS EL PADDING Y EL BACKGROUND AQUÍ 👇 */}
       <main>
-        <Hero />
-        <MisionVision />
+        {/* Envolvimos las secciones con sus IDs para el Footer */}
+        <div id="esencia"><Hero /></div>
+        <div id="mision"><MisionVision /></div>
         <Valores />
-        <Equipo />
-        <Propuesta />
+        <div id="equipo"><Equipo /></div>
+        <div id="propuesta"><Propuesta /></div>
       </main>
 
       <Footer />

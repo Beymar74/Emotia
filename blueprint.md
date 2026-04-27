@@ -63,6 +63,15 @@ Stack: Next.js 15 (App Router) + Prisma + PostgreSQL + TailwindCSS. Paleta: vino
 - ✅ Asistente IA eliminado del sidebar (pendiente de implementar)
 - ✅ Sistema de gamificación (insignias) eliminado de la UI
 
+### Configuración de Cloudinary (Conversación anterior)
+- ✅ Fix: Instalación de dependencia `cloudinary` en el contenedor de Docker para resolver error "Module not found: Can't resolve 'cloudinary'".
+- ✅ Verificación de compilación exitosa y reinicio de servicios.
+
+### Corrección de errores de compilación en Vercel (Conversación actual)
+- ✅ Solucionado error "Export Facebook/Instagram doesn't exist in target module" en `Footer.tsx`.
+- ✅ Se migraron los iconos de redes sociales de `lucide-react` a `react-icons/fa6` para evitar conflictos de exportación en Turbopack/Next.js 16.
+
+
 ---
 
 ## Pendiente

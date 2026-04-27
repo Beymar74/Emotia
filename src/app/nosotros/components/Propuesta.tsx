@@ -10,19 +10,25 @@ const P = {
 const CSS = `
   .nos-reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
   .nos-reveal.nos-visible { opacity: 1; transform: translateY(0); }
-  .propuesta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2.5rem, 5vw, 5rem); align-items: start; max-width: 1320px; margin: 0 auto; }
-  @media (max-width: 900px) { .propuesta-grid { grid-template-columns: 1fr; } .sticky-gallery { position: relative !important; top: 0 !important; margin-bottom: 2rem; } }
-  .gallery-img-container { position: absolute; inset: 0; opacity: 0; transform: scale(1.03); transition: opacity 0.6s ease, transform 1s ease; border-radius: 24px; overflow: hidden; pointer-events: none; }
+  
+  /* Grid más compacto y centrado verticalmente */
+  .propuesta-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: clamp(2rem, 4vw, 4rem); 
+    align-items: center; 
+    max-width: 1200px; 
+    margin: 0 auto; 
+  }
+  
+  @media (max-width: 900px) { .propuesta-grid { grid-template-columns: 1fr; } }
+  
+  .gallery-img-container { 
+    position: absolute; inset: 0; opacity: 0; transform: scale(1.03); 
+    transition: opacity 0.8s ease, transform 1.5s ease; 
+    border-radius: 20px; overflow: hidden; pointer-events: none; 
+  }
   .gallery-img-container.active { opacity: 1; transform: scale(1); z-index: 2; }
-  
-  /* 👇 AQUÍ SE QUITA LA MANITO (cursor: default en vez de pointer) 👇 */
-  .accordion-item { padding: 1.5rem 0; border-bottom: 1px solid ${P.beige}; cursor: default; position: relative; transition: all 0.3s ease; }
-  
-  .accordion-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.2rem; color: ${P.gris}; transition: color 0.3s ease; display: flex; alignItems: center; gap: 1rem; }
-  .accordion-item.active .accordion-title { color: ${P.bordo}; }
-  .accordion-content-wrapper { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s ease; }
-  .accordion-item.active .accordion-content-wrapper { grid-template-rows: 1fr; }
-  .accordion-content { overflow: hidden; }
 `;
 
 const featuresData = [
@@ -47,51 +53,62 @@ function useLocalReveal() {
 export default function Propuesta() {
   const sectionRef = useLocalReveal();
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // 👇 MAGIA: Auto-Play de imágenes cada 4 segundos 👇
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex((current) => (current + 1) % featuresData.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
   
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <section style={{ background: P.blanco, padding: "80px 24px" }}>
+      {/* Se redujo el padding vertical para que encaje mejor en pantallas pequeñas */}
+      <section style={{ background: P.blanco, padding: "60px 24px" }}>
         <div ref={sectionRef} className="nos-reveal propuesta-grid">
 
-          <div className="sticky-gallery" style={{ position: "sticky", top: "120px", height: "fit-content" }}>
-            <div style={{ marginBottom: "2rem" }}>
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.75rem", letterSpacing: "0.2em", textTransform: "uppercase", color: P.dorado, display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem" }}>
-                <span style={{ width: "24px", height: "2px", background: P.dorado }}></span> Propuesta de Solución
-              </span>
-              <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "clamp(2.2rem, 4vw, 3rem)", lineHeight: 1.1, color: P.bordo, letterSpacing: "-0.02em" }}>
-                Cómo funciona <span style={{ color: P.granate }}>Emotia.</span>
-              </h2>
-            </div>
-
-            <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", maxHeight: "480px", borderRadius: "24px", boxShadow: `0 24px 50px ${P.granate}15`, background: P.beige }}>
-              {featuresData.map((feature, idx) => (
-                <div key={feature.num} className={`gallery-img-container ${activeIndex === idx ? 'active' : ''}`}>
-                  <img src={feature.imgUrl} alt={feature.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${P.bordo}60 0%, transparent 40%)` }} />
-                </div>
-              ))}
-            </div>
+          {/* DERECHA: Ahora es la columna izquierda en el código, pero visualmente está balanceada */}
+          <div style={{ position: "relative", width: "100%", aspectRatio: "4/3", maxHeight: "380px", borderRadius: "20px", boxShadow: `0 20px 40px ${P.granate}15`, background: P.beige }}>
+            {featuresData.map((feature, idx) => (
+              <div key={feature.num} className={`gallery-img-container ${activeIndex === idx ? 'active' : ''}`}>
+                <img src={feature.imgUrl} alt={feature.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${P.bordo}60 0%, transparent 40%)` }} />
+              </div>
+            ))}
           </div>
 
-          <div style={{ paddingTop: "2rem" }}>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "1.05rem", lineHeight: 1.7, color: P.chocolate, marginBottom: "3rem" }}>
-              Nuestro sistema guía al usuario a través de un flujo intuitivo que transforma la duda en el regalo perfecto.
-            </p>
-            <div style={{ borderTop: `1px solid ${P.beige}` }}>
+          {/* IZQUIERDA: Textos y Lista Limpia */}
+          <div>
+            <div style={{ marginBottom: "2rem" }}>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "0.75rem", letterSpacing: "0.2em", textTransform: "uppercase", color: P.dorado, display: "flex", alignItems: "center", gap: "10px", marginBottom: "0.8rem" }}>
+                <span style={{ width: "24px", height: "2px", background: P.dorado }}></span> Propuesta de Solución
+              </span>
+              <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "clamp(2rem, 3.5vw, 2.6rem)", lineHeight: 1.1, color: P.bordo, letterSpacing: "-0.02em", marginBottom: "1rem" }}>
+                Cómo funciona <span style={{ color: P.granate }}>Emotia.</span>
+              </h2>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.95rem", lineHeight: 1.6, color: P.chocolate }}>
+                Nuestro sistema guía al usuario a través de un flujo intuitivo que transforma la duda en el regalo perfecto.
+              </p>
+            </div>
+
+            {/* 👇 LISTA LIMPIA Y COMPACTA (Sin líneas, sin efectos de botón) 👇 */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {featuresData.map((feature, idx) => (
-                <div key={feature.num} className={`accordion-item ${activeIndex === idx ? 'active' : ''}`} onMouseEnter={() => setActiveIndex(idx)} onClick={() => setActiveIndex(idx)}>
-                  <div className="accordion-title">
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", fontWeight: 800, color: activeIndex === idx ? P.granate : P.gris, transition: "color 0.3s ease" }}>{feature.num}</span>
-                    {feature.title}
-                  </div>
-                  <div className="accordion-content-wrapper">
-                    <div className="accordion-content">
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "1rem", lineHeight: 1.6, color: P.chocolate, paddingTop: "1rem", paddingLeft: "2.2rem" }}>
-                        {feature.desc}
-                      </p>
-                    </div>
-                  </div>
+                <div 
+                  key={feature.num} 
+                  style={{ 
+                    opacity: activeIndex === idx ? 1 : 0.4, // Se ilumina el que está activo en la imagen
+                    transition: "opacity 0.5s ease",
+                  }}
+                >
+                  <h4 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "1.05rem", fontWeight: 800, color: P.bordo, margin: "0 0 0.3rem 0", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ color: P.granate, fontSize: "0.85rem" }}>{feature.num}</span> {feature.title}
+                  </h4>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.9rem", lineHeight: 1.5, color: P.chocolate, margin: 0, paddingLeft: "1.8rem" }}>
+                    {feature.desc}
+                  </p>
                 </div>
               ))}
             </div>

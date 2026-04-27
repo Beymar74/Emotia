@@ -110,6 +110,7 @@ export default function BotonesAccion({ usuario, esAdmin }: { usuario: any, esAd
                   <label className="text-[10px] font-bold text-[#7A5260] uppercase tracking-wider ml-1">Rol</label>
                   <select name="tipo" defaultValue={usuario.tipo} className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all text-[#2A0E18] appearance-none cursor-pointer">
                     <option value="usuario">Usuario</option>
+                    <option value="operador">Operador</option>
                     <option value="admin">Admin</option>
                   </select>
                 </div>
