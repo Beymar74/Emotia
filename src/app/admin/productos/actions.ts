@@ -57,3 +57,22 @@ export async function eliminarProducto(id: number) {
     return { success: false };
   }
 }
+
+/**
+ * Guarda la URL de Cloudinary como imagen_url del producto.
+ * Se llama después de que el widget de Cloudinary entrega la secure_url.
+ */
+export async function actualizarImagenProducto(id: number, url: string | null) {
+  try {
+    await prisma.productos.update({
+      where: { id },
+      data: { imagen_url: url },
+    });
+    revalidatePath(`/admin/productos/${id}/editar`);
+    revalidatePath('/admin/productos');
+    return { success: true };
+  } catch (error) {
+    console.error("Error al actualizar imagen del producto:", error);
+    return { error: "No se pudo guardar la imagen del producto." };
+  }
+}

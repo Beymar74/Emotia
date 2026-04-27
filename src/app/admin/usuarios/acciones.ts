@@ -43,3 +43,22 @@ export async function editarUsuarioAction(formData: FormData) {
     return { error: "Error al actualizar el usuario." };
   }
 }
+
+/**
+ * Guarda la URL de Cloudinary como foto_perfil del usuario.
+ * Se llama después de que el widget de Cloudinary entrega la secure_url.
+ */
+export async function actualizarFotoUsuario(id: number, url: string | null) {
+  try {
+    await prisma.usuarios.update({
+      where: { id },
+      data: { foto_perfil: url },
+    });
+    revalidatePath(`/admin/usuarios/${id}`);
+    revalidatePath('/admin/usuarios');
+    return { success: true };
+  } catch (error) {
+    console.error("Error al actualizar foto de perfil:", error);
+    return { error: "No se pudo guardar la foto de perfil." };
+  }
+}

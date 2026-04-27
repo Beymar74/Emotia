@@ -15,7 +15,7 @@ services:
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
-    command: npm run dev  # 👈 asegúrate de tener esto
+    command: npm run dev
 
   db:
     image: postgres:16
@@ -29,6 +29,17 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    container_name: emotia_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./adminer.css:/var/www/html/adminer.css
+    depends_on:
+      - db
 
 volumes:
   postgres_data:

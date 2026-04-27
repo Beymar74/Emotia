@@ -2,7 +2,10 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Mail, MapPin, Phone, Gift, Instagram, Facebook, Heart, X } from "lucide-react";
+// 1. Iconos de Interfaz (Lucide) - SIN las redes sociales
+import { ArrowRight, Mail, MapPin, Phone, Gift, Heart, X } from "lucide-react";
+// 2. Iconos de Marcas (React Icons - FontAwesome 6)
+import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Paleta Oficial de Emotia Business
@@ -26,12 +29,12 @@ export default function FooterB2B() {
   // Estado para controlar qué modal está abierto
   const [modalAbierto, setModalAbierto] = useState<"terminos" | "privacidad" | "cookies" | null>(null);
 
-  const enlacesPrincipales = [
-    { label: "Regalos", path: "/" },
-    { label: "Empresas", path: "/business", isActive: true }, 
-    { label: "Artesanos", path: "/business/proveedores" },
-    { label: "Nosotros", path: "/ayuda/nosotros" },
-    { label: "Ayuda", path: "/ayuda" }
+  // Navegación actualizada por contenido de la página
+  const enlacesContenido = [
+    { label: "Cómo funciona", href: "#pasos" },
+    { label: "Tecnología", href: "#beneficios" },
+    { label: "Historias", href: "#testimonios" },
+    { label: "Comunidad", href: "#unirse" },
   ];
 
   const enlacesLegales = [
@@ -40,12 +43,30 @@ export default function FooterB2B() {
     { id: "cookies", label: "Gestión de Cookies" }
   ];
 
+  // Función para scroll suave
+  const scrollToSection = (e: React.MouseEvent, href: string) => {
+    e.preventDefault();
+    const element = document.querySelector(href);
+    if (element) {
+      const offset = 80;
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = element.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
+  };
+
   return (
     <>
       <footer className="relative font-sans mt-24">
         
         {/* ========================================== */}
-        {/* TARJETA DE RECURSOS (Ubicada ARRIBA del footer oscuro, no sobrepuesta) */}
+        {/* TARJETA DE RECURSOS */}
         {/* ========================================== */}
         <div className="px-6 md:px-12 pb-24 max-w-[1320px] mx-auto">
           <motion.div 
@@ -91,6 +112,7 @@ export default function FooterB2B() {
         {/* CUERPO DEL FOOTER */}
         {/* ========================================== */}
         <div className="pt-20 pb-12 px-6 md:px-12 relative overflow-hidden" style={{ background: P.bordoNegro }}>
+          {/* Marca de agua */}
           <div 
             className="absolute top-10 left-0 w-full text-center text-[15vw] font-black opacity-[0.03] pointer-events-none select-none"
             style={{ color: P.blanco, fontFamily: "'Montserrat', sans-serif" }}
@@ -112,25 +134,31 @@ export default function FooterB2B() {
                 La primera plataforma inteligente de regalos en Bolivia. Sorprende a los que más quieres con detalles únicos, empaque premium y entrega garantizada en La Paz.
               </p>
               <div className="flex gap-4 pt-2">
-                <a href="#" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: P.bordoOscuro, color: P.beige }}><Instagram size={20} /></a>
-                <a href="#" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: P.bordoOscuro, color: P.beige }}><Facebook size={20} /></a>
+                <a href="#" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: P.bordoOscuro, color: P.beige }}>
+                  <FaInstagram size={20} />
+                </a>
+                <a href="#" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: P.bordoOscuro, color: P.beige }}>
+                  <FaTiktok size={19} /> {/* Un poco más pequeño para que encaje perfecto */}
+                </a>
+                <a href="#" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: P.bordoOscuro, color: P.beige }}>
+                  <FaFacebook size={20} />
+                </a>
               </div>
             </div>
 
-            {/* NAVEGACIÓN (Con animación hover) */}
+            {/* NAVEGACIÓN (Anclas de Contenido) */}
             <div className="md:col-span-2 space-y-6">
-              <h4 className="text-sm font-black uppercase tracking-widest" style={{ color: P.dorado }}>Navegación</h4>
+              <h4 className="text-sm font-black uppercase tracking-widest" style={{ color: P.dorado }}>Contenido</h4>
               <ul className="space-y-4">
-                {enlacesPrincipales.map((enlace) => (
+                {enlacesContenido.map((enlace) => (
                   <li key={enlace.label}>
                     <motion.button 
-                      whileHover={{ x: 8 }} // Animación de desplazamiento a la derecha
+                      whileHover={{ x: 8 }} 
                       transition={{ type: "spring", stiffness: 300 }}
-                      onClick={() => router.push(enlace.path)}
+                      onClick={(e) => scrollToSection(e, enlace.href)}
                       className="text-sm font-medium transition-colors hover:text-white flex items-center gap-2"
-                      style={{ color: enlace.isActive ? P.dorado : P.beige, opacity: enlace.isActive ? 1 : 0.7 }}
+                      style={{ color: P.beige, opacity: 0.7 }}
                     >
-                      {enlace.isActive && <div className="w-1.5 h-1.5 rounded-full" style={{ background: P.dorado }}></div>}
                       {enlace.label}
                     </motion.button>
                   </li>
@@ -138,14 +166,14 @@ export default function FooterB2B() {
               </ul>
             </div>
 
-            {/* LEGALES Y MODALES (Nueva Columna) */}
+            {/* LEGALES */}
             <div className="md:col-span-3 space-y-6">
               <h4 className="text-sm font-black uppercase tracking-widest" style={{ color: P.dorado }}>Legal</h4>
               <ul className="space-y-4">
                 {enlacesLegales.map((enlace) => (
                   <li key={enlace.id}>
                     <motion.button 
-                      whileHover={{ x: 8 }} // Animación de desplazamiento a la derecha
+                      whileHover={{ x: 8 }} 
                       transition={{ type: "spring", stiffness: 300 }}
                       onClick={() => setModalAbierto(enlace.id as any)}
                       className="text-sm font-medium transition-colors hover:text-white flex items-center gap-2"
@@ -190,6 +218,7 @@ export default function FooterB2B() {
             </div>
           </div>
 
+          {/* Copyright y Créditos */}
           <div className="max-w-[1320px] mx-auto mt-8 flex flex-col md:flex-row justify-between items-center gap-4 px-4">
             <p className="text-xs font-medium" style={{ color: P.beige, opacity: 0.5 }}>
               © 2026 Emotia Technologies Bolivia S.R.L. Todos los derechos reservados.
@@ -207,21 +236,16 @@ export default function FooterB2B() {
       <AnimatePresence>
         {modalAbierto && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            {/* Fondo oscuro desenfocado */}
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setModalAbierto(null)}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"
             />
-            
-            {/* Caja del Modal */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-lg bg-white rounded-3xl p-8 shadow-2xl z-10 overflow-hidden"
             >
-              {/* Decoración superior */}
               <div className="absolute top-0 left-0 w-full h-2" style={{ background: P.dorado }}></div>
-              
               <button 
                 onClick={() => setModalAbierto(null)}
                 className="absolute top-6 right-6 p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -229,43 +253,37 @@ export default function FooterB2B() {
                 <X size={24} style={{ color: P.bordoNegro }} />
               </button>
 
-              {/* Contenido Dinámico según el modal */}
-              {modalAbierto === "terminos" && (
-                <>
-                  <h3 className="text-2xl font-black mb-4" style={{ color: P.bordoNegro, fontFamily: "'Montserrat', sans-serif" }}>Términos de Servicio</h3>
-                  <div className="space-y-4 text-sm leading-relaxed" style={{ color: P.choco }}>
-                    <p>Al unirte como Socio Proveedor a Emotia Business, aceptas nuestros términos de colaboración corporativa.</p>
-                    <p><strong>1. Calidad Garantizada:</strong> Te comprometes a mantener los más altos estándares artesanales y respetar los tiempos de preparación establecidos en tu Kanban.</p>
-                    <p><strong>2. Pagos y Comisiones:</strong> Emotia retiene una tarifa de intermediación por cada venta exitosa. Los desembolsos se realizan semanalmente a tu cuenta bancaria registrada.</p>
-                    <p><strong>3. Gestión de Pedidos:</strong> Todo pedido aceptado debe ser empaquetado bajo los lineamientos premium de Emotia para garantizar la mejor experiencia al cliente.</p>
+              <div className="max-h-[70vh] overflow-y-auto">
+                {modalAbierto === "terminos" && (
+                  <div className="p-2">
+                    <h3 className="text-2xl font-black mb-4" style={{ color: P.bordoNegro, fontFamily: "'Montserrat', sans-serif" }}>Términos de Servicio</h3>
+                    <div className="space-y-4 text-sm leading-relaxed" style={{ color: P.choco }}>
+                      <p>Al unirte como Socio Proveedor a Emotia Business, aceptas nuestros términos de colaboración corporativa.</p>
+                      <p><strong>1. Calidad Garantizada:</strong> Te comprometes a mantener los más altos estándares artesanales.</p>
+                      <p><strong>2. Pagos y Comisiones:</strong> Emotia retiene una tarifa de intermediación por cada venta exitosa.</p>
+                    </div>
                   </div>
-                </>
-              )}
+                )}
 
-              {modalAbierto === "privacidad" && (
-                <>
-                  <h3 className="text-2xl font-black mb-4" style={{ color: P.bordoNegro, fontFamily: "'Montserrat', sans-serif" }}>Política de Privacidad</h3>
-                  <div className="space-y-4 text-sm leading-relaxed" style={{ color: P.choco }}>
-                    <p>En Emotia valoramos y protegemos la información de tu negocio como nuestro activo más importante.</p>
-                    <p><strong>Datos Recopilados:</strong> Guardamos información de ventas, inventario y datos de contacto estrictamente para el funcionamiento de tu panel de control.</p>
-                    <p><strong>Uso de la IA:</strong> Nuestro algoritmo analiza las tendencias de compra de forma anónima para recomendar tus productos a los clientes adecuados, sin comprometer tus datos sensibles.</p>
+                {modalAbierto === "privacidad" && (
+                  <div className="p-2">
+                    <h3 className="text-2xl font-black mb-4" style={{ color: P.bordoNegro, fontFamily: "'Montserrat', sans-serif" }}>Política de Privacidad</h3>
+                    <div className="space-y-4 text-sm leading-relaxed" style={{ color: P.choco }}>
+                      <p>En Emotia valoramos y protegemos la información de tu negocio.</p>
+                      <p><strong>Datos Recopilados:</strong> Guardamos información de ventas estrictamente para el funcionamiento del panel.</p>
+                    </div>
                   </div>
-                </>
-              )}
+                )}
 
-              {modalAbierto === "cookies" && (
-                <>
-                  <h3 className="text-2xl font-black mb-4" style={{ color: P.bordoNegro, fontFamily: "'Montserrat', sans-serif" }}>Gestión de Cookies</h3>
-                  <div className="space-y-4 text-sm leading-relaxed" style={{ color: P.choco }}>
-                    <p>Utilizamos cookies esenciales y de rendimiento para que tu navegación en el Portal de Proveedores sea fluida y segura.</p>
-                    <p><strong>Cookies de Sesión:</strong> Necesarias para mantener tu cuenta abierta mientras gestionas pedidos.</p>
-                    <p><strong>Cookies Analíticas:</strong> Nos ayudan a entender cómo interactúas con el Dashboard para seguir mejorando las herramientas que te ofrecemos.</p>
-                    <p className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-500">
-                      Puedes configurar tu navegador para bloquear estas cookies, pero algunas funciones de la plataforma dejarán de funcionar.
-                    </p>
+                {modalAbierto === "cookies" && (
+                  <div className="p-2">
+                    <h3 className="text-2xl font-black mb-4" style={{ color: P.bordoNegro, fontFamily: "'Montserrat', sans-serif" }}>Gestión de Cookies</h3>
+                    <div className="space-y-4 text-sm leading-relaxed" style={{ color: P.choco }}>
+                      <p>Utilizamos cookies esenciales para que tu navegación sea fluida y segura.</p>
+                    </div>
                   </div>
-                </>
-              )}
+                )}
+              </div>
 
               <div className="mt-8 pt-6 border-t border-gray-100 text-right">
                 <button 

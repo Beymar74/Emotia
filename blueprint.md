@@ -1,35 +1,72 @@
-# Project Blueprint
+# Project Blueprint — Emotia Admin Panel
 
 ## Overview
 
-This document outlines the plan and progress of the Next.js application. It will be updated with each change request to reflect the current state of the project.
+Panel de administración total para la plataforma Emotia (e-commerce de regalos emocionales). 
+Stack: Next.js 15 (App Router) + Prisma + PostgreSQL + TailwindCSS. Paleta: vinos (#5A0F24, #8E1B3A), dorado (#BC9968), crema (#FAF3EC).
 
-## Completed Tasks
+---
 
-### Fix 404 Error in Profile Details
-- Updated `src/app/admin/perfiles/[id]/page.tsx` to handle `params` as a Promise (Next.js 15+).
+## Modelos Prisma → Cobertura Admin
 
-### Fix 404 Error in Provider Activity Details
-- Updated `src/app/admin/proveedores/actividad/[id]/page.tsx` to handle `params` as a Promise (Next.js 15+).
+| Modelo          | Sección Admin              | Estado        |
+|-----------------|----------------------------|---------------|
+| audit_log       | /admin/auditoria           | ✅ Completo   |
+| carrito         | /admin/carritos            | ✅ Completo   |
+| categorias      | /admin/categorias          | ✅ CRUD       |
+| detalle_pedidos | /admin/pedidos/[id]        | ✅ Completo   |
+| direcciones     | /admin/pedidos/[id]        | ✅ Lectura    |
+| notificaciones  | /admin/notificaciones      | ✅ CRUD       |
+| pedidos         | /admin/pedidos + [id]      | ✅ Completo   |
+| productos       | /admin/productos           | ✅ CRUD       |
+| proveedores     | /admin/proveedores         | ✅ CRUD       |
+| recomendaciones | (pendiente — asistente IA) | ⏳ Pendiente  |
+| recordatorios   | /admin/recordatorios       | ✅ Supervisión|
+| usuarios        | /admin/usuarios            | ✅ Completo   |
+| insignias       | ELIMINADO (sin gamificación)|❌ Removido   |
 
-### Fix Missing Prisma Import in Product Actions
-- Added `import prisma from "@/lib/prisma"` to `src/app/admin/productos/actions.ts`.
+---
 
-### Fix Server Action Build Error
-- Added `"use server"` to `src/app/admin/productos/actions.ts`.
+## Sidebar — Secciones
 
-### Fix Product Buttons
-- Updated dynamic route params handling in product pages.
+- **Principal**: Dashboard
+- **Usuarios & Accesos**: Gestión de usuarios
+- **Proveedores**: Supervisar actividad, Rendimiento
+- **Catálogo**: Todos los productos, Categorías
+- **Pedidos & Pagos**: Todos los pedidos, Carritos activos, Métodos de pago
+- **Comunicación**: Notificaciones, Recordatorios
+- **Reportes & Sistema**: Reportes de ventas, Log de auditoría, Configuración
 
-### Custom Deletion Modal
-- Replaced `confirm()` with a custom modal in `ProductosClient`.
+---
 
-## Current Task: Fix Decimal Serialization Error
+## Cambios Completados
 
-### Problem
-Prisma returns `Decimal` objects for monetary fields. These objects cannot be passed directly from Server Components to Client Components in Next.js.
+### Admin panel inicial
+- Dashboard con métricas principales
+- CRUD Usuarios, Productos, Proveedores, Pedidos, Pagos, Reportes, Auditoría, Asistente, Configuración
 
-### Action Plan
-1. [ ] Update `src/app/admin/productos/[id]/editar/page.tsx` to serialize the `producto` object, converting all `Decimal` fields to `number`.
-2. [ ] (Optional) Ensure `Date` objects are handled if necessary, although usually supported.
-3. [ ] Verify that the form loads correctly without the "Decimal objects are not supported" error.
+### Optimización de rendimiento (conversación 5377de89)
+- Cloudinary para assets
+- Upstash Redis para caché
+- Server Components con datos reales de PostgreSQL
+
+### Completar cobertura admin (conversación actual 6d1594dc)
+- ✅ Fix bug crítico en Auditoría (usaba campo `actor` inexistente → corregido a `actor_tipo` + `actor_id`)
+- ✅ Auditoría ahora tiene filtros funcionales (AuditoriaClient con estado)
+- ✅ `/admin/categorias` — CRUD completo con modal, toggle activo/inactivo
+- ✅ `/admin/notificaciones` — enviar a usuarios, marcar leída, filtros
+- ✅ `/admin/recordatorios` — supervisión con resaltado de urgentes (<7 días)
+- ✅ `/admin/carritos` — KPIs de abandono de carrito, tabla detallada
+- ✅ `/admin/pedidos/[id]` — página de detalle completa con cambio de estado
+- ✅ `PedidosClient` mejorado: filtros por estado (clickable), link a detalle, badges correctos
+- ✅ Sidebar actualizado con todas las secciones nuevas + icono IconBell
+- ✅ Asistente IA eliminado del sidebar (pendiente de implementar)
+- ✅ Sistema de gamificación (insignias) eliminado de la UI
+
+---
+
+## Pendiente
+
+- [ ] Conectar `/admin/asistente` con datos reales de `recomendaciones`
+- [ ] Mejorar `/admin/pagos` para que los métodos no sean hardcodeados
+- [ ] Mejorar detalles en `/admin/usuarios` (mostrar plan, puntos, cambiar tipo)

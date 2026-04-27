@@ -7,7 +7,6 @@ import ProveedoresTable from "./_components/ProveedoresTable";
 import ActividadReciente from "./_components/ActividadReciente";
 import VentasCategorias from "./_components/VentasCategorias";
 import SolicitudesPendientes from "./_components/SolicitudesPendientes";
-import AsistenteIA from "./_components/AsistenteIA";
 import LogAuditoria from "./_components/LogAuditoria";
 
 export default async function AdminPage() {
@@ -54,7 +53,7 @@ export default async function AdminPage() {
       {/* Sección de Métricas */}
       <section>
         <h2 className="text-[9px] tracking-[2.5px] uppercase text-[#7A5260] font-bold mb-4 opacity-80">
-          Resumen — Abril 2026
+        Resumen — {new Intl.DateTimeFormat("es-BO", { month: "long", year: "numeric", timeZone: "America/La_Paz" }).format(new Date())}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <MetricCard
@@ -113,7 +112,6 @@ export default async function AdminPage() {
       {/* Grid Inferior: Herramientas y Auditoría */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         <SolicitudesPendientes />
-        <AsistenteIA />
         <LogAuditoria />
       </div>
 

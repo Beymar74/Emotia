@@ -106,7 +106,7 @@ export default function JoinB2B() {
               </p>
               
               <button
-                onClick={() => router.push("/business/proveedores")}
+                onClick={() => router.push("/business/proveedores/registro")} // <-- RUTA ACTUALIZADA
                 className="text-sm font-bold flex items-center gap-3 group w-full justify-center p-4 rounded-xl transition-all duration-300 shadow-lg"
                 style={{ 
                   background: P.granate, 
@@ -172,12 +172,12 @@ export default function JoinB2B() {
             <motion.button 
               whileHover={{ scale: 1.05 }} 
               whileTap={{ scale: 0.95 }}
-              onClick={() => router.push("/business/proveedores")}
+              onClick={() => router.push("/business/proveedores/registro")} // <-- RUTA ACTUALIZADA
               className="px-12 py-5 rounded-full font-black text-lg shadow-2xl flex items-center justify-center gap-3 mx-auto group transition-all duration-300"
               style={{ 
                 background: `linear-gradient(90deg, ${P.dorado}, ${P.doradoOscuro})`, 
                 color: P.bordoNegro,
-                boxShadow: `0 20px 40px rgba(0,0,0,0.4), 0 0 20px ${P.dorado}60`
+                boxShadow: `0 20px 40px rgba(0,0,0,0.3), 0 0 20px ${P.dorado}50`
               }}
             >
               Únete como Productor 

@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Mail, Phone, Calendar, Shield, CreditCard, UserCircle } from "lucide-react";
 
+import { actualizarFotoUsuario } from "../acciones";
+import HeaderPerfilAvatar from "@/components/HeaderPerfilAvatar";
+
 export default async function DetalleUsuarioPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const usuarioId = parseInt(id);
@@ -25,12 +28,6 @@ export default async function DetalleUsuarioPage({ params }: { params: Promise<{
             day: '2-digit', month: '2-digit', year: 'numeric',
             hour: '2-digit', minute: '2-digit', hour12: false
         }).format(fecha);
-    };
-
-    const getAvatar = (nombre: string, apellido?: string | null) => {
-        const first = nombre ? nombre.charAt(0).toUpperCase() : '?';
-        const second = apellido ? apellido.charAt(0).toUpperCase() : '';
-        return `${first}${second}`;
     };
 
     return (
@@ -57,13 +54,30 @@ export default async function DetalleUsuarioPage({ params }: { params: Promise<{
                     <div className="absolute -left-10 -top-10 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
                     
                     <div className="relative flex flex-col sm:flex-row items-center gap-6 sm:gap-8 text-center sm:text-left">
-                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-4xl sm:text-5xl font-bold text-[#FDFBF9] shadow-2xl">
-                            {getAvatar(usuario.nombre, usuario.apellido)}
+                        {/* ✅ Avatar clickeable — reemplaza FotoPerfilUploader */}
+                        <div className="relative flex-shrink-0">
+                            <HeaderPerfilAvatar
+                                currentUrl={usuario.foto_perfil}
+                                size={128}
+                                onSave={async (url) => {
+                                    "use server";
+                                    await actualizarFotoUsuario(usuario.id, url);
+                                }}
+                                onRemove={async () => {
+                                    "use server";
+                                    await actualizarFotoUsuario(usuario.id, null);
+                                }}
+                            />
                         </div>
+
                         <div className="space-y-2">
                             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                                <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white">{usuario.nombre} {usuario.apellido}</h2>
-                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${usuario.tipo === 'admin' ? 'bg-[#BC9968] text-white' : 'bg-white/20 text-white'}`}>
+                                <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white">
+                                    {usuario.nombre} {usuario.apellido}
+                                </h2>
+                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                    usuario.tipo === 'admin' ? 'bg-[#BC9968] text-white' : 'bg-white/20 text-white'
+                                }`}>
                                     {usuario.tipo}
                                 </span>
                             </div>
@@ -71,8 +85,12 @@ export default async function DetalleUsuarioPage({ params }: { params: Promise<{
                                 <Mail size={16} /> {usuario.email}
                             </p>
                             <div className="flex gap-4 pt-2 justify-center sm:justify-start">
-                                <span className="bg-white/10 px-3 py-1 rounded-lg text-xs font-medium text-white border border-white/10">ID: #{usuario.id}</span>
-                                <span className="bg-white/10 px-3 py-1 rounded-lg text-xs font-medium text-white border border-white/10 capitalize">Plan: {usuario.plan || 'Básico'}</span>
+                                <span className="bg-white/10 px-3 py-1 rounded-lg text-xs font-medium text-white border border-white/10">
+                                    ID: #{usuario.id}
+                                </span>
+                                <span className="bg-white/10 px-3 py-1 rounded-lg text-xs font-medium text-white border border-white/10 capitalize">
+                                    Plan: {usuario.plan || 'Básico'}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -113,7 +131,11 @@ export default async function DetalleUsuarioPage({ params }: { params: Promise<{
                         </div>
 
                         <div className="flex items-center gap-4 text-[#2A0E18]">
-                            <div className={`p-3 rounded-xl shadow-sm border ${usuario.activo ? 'bg-[#EEF8F0] border-[#2D7A47]/10 text-[#2D7A47]' : 'bg-[#FBF0F0] border-[#A32D2D]/10 text-[#A32D2D]'}`}>
+                            <div className={`p-3 rounded-xl shadow-sm border ${
+                                usuario.activo 
+                                    ? 'bg-[#EEF8F0] border-[#2D7A47]/10 text-[#2D7A47]' 
+                                    : 'bg-[#FBF0F0] border-[#A32D2D]/10 text-[#A32D2D]'
+                            }`}>
                                 <Shield size={20} />
                             </div>
                             <div>
@@ -132,7 +154,10 @@ export default async function DetalleUsuarioPage({ params }: { params: Promise<{
                         </div>
                         <div>
                             <p className="text-xs text-[#7A5260] uppercase font-bold tracking-widest leading-none mb-1">Historial acumulado</p>
-                            <p className="text-3xl font-serif font-bold text-[#5A0F24]">{usuario._count.pedidos} <span className="text-sm font-sans text-[#BC9968] font-medium">Pedidos realizados</span></p>
+                            <p className="text-3xl font-serif font-bold text-[#5A0F24]">
+                                {usuario._count.pedidos}{" "}
+                                <span className="text-sm font-sans text-[#BC9968] font-medium">Pedidos realizados</span>
+                            </p>
                         </div>
                     </div>
                     

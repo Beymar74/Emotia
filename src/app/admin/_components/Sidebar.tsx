@@ -33,6 +33,7 @@ const navSections = [
     icon: IconBag,
     items: [
       { href: "/admin/productos", label: "Todos los productos" },
+      { href: "/admin/categorias", label: "Categorías" },
     ],
   },
   {
@@ -40,7 +41,16 @@ const navSections = [
     icon: IconBox,
     items: [
       { href: "/admin/pedidos", label: "Todos los pedidos" },
+      { href: "/admin/carritos", label: "Carritos activos" },
       { href: "/admin/pagos", label: "Métodos de pago" },
+    ],
+  },
+  {
+    label: "Comunicación",
+    icon: IconBell,
+    items: [
+      { href: "/admin/notificaciones", label: "Notificaciones" },
+      { href: "/admin/recordatorios", label: "Recordatorios" },
     ],
   },
   {
@@ -48,7 +58,6 @@ const navSections = [
     icon: IconReport,
     items: [
       { href: "/admin/reportes", label: "Reportes de ventas" },
-      { href: "/admin/asistente", label: "Asistente IA" },
       { href: "/admin/auditoria", label: "Log de auditoría" },
       { href: "/admin/configuracion", label: "Configuración" },
     ],
@@ -284,6 +293,14 @@ function IconReport({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 14 14" fill="none">
       <path d="M2 11l2.5-4 2.5 2.5L10 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function IconBell({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 14 14" fill="none">
+      <path d="M7 1.5a4 4 0 014 4v2.5l1 1.5H2l1-1.5V5.5a4 4 0 014-4z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M5.5 11.5a1.5 1.5 0 003 0" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   );
 }
