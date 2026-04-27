@@ -39,7 +39,7 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
         <div style={{ maxWidth: 1320, margin: "0 auto", padding: "40px 24px 60px", position: "relative", zIndex: 2 }}>
           <div className="hero-grid">
             <div style={{ display: "flex", flexDirection: "column" }}>
-              
+
               <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ display: "inline-flex", alignItems: "center", gap: 8, backgroundColor: P.blanco, border: `1px solid ${P.dorado}50`, borderRadius: 100, padding: "6px 16px", marginBottom: 20, width: "fit-content", boxShadow: `0 4px 15px ${P.granate}15` } as any}>
                 <Star size={12} fill={P.dorado} color={P.dorado} />
                 <span style={{ fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "0.75rem", color: P.bordo, letterSpacing: "0.08em", textTransform: "uppercase" }}>La nueva forma de regalar en Bolivia</span>
@@ -75,7 +75,7 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
 
             <motion.div className="hero-image-container" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.2 }} style={{ position: "relative", height: 480, width: "100%" }}>
               <div style={{ position: "absolute", inset: "20px 0 0 40px", borderRadius: 30, overflow: "hidden", boxShadow: `0 24px 50px ${P.bordo}20` }}>
-                <img src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=800&auto=format&fit=crop" alt="Regalo Premium" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src="https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777328641/emotia_store_lqk7hw.jpg" alt="Regalo Premium" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${P.bordo}90 0%, transparent 40%)` }} />
                 <div style={{ position: "absolute", bottom: 24, left: 24, right: 24 }}>
                   <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "1.2rem", fontWeight: 800, color: P.blanco, lineHeight: 1.3 }}>"El detalle perfecto habla por ti."</p>
@@ -94,7 +94,7 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
                 <div style={{ background: `${P.dorado}20`, padding: 8, borderRadius: 10 }}><Heart size={20} color={P.dorado} fill={P.dorado} /></div>
                 <div>
                   <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.95rem", fontWeight: 800, color: P.bordo }}>+2,400 Sonrisas</div>
-                  <div style={{ display: "flex", gap: 2, marginTop: 2 }}>{[...Array(5)].map((_,i) => <Star key={i} size={10} fill={P.dorado} color={P.dorado} />)}</div>
+                  <div style={{ display: "flex", gap: 2, marginTop: 2 }}>{[...Array(5)].map((_, i) => <Star key={i} size={10} fill={P.dorado} color={P.dorado} />)}</div>
                 </div>
               </motion.div>
             </motion.div>
