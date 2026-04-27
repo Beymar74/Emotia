@@ -27,7 +27,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Au
   useEffect(() => {
     if (isOpen) {
       setView(initialView);
-      document.body.style.overflow = "hidden"; // Evita que se haga scroll atrás
+      document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
@@ -38,17 +38,19 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Au
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      {/* 👇 AQUÍ ESTÁ LA MAGIA: z-[9999] PARA QUE TAPE AL NAVBAR 👇 */}
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        
         {/* Overlay Oscuro Desenfocado */}
         <motion.div
           initial={{ opacity: 0 }} 
           animate={{ opacity: 1 }} 
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-pointer"
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm cursor-pointer"
         />
 
-        {/* Contenedor Principal (Clonado exactamente de Producto) */}
+        {/* Contenedor Principal */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -61,13 +63,13 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Au
             <X size={20} strokeWidth={2.5} />
           </button>
 
-          {/* Logo Limpio (Sin el círculo feo, centrado perfecto) */}
+          {/* Logo Limpio (Sin círculo) */}
           <div className="flex justify-center mb-6 mt-2">
             <img 
               src="/logo/logoextendido.png" 
               alt="Emotia Logo" 
-              className="h-8 object-contain"
-              style={{ filter: "brightness(0) saturate(100%) invert(13%) sepia(50%) saturate(4000%) hue-rotate(330deg)" }} // Asegura que se vea color bordo
+              className="h-9 object-contain" // Lo hice un poquitito más grande (h-9) para que destaque mejor
+              style={{ filter: "brightness(0) saturate(100%) invert(13%) sepia(50%) saturate(4000%) hue-rotate(330deg)" }}
             />
           </div>
 
@@ -97,7 +99,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Au
             </button>
           </div>
 
-          {/* Formulario Idéntico a Producto */}
+          {/* Formulario */}
           <div className="space-y-4">
             
             {/* Campo Nombre (Solo en Registro) */}
@@ -139,7 +141,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Au
               </div>
             </div>
 
-            {/* Botón Principal (Redondeado como pastilla) */}
+            {/* Botón Principal */}
             <button className="w-full py-3.5 mt-2 rounded-full font-bold text-white text-[0.95rem] bg-[#C13550] hover:bg-[#A32940] transition-colors shadow-md">
               {view === "login" ? "Ingresar" : "Crear cuenta"}
             </button>
@@ -152,7 +154,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Au
             <div className="flex-1 h-px bg-[#F5E6D0]"></div>
           </div>
 
-          {/* Botón Google (Redondeado como pastilla) */}
+          {/* Botón Google */}
           <button className="flex items-center justify-center gap-3 w-full py-3 rounded-full border border-[#F5E6D0] bg-white hover:bg-[#FFFBF5] transition-colors">
             <GoogleIcon />
             <span className="text-sm font-bold text-[#5C3A2E]">Google</span>
