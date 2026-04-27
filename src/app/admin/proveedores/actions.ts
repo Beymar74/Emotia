@@ -102,3 +102,23 @@ export async function actualizarProveedorAction(formData: FormData) {
     return { error: "Ocurrió un error al actualizar el proveedor." };
   }
 }
+
+/**
+ * Guarda la URL de Cloudinary como logo_url del proveedor.
+ * Se llama después de que el widget de Cloudinary entrega la secure_url.
+ */
+export async function actualizarLogoProveedor(id: number, url: string | null) {
+  try {
+    await prisma.proveedores.update({
+      where: { id },
+      data: { logo_url: url },
+    });
+    revalidatePath(`/admin/proveedores/${id}/editar`);
+    revalidatePath("/admin/proveedores/actividad");
+    revalidatePath("/admin/proveedores");
+    return { success: true };
+  } catch (error) {
+    console.error("Error al actualizar logo del proveedor:", error);
+    return { error: "No se pudo guardar el logo del proveedor." };
+  }
+}
