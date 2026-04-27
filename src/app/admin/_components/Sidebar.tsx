@@ -3,63 +3,78 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { useStackApp } from "@stackframe/stack";
+import { useStackApp, useUser } from "@stackframe/stack";
 
 const navSections = [
   {
     label: "Principal",
     icon: IconDashboard,
+    soloAdmin: false,
     items: [
-      { href: "/admin", label: "Dashboard" },
+      { href: "/admin", label: "Dashboard", soloAdmin: false },
     ],
   },
   {
     label: "Usuarios & Accesos",
     icon: IconUser,
+    soloAdmin: true,
     items: [
-      { href: "/admin/usuarios", label: "Gestión de usuarios" },
+      { href: "/admin/usuarios", label: "Gestión de usuarios", soloAdmin: true },
     ],
   },
   {
     label: "Proveedores",
     icon: IconCheck,
+    soloAdmin: false,
     items: [
-      { href: "/admin/proveedores/actividad", label: "Supervisar actividad" },
-      { href: "/admin/proveedores/rendimiento", label: "Rendimiento" },
+      { href: "/admin/proveedores/actividad", label: "Supervisar actividad", soloAdmin: false },
+      { href: "/admin/proveedores/rendimiento", label: "Rendimiento", soloAdmin: false },
     ],
   },
   {
     label: "Catálogo",
     icon: IconBag,
+    soloAdmin: false,
     items: [
-      { href: "/admin/productos", label: "Todos los productos" },
-      { href: "/admin/categorias", label: "Categorías" },
+      { href: "/admin/productos", label: "Todos los productos", soloAdmin: false },
+      { href: "/admin/categorias", label: "Categorías", soloAdmin: false },
     ],
   },
   {
     label: "Pedidos & Pagos",
     icon: IconBox,
+    soloAdmin: false,
     items: [
-      { href: "/admin/pedidos", label: "Todos los pedidos" },
-      { href: "/admin/carritos", label: "Carritos activos" },
-      { href: "/admin/pagos", label: "Métodos de pago" },
+      { href: "/admin/pedidos", label: "Todos los pedidos", soloAdmin: false },
+      { href: "/admin/carritos", label: "Carritos activos", soloAdmin: false },
+      { href: "/admin/pagos", label: "Métodos de pago", soloAdmin: false },
     ],
   },
   {
     label: "Comunicación",
     icon: IconBell,
+    soloAdmin: false,
     items: [
-      { href: "/admin/notificaciones", label: "Notificaciones" },
-      { href: "/admin/recordatorios", label: "Recordatorios" },
+      { href: "/admin/notificaciones", label: "Notificaciones", soloAdmin: false },
+      { href: "/admin/recordatorios", label: "Recordatorios", soloAdmin: false },
+    ],
+  },
+  {
+    label: "Calificaciones",
+    icon: IconStar,
+    soloAdmin: false,
+    items: [
+      { href: "/admin/calificaciones", label: "Reseñas de productos", soloAdmin: false },
     ],
   },
   {
     label: "Reportes & Sistema",
     icon: IconReport,
+    soloAdmin: false,
     items: [
-      { href: "/admin/reportes", label: "Reportes de ventas" },
-      { href: "/admin/auditoria", label: "Log de auditoría" },
-      { href: "/admin/configuracion", label: "Configuración" },
+      { href: "/admin/reportes", label: "Reportes de ventas", soloAdmin: false },
+      { href: "/admin/auditoria", label: "Log de auditoría", soloAdmin: true },
+      { href: "/admin/configuracion", label: "Configuración", soloAdmin: true },
     ],
   },
 ];
@@ -71,8 +86,19 @@ interface SidebarProps {
 
 export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const user = useUser();
+  const role = (user?.clientMetadata as { role?: string } | null)?.role ?? "operador";
+  const esAdmin = role === "admin";
 
-  const defaultOpen = navSections.reduce<Record<string, boolean>>((acc, section) => {
+  const seccionesVisibles = navSections
+    .filter((s) => esAdmin || !s.soloAdmin)
+    .map((s) => ({
+      ...s,
+      items: s.items.filter((i) => esAdmin || !i.soloAdmin),
+    }))
+    .filter((s) => s.items.length > 0);
+
+  const defaultOpen = seccionesVisibles.reduce<Record<string, boolean>>((acc, section) => {
     acc[section.label] = section.items.some(
       (item) => pathname === item.href || pathname.startsWith(item.href + "/")
     );
@@ -125,7 +151,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-2">
-        {navSections.map((section) => {
+        {seccionesVisibles.map((section) => {
           const isOpen = !!openSections[section.label];
           const hasActive = section.items.some(
             (item) => pathname === item.href || pathname.startsWith(item.href + "/")
@@ -196,13 +222,15 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         {/* Perfil */}
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] flex items-center justify-center text-xs font-bold text-[#F5E6D0] flex-shrink-0">
-            SA
+            {esAdmin ? "SA" : "OP"}
           </div>
           <div>
-            <p className="text-sm text-[#F5E6D0] font-medium">Super Admin</p>
+            <p className="text-sm text-[#F5E6D0] font-medium">
+              {esAdmin ? "Super Admin" : "Operador"}
+            </p>
             <p className="text-xs text-[#BC9968]">PREPE · Emotia</p>
             <span className="inline-block text-xs bg-[#BC9968]/25 text-[#BC9968] px-2 py-0.5 rounded-full tracking-wide uppercase mt-1">
-              Acceso total
+              {esAdmin ? "Acceso total" : "Acceso limitado"}
             </span>
           </div>
         </div>
@@ -301,6 +329,13 @@ function IconBell({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 14 14" fill="none">
       <path d="M7 1.5a4 4 0 014 4v2.5l1 1.5H2l1-1.5V5.5a4 4 0 014-4z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
       <path d="M5.5 11.5a1.5 1.5 0 003 0" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+function IconStar({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 14 14" fill="none">
+      <path d="M7 1.5l1.5 3.1 3.4.5-2.5 2.4.6 3.4L7 9.3l-3 1.6.6-3.4L2.1 5.1l3.4-.5L7 1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
     </svg>
   );
 }
