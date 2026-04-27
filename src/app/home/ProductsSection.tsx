@@ -30,7 +30,6 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
   const marqueeTestimonials = [...TESTIMONIALS, ...TESTIMONIALS, ...TESTIMONIALS]; 
   const marqueePartners = [...PARTNERS, ...PARTNERS, ...PARTNERS, ...PARTNERS]; 
 
-  // 👇 TEXTOS EXACTOS Y CON COLORES INDIVIDUALES 👇
   const STEPS = [
     { 
       num: "01", 
@@ -46,7 +45,7 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
       color: P.carmesi,
       icon: <Sparkles size={26} color={P.carmesi} strokeWidth={2}/>, 
       title: "Usa nuestro Asesor IA",   
-      desc: "¿No sabes qué elegir? Cuéntale a nuestra Inteligencia Artificial sobre esa persona especial y ella encontrará el match perfecto por ti en segundos." 
+      desc: "¿No sabes qué elegir? Cuéntale a nuestra IA sobre esa persona especial y ella encontrará el match perfecto en segundos." 
     },
     { 
       num: "03", 
@@ -54,7 +53,7 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
       color: P.granate,
       icon: <Gift size={26} color={P.granate} strokeWidth={2}/>, 
       title: "Personaliza y sorprende",        
-      desc: "Dale tu toque único añadiendo una dedicatoria. Selecciona nuestro empaque premium y nosotros garantizamos una entrega segura hasta sus manos." 
+      desc: "Dale tu toque único añadiendo una dedicatoria. Selecciona nuestro empaque premium y garantizamos una entrega segura hasta sus manos." 
     },
   ];
 
@@ -62,7 +61,7 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap');
-        .steps-grid { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 0; align-items: center; }
+        .steps-grid { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 0; align-items: start; }
         @keyframes scroll-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         .marquee-wrapper { overflow: hidden; width: 100%; position: relative; padding: 20px 0 40px; }
         .marquee-wrapper::before, .marquee-wrapper::after { content: ""; position: absolute; top: 0; bottom: 0; width: 80px; z-index: 2; pointer-events: none; }
@@ -70,7 +69,7 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
         .marquee-wrapper::after { right: 0; background: linear-gradient(to left, ${P.blanco}, transparent); }
         .marquee-track { display: flex; gap: 24px; width: max-content; animation: scroll-marquee 40s linear infinite; }
         .marquee-track-slow { display: flex; gap: 24px; width: max-content; animation: scroll-marquee 50s linear infinite; }
-        @media(max-width:860px) { .steps-grid { grid-template-columns: 1fr !important; gap: 20px; } .step-arrow { transform: rotate(90deg); padding: 10px 0 !important; } }
+        @media(max-width:860px) { .steps-grid { grid-template-columns: 1fr !important; gap: 40px; } .step-arrow { transform: rotate(90deg); padding: 10px 0 !important; justify-content: flex-start !important; padding-left: 30px !important; } }
       `}</style>
 
       {/* CARRUSEL INFINITO VITRINA */}
@@ -130,7 +129,7 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
         <div className="marquee-wrapper" style={{ padding: "10px 0" }}>
            <div className="marquee-track-slow" style={{ alignItems: "center" }}>
              {marqueePartners.map((partnerName, index) => (
-                <div key={`partner-${index}`} style={{ flex: "0 0 auto", padding: "0 40px", opacity: 0.4, filter: "grayscale(100%)", transition: "all 0.3s ease", cursor: "default" }} onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.filter = "grayscale(0%)"; e.currentTarget.style.transform = "scale(1.05)"; }} onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.4"; e.currentTarget.style.filter = "grayscale(100%)"; e.currentTarget.style.transform = "scale(1)"; }}>
+                <div key={`partner-${index}`} style={{ flex: "0 0 auto", padding: "0 40px", opacity: 0.4, filter: "grayscale(100%)", transition: "all 0.3s ease", cursor: "default" }} onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.filter = "grayscale(0%)"; }} onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.4"; e.currentTarget.style.filter = "grayscale(100%)"; }}>
                    <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.6rem", fontWeight: 900, color: P.bordo, whiteSpace: "nowrap" }}>{partnerName}</span>
                 </div>
              ))}
@@ -162,10 +161,10 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
         </div>
       </div>
 
-      {/* CÓMO FUNCIONA */}
+      {/* CÓMO FUNCIONA (DISEÑO INFOGRÁFICO - 0% BOTONES) */}
       <div id="como-funciona" style={{ background:`${P.beige}30`, padding:"80px 24px" }}>
         <div style={{ maxWidth:1320, margin:"0 auto" }}>
-          <motion.div initial={{ opacity:0, y:18 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} style={{ textAlign:"center", marginBottom:56 }}>
+          <motion.div initial={{ opacity:0, y:18 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} style={{ textAlign:"center", marginBottom:80 }}>
             <div style={{ display:"inline-flex", alignItems:"center", gap:12, marginBottom:12 }}>
               <span style={{ width:30, height:2, background:P.dorado, display:"inline-block" }} />
               <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.75rem", fontWeight:800, color:P.dorado, letterSpacing:"0.2em", textTransform:"uppercase" }}>La Experiencia</span>
@@ -173,50 +172,46 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
             </div>
             <h2 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"clamp(1.8rem, 3.5vw, 2.6rem)", fontWeight:900, color:P.bordo }}>El arte de regalar, en 3 pasos</h2>
           </motion.div>
+          
           <div className="steps-grid">
             {STEPS.map((s,i) => (
               <React.Fragment key={s.num}>
-                {/* 👇 TARJETAS CON DETALLE DE COLOR 👇 */}
+                {/* Flujo infográfico directamente sobre el fondo (sin contenedor blanco) */}
                 <motion.div 
-                  initial={{ opacity:0, y:26 }} 
+                  initial={{ opacity:0, y:20 }} 
                   whileInView={{ opacity:1, y:0 }} 
                   viewport={{ once:true }} 
                   transition={{ delay:i*0.15, duration:0.5 }} 
-                  whileHover={{ y:-8, boxShadow:`0 24px 50px ${s.color}20`, borderTopColor: s.color }} 
                   style={{ 
-                    backgroundColor:P.blanco, 
-                    borderRadius:24, 
-                    padding:"40px 32px", 
                     position:"relative", 
-                    overflow:"hidden", 
-                    border:`1px solid ${P.beige}`, 
-                    borderTop: `4px solid transparent`, // Borde superior oculto por defecto
-                    transition:"all 0.3s ease",
-                    cursor: "default", 
+                    padding:"0 20px", // Padding horizontal solo para espaciado
                     display: "flex",
                     flexDirection: "column",
-                    height: "100%"
+                    zIndex: 1
                   } as any}
                 >
-                  <div style={{ position:"absolute", top:-10, right:-10, fontFamily:"'Montserrat',sans-serif", fontSize:"8rem", fontWeight:900, color:`${P.granate}06`, lineHeight:1, userSelect:"none", pointerEvents:"none" }}>{s.num}</div>
+                  {/* Número gigante como marca de agua en el fondo */}
+                  <div style={{ position:"absolute", top:-50, left:20, fontFamily:"'Montserrat',sans-serif", fontSize:"10rem", fontWeight:900, color:`${P.granate}08`, lineHeight:0.8, userSelect:"none", pointerEvents:"none", zIndex: -1 }}>
+                    {s.num}
+                  </div>
                   
-                  {/* Icono con fondo sutil del color específico */}
-                  <div style={{ width:64, height:64, borderRadius:20, background:`${s.color}15`, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:20 }}>
+                  {/* Icono encapsulado para destacar */}
+                  <div style={{ width:64, height:64, borderRadius:20, background:P.blanco, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:24, boxShadow:`0 8px 24px ${s.color}15`, border:`1px solid ${s.color}20` }}>
                     {s.icon}
                   </div>
 
-                  {/* Badge o Etiqueta */}
-                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", fontWeight: 800, color: s.color, letterSpacing: "0.15em", marginBottom: 8 }}>
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", fontWeight: 800, color: s.color, letterSpacing: "0.15em", marginBottom: 12, display: "block" }}>
                     {s.badge}
                   </span>
                   
-                  <h3 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"1.2rem", fontWeight:800, color:P.bordo, marginBottom:12, lineHeight:1.3 }}>{s.title}</h3>
-                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"0.95rem", color:P.chocolate, lineHeight:1.7, margin:0, flexGrow: 1 }}>{s.desc}</p>
+                  <h3 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:"1.4rem", fontWeight:800, color:P.bordo, marginBottom:16, lineHeight:1.2 }}>{s.title}</h3>
+                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"1rem", color:P.chocolate, lineHeight:1.6, margin:0 }}>{s.desc}</p>
                 </motion.div>
 
+                {/* Flecha sutil sin el círculo tipo botón */}
                 {i < 2 && (
-                  <motion.div className="step-arrow" initial={{ opacity:0, scale:0.4 }} whileInView={{ opacity:1, scale:1 }} viewport={{ once:true }} transition={{ delay:i*0.15+0.3, type:"spring", stiffness:200 }} style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"0 16px" }}>
-                    <div style={{ width:48, height:48, borderRadius:"50%", background:P.blanco, border:`1.5px solid ${P.dorado}50`, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 8px 20px ${P.dorado}15`, color: P.dorado }}><ArrowRight size={20} strokeWidth={2}/></div>
+                  <motion.div className="step-arrow" initial={{ opacity:0 }} whileInView={{ opacity:1 }} viewport={{ once:true }} transition={{ delay:i*0.15+0.3 }} style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"0 10px", marginTop: "32px", zIndex: 1 }}>
+                    <div style={{ color: `${P.granate}30` }}><ArrowRight size={40} strokeWidth={1}/></div>
                   </motion.div>
                 )}
               </React.Fragment>
@@ -235,7 +230,7 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
         <div className="marquee-wrapper">
           <div className="marquee-track-slow">
             {marqueeTestimonials.map((t, index) => (
-              <motion.div key={`test-${index}`} whileHover={{ y: -6, borderColor: P.dorado, boxShadow: `0 12px 30px ${P.granate}10` }} style={{ flex: "0 0 380px", backgroundColor:`${P.beige}20`, borderRadius:24, padding:"32px", border:`1px solid ${P.beige}`, display: "flex", flexDirection: "column", justifyContent: "space-between", transition:"all 0.3s ease", cursor: "default" } as any}>
+              <motion.div key={`test-${index}`} whileHover={{ borderColor: P.dorado, boxShadow: `0 12px 30px ${P.granate}10` }} style={{ flex: "0 0 380px", backgroundColor:`${P.beige}20`, borderRadius:24, padding:"32px", border:`1px solid ${P.beige}`, display: "flex", flexDirection: "column", justifyContent: "space-between", transition:"all 0.3s ease", cursor: "default" } as any}>
                 <div>
                   <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>{[...Array(5)].map((_,i) => <Star key={i} size={14} fill={P.dorado} color={P.dorado} />)}</div>
                   <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"1.05rem", color:P.chocolate, lineHeight:1.7, fontStyle:"italic", marginBottom:24 }}>"{t.text}"</p>
