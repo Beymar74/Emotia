@@ -13,6 +13,17 @@ const STORAGE_KEY = "emotia_catalog_session";
 const SESSION_EVENT = "emotia-catalog-session";
 const LOGOUT_PENDING_KEY = "emotia-logout-pending";
 
+function getShortDisplayName(displayName: string | null | undefined, fallbackEmail?: string | null) {
+  const normalized = displayName?.trim() || "";
+  if (normalized) {
+    const parts = normalized.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return `${parts[0]} ${parts[1]}`;
+    return parts[0];
+  }
+
+  return fallbackEmail?.split("@")[0] || "Usuario";
+}
+
 function resolveReturnTo(override?: string) {
   if (override) return override;
   if (typeof window === "undefined") return "/producto";
@@ -70,7 +81,7 @@ function mapStackUserToSessionUser(
   if (!stackUser) return null;
 
   const email = stackUser.primaryEmail || "";
-  const name = stackUser.displayName?.trim() || email.split("@")[0] || "Usuario";
+  const name = getShortDisplayName(stackUser.displayName, email);
 
   return {
     name,
@@ -84,6 +95,21 @@ function isSameSessionUser(a: SessionUser | null, b: SessionUser | null) {
   if (!a || !b) return false;
 
   return a.name === b.name && a.email === b.email && a.provider === b.provider;
+}
+
+async function fetchProfileShortName() {
+  const response = await fetch("/api/auth/catalog/profile", {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!response.ok) return null;
+
+  const data = (await response.json()) as {
+    shortName?: string | null;
+  };
+
+  return data.shortName?.trim() || null;
 }
 
 export function useSession() {
@@ -113,6 +139,28 @@ export function useSession() {
           mapStackUserToSessionUser(currentUser, user?.provider || "google");
         const logoutPending = readLogoutPending();
 
+        if (logoutPending) {
+          if (mappedUser) {
+            if (attempt < 8) {
+              await new Promise((resolve) => window.setTimeout(resolve, 350));
+              await runSync(attempt + 1);
+              return;
+            }
+
+            setUser((prev) => (isSameSessionUser(prev, mappedUser) ? prev : mappedUser));
+            setIsLoggingOut(false);
+            writeStoredUser(mappedUser);
+            writeLogoutPending(false);
+            return;
+          }
+
+          setUser((prev) => (prev === null ? prev : null));
+          writeStoredUser(null);
+          setIsLoggingOut(false);
+          writeLogoutPending(false);
+          return;
+        }
+
         if (mappedUser) {
           setUser((prev) => (isSameSessionUser(prev, mappedUser) ? prev : mappedUser));
           setIsLoggingOut(false);
@@ -122,19 +170,8 @@ export function useSession() {
           return;
         }
 
-        if (logoutPending && attempt < 8) {
-          await new Promise((resolve) => window.setTimeout(resolve, 350));
-          await runSync(attempt + 1);
-          return;
-        }
-
         setUser((prev) => (prev === null ? prev : null));
         writeStoredUser(null);
-
-        if (logoutPending) {
-          setIsLoggingOut(false);
-          writeLogoutPending(false);
-        }
       };
 
       await runSync(0);
@@ -150,6 +187,38 @@ export function useSession() {
 
     writeStoredUser(partialSessionUser);
   }, [isLoggingOut, partialSessionUser]);
+
+  useEffect(() => {
+    if (isLoggingOut) return;
+
+    const currentSessionUser = stackSessionUser || partialSessionUser || user;
+    if (!currentSessionUser?.email) return;
+
+    let cancelled = false;
+
+    const syncProfileName = async () => {
+      try {
+        const shortName = await fetchProfileShortName();
+        if (!shortName || cancelled) return;
+
+        const nextUser: SessionUser = {
+          ...currentSessionUser,
+          name: shortName,
+        };
+
+        setUser((prev) => (isSameSessionUser(prev, nextUser) ? prev : nextUser));
+        writeStoredUser(nextUser);
+      } catch {
+        // Si falla la consulta del perfil, mantenemos la sesión actual.
+      }
+    };
+
+    void syncProfileName();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggingOut, partialSessionUser, stackSessionUser, user]);
 
   useEffect(() => {
     void syncSession();
@@ -193,11 +262,13 @@ export function useSession() {
       const result = await stackApp.signInWithCredential({ email, password });
 
       if (result.status === "ok") {
-        const nextUser: SessionUser = {
-          name: email.split("@")[0] || "Usuario",
-          email,
-          provider: "credential",
-        };
+        const currentUser = await stackApp.getUser();
+        const nextUser =
+          mapStackUserToSessionUser(currentUser, "credential") || {
+            name: email.split("@")[0] || "Usuario",
+            email,
+            provider: "credential" as const,
+          };
 
         setUser(nextUser);
         setIsLoggingOut(false);
@@ -216,7 +287,7 @@ export function useSession() {
 
       if (result.status === "ok") {
         const nextUser: SessionUser = {
-          name: name.trim() || email.split("@")[0] || "Usuario",
+          name: getShortDisplayName(name, email),
           email,
           provider: "credential",
         };
@@ -241,14 +312,35 @@ export function useSession() {
       writeStoredUser(null);
 
       try {
-        await stackApp.signOut({ redirectUrl: targetPath });
+        const internalStackApp = stackApp as typeof stackApp & {
+          _getSession?: () => Promise<unknown>;
+          _interface?: {
+            signOut?: (session: unknown) => Promise<void>;
+          };
+        };
+
+        if (internalStackApp._getSession && internalStackApp._interface?.signOut) {
+          const session = await internalStackApp._getSession();
+          await internalStackApp._interface.signOut(session);
+        } else {
+          await stackApp.signOut({ redirectUrl: targetPath });
+          return;
+        }
+
+        await syncSession();
+        window.dispatchEvent(new CustomEvent(SESSION_EVENT));
+
+        if (targetPath !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+          window.location.replace(targetPath);
+        }
       } catch (error) {
         setIsLoggingOut(false);
         writeLogoutPending(false);
+        void syncSession();
         throw error;
       }
     },
-    [stackApp]
+    [stackApp, syncSession]
   );
 
   return {

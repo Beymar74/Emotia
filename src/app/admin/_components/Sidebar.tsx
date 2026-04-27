@@ -64,7 +64,7 @@ const navSections = [
     icon: IconStar,
     soloAdmin: false,
     items: [
-      { href: "/admin/calificaciones", label: "Reseñas de productos", soloAdmin: false },
+      { href: "/admin/calificaciones", label: "reseñas de productos", soloAdmin: false },
     ],
   },
   {

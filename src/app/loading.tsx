@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useState } from "react";
 
@@ -8,31 +9,32 @@ const messages = [
   "Casi listo para ti...",
 ];
 
+const LOADER_DURATION_MS = 2800;
+
 export default function Loading() {
   const [progress, setProgress] = useState(0);
   const [msgIndex, setMsgIndex] = useState(0);
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    const duration = 2800;
     const steps = 100;
-    const interval = duration / steps;
+    const interval = LOADER_DURATION_MS / steps;
 
     let step = 0;
-    const timer = setInterval(() => {
-      step++;
+    const timer = window.setInterval(() => {
+      step += 1;
       setProgress(step);
 
       if (step === 33) setMsgIndex(1);
       if (step === 66) setMsgIndex(2);
 
       if (step >= steps) {
-        clearInterval(timer);
-        setTimeout(() => setVisible(false), 400);
+        window.clearInterval(timer);
+        window.setTimeout(() => setVisible(false), 400);
       }
     }, interval);
 
-    return () => clearInterval(timer);
+    return () => window.clearInterval(timer);
   }, []);
 
   return (

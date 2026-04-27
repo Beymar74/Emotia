@@ -25,7 +25,7 @@ export default async function CalificacionesPage() {
   });
 
   const total = detalles.length;
-  const conResena = detalles.filter((d) => d.resena && d.resena.trim() !== "").length;
+  const conresena = detalles.filter((d) => d.resena && d.resena.trim() !== "").length;
   const promedio =
     total > 0
       ? detalles.reduce((acc, d) => acc + (d.calificacion ?? 0), 0) / total
@@ -52,10 +52,10 @@ export default async function CalificacionesPage() {
           Calidad & Feedback
         </p>
         <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">
-          Calificaciones y Reseñas
+          Calificaciones y reseñas
         </h1>
         <p className="text-sm text-[#7A5260] mt-1">
-          Reseñas y valoraciones de clientes sobre los productos adquiridos.
+          reseñas y valoraciones de clientes sobre los productos adquiridos.
         </p>
       </div>
 
@@ -64,8 +64,8 @@ export default async function CalificacionesPage() {
         {[
           { label: "Total reseñas", valor: total, color: "#8E1B3A" },
           { label: "Promedio general", valor: promedio.toFixed(1) + " ★", color: "#BC9968" },
-          { label: "Con comentario", valor: conResena, color: "#5A0F24" },
-          { label: "Sin comentario", valor: total - conResena, color: "#7A5260" },
+          { label: "Con comentario", valor: conresena, color: "#5A0F24" },
+          { label: "Sin comentario", valor: total - conresena, color: "#7A5260" },
         ].map((s) => (
           <div
             key={s.label}
@@ -108,11 +108,10 @@ export default async function CalificacionesPage() {
           </div>
         </div>
 
-        {/* Tabla de reseñas */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-[#8E1B3A]/10 overflow-hidden">
           <div className="px-6 py-4 border-b border-[#8E1B3A]/5 bg-[#FDFBF9]/50 flex justify-between items-center">
             <h2 className="font-serif text-lg font-bold text-[#5A0F24]">
-              Últimas Reseñas
+              Últimas reseñas
             </h2>
             <span className="bg-[#8E1B3A]/10 text-[#8E1B3A] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-tighter">
               {total} en total
@@ -128,7 +127,7 @@ export default async function CalificacionesPage() {
               <table className="w-full text-left border-separate border-spacing-0">
                 <thead>
                   <tr className="bg-[#FDFBF9]/30">
-                    {["Producto", "Cliente", "Calificación", "Reseña", "Fecha"].map((h) => (
+                    {["Producto", "Cliente", "Calificación", "resena", "Fecha"].map((h) => (
                       <th
                         key={h}
                         className="px-5 py-3 text-[10px] tracking-[2px] uppercase text-[#7A5260] font-bold border-b border-[#8E1B3A]/5"

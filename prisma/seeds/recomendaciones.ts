@@ -9,11 +9,17 @@ export async function seedRecomendaciones(prisma: PrismaClient) {
     const evelyn = usuarios.find((u: any) => u.email === 'evelyn@test.com')!
     const mauricio = usuarios.find((u: any) => u.email === 'mauricio@test.com')!
 
-    const collar = productos.find((p: any) => p.nombre === 'Collar de plata artesanal')!
-    const chocolates = productos.find((p: any) => p.nombre === 'Caja de chocolates artesanales')!
-    const rosas = productos.find((p: any) => p.nombre === 'Ramo de rosas rojas')!
-    const audifonos = productos.find((p: any) => p.nombre === 'Audífonos personalizados')!
-    const pulsera = productos.find((p: any) => p.nombre === 'Pulsera tejida con nombre')!
+    const findProducto = (nombre: string) => {
+        const producto = productos.find((p: any) => p.nombre === nombre)
+        if (!producto) throw new Error(`Producto no encontrado en seedRecomendaciones: ${nombre}`)
+        return producto
+    }
+
+    const cadena = findProducto('Juego de cadena de aleación-BM23')
+    const bouquetMama = findProducto('MINI BOUQUET GRACIAS MAMA')
+    const rosas = findProducto('Ramo de 6 rosas')
+    const auriculares = findProducto('Auriculares plegables')
+    const llaveroCorazon = findProducto('Llavero con espejo en forma de corazón de la colección MIKKO')
 
     await prisma.recomendaciones.createMany({
         skipDuplicates: true,
@@ -26,9 +32,9 @@ export async function seedRecomendaciones(prisma: PrismaClient) {
                 personalidad: ['romántico', 'detallista'],
                 ocasion: 'aniversario',
                 presupuesto_min: 100.00,
-                presupuesto_max: 200.00,
-                productos_sugeridos: [collar.id, rosas.id, chocolates.id],
-                producto_elegido: collar.id,
+                presupuesto_max: 250.00,
+                productos_sugeridos: [cadena.id, rosas.id, llaveroCorazon.id],
+                producto_elegido: cadena.id,
                 convertida_en_compra: true,
             },
             {
@@ -38,10 +44,10 @@ export async function seedRecomendaciones(prisma: PrismaClient) {
                 destinatario_genero: 'mujer',
                 personalidad: ['detallista', 'romántico'],
                 ocasion: 'día de la madre',
-                presupuesto_min: 50.00,
-                presupuesto_max: 150.00,
-                productos_sugeridos: [chocolates.id, rosas.id, pulsera.id],
-                producto_elegido: chocolates.id,
+                presupuesto_min: 100.00,
+                presupuesto_max: 250.00,
+                productos_sugeridos: [bouquetMama.id, rosas.id, llaveroCorazon.id],
+                producto_elegido: bouquetMama.id,
                 convertida_en_compra: true,
             },
             {
@@ -51,10 +57,10 @@ export async function seedRecomendaciones(prisma: PrismaClient) {
                 destinatario_genero: 'hombre',
                 personalidad: ['tecnológico', 'aventurero'],
                 ocasion: 'cumpleaños',
-                presupuesto_min: 200.00,
-                presupuesto_max: 300.00,
-                productos_sugeridos: [audifonos.id],
-                producto_elegido: audifonos.id,
+                presupuesto_min: 100.00,
+                presupuesto_max: 200.00,
+                productos_sugeridos: [auriculares.id],
+                producto_elegido: auriculares.id,
                 convertida_en_compra: true,
             },
             {
@@ -65,8 +71,8 @@ export async function seedRecomendaciones(prisma: PrismaClient) {
                 personalidad: ['romántico'],
                 ocasion: 'aniversario',
                 presupuesto_min: 50.00,
-                presupuesto_max: 100.00,
-                productos_sugeridos: [rosas.id, pulsera.id, chocolates.id],
+                presupuesto_max: 150.00,
+                productos_sugeridos: [rosas.id, llaveroCorazon.id, cadena.id],
                 producto_elegido: rosas.id,
                 convertida_en_compra: false,
             },

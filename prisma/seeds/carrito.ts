@@ -8,20 +8,25 @@ export async function seedCarrito(prisma: PrismaClient) {
     const einard = usuarios.find((u: any) => u.email === 'einard@test.com')!
     const maria = usuarios.find((u: any) => u.email === 'maria.quispe@test.com')!
 
-    const pulsera = productos.find((p: any) => p.nombre === 'Pulsera tejida con nombre')!
-    const taza = productos.find((p: any) => p.nombre === 'Taza con foto personalizada')!
-    const cactus = productos.find((p: any) => p.nombre === 'Cactus decorativo')!
-    const torta = productos.find((p: any) => p.nombre === 'Torta personalizada')!
+    const findProducto = (nombre: string) => {
+        const producto = productos.find((p: any) => p.nombre === nombre)
+        if (!producto) throw new Error(`Producto no encontrado en seedCarrito: ${nombre}`)
+        return producto
+    }
 
-    // subtotal es columna GENERATED en Postgres, no se puede insertar manualmente
+    const llaveroCorazon = findProducto('Llavero con espejo en forma de corazón de la colección MIKKO')
+    const espejoBarbie = findProducto('Espejo de mano de la colección Barbie')
+    const maceta = findProducto('La Maceta Serenidad Clásica')
+    const perfumeSurf = findProducto('Surf Secret Code 100 ml')
+
     await prisma.$executeRaw`
         INSERT INTO carrito
-            (usuario_id, producto_id, cantidad, mensaje_personal, empaque_especial, precio_unitario)
+            (usuario_id, producto_id, cantidad, mensaje_personal, empaque_especial, precio_unitario, subtotal)
         VALUES
-            (${einard.id}, ${pulsera.id}, 1, 'Para mi hermana', true, 54.00),
-            (${einard.id}, ${taza.id}, 2, 'Recuerdo especial', false, 48.00),
-            (${maria.id}, ${cactus.id}, 1, null, true, 42.00),
-            (${maria.id}, ${torta.id}, 1, 'Feliz cumple papá', false, 180.00)
+            (${einard.id}, ${llaveroCorazon.id}, 1, 'Para mi hermana', true, 47.00, 47.00),
+            (${einard.id}, ${espejoBarbie.id}, 2, 'Recuerdo especial', false, 71.00, 142.00),
+            (${maria.id}, ${maceta.id}, 1, null, true, 50.00, 50.00),
+            (${maria.id}, ${perfumeSurf.id}, 1, 'Feliz cumple papá', false, 150.00, 150.00)
         ON CONFLICT (usuario_id, producto_id) DO NOTHING
     `
 }
