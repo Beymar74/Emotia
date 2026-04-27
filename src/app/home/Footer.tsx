@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { ArrowRight, Mail, MapPin, Gift, Instagram, Facebook, Heart, X } from "lucide-react";
+import { ArrowRight, Mail, MapPin, Gift, Heart, X } from "lucide-react";
+import { FaInstagram, FaFacebook } from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
 
 const P = {
@@ -99,8 +100,8 @@ export default function Footer() {
                 La primera plataforma inteligente de regalos en Bolivia. Sorprende con detalles únicos, empaque premium y entrega garantizada.
               </p>
               <div className="flex gap-4 pt-2">
-                <a href="https://www.instagram.com/emotia.gifts1/" target="_blank" rel="noopener noreferrer" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}><Instagram size={20} /></a>
-                <a href="#" target="_blank" rel="noopener noreferrer" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}><Facebook size={20} /></a>
+                <a href="https://www.instagram.com/emotia.gifts1/" target="_blank" rel="noopener noreferrer" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}><FaInstagram size={20} /></a>
+                <a href="#" target="_blank" rel="noopener noreferrer" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}><FaFacebook size={20} /></a>
                 <a href="https://www.tiktok.com/@emotia.gifts0" target="_blank" rel="noopener noreferrer" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.01.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 2.23-1.13 4.41-2.91 5.67-1.78 1.25-4.14 1.58-6.19 1.15-2.05-.43-3.8-1.74-4.81-3.55-1.02-1.81-1.15-4.06-.55-5.99.6-1.92 2.1-3.48 3.96-4.22 1.86-.74 4.02-.75 5.89-.13v4.06c-1.07-.46-2.32-.41-3.32.14-.99.55-1.68 1.53-1.85 2.66-.17 1.13.16 2.3.89 3.16.73.86 1.85 1.3 2.97 1.28 1.12-.02 2.19-.52 2.87-1.4.67-.88 1.01-2.01.99-3.13.04-4.99.02-9.98.02-14.98z"/>
