@@ -1,12 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-// 1. Iconos de Interfaz (Lucide) - SIN las redes sociales
-import { ArrowRight, Mail, MapPin, Phone, Gift, Heart, X } from "lucide-react";
-// 2. Iconos de Marcas (React Icons - FontAwesome 6)
-// POR ESTO (La ruta estable sin el 6):
-import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa6";
+import { useRouter, usePathname } from "next/navigation";
+import { ArrowRight, Mail, MapPin, Gift, Instagram, Facebook, Heart, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const P = {
@@ -22,20 +18,61 @@ const P = {
 
 export default function Footer() {
   const router = useRouter();
+  const pathname = usePathname();
   const [modalAbierto, setModalAbierto] = useState<"terminos" | "privacidad" | "cookies" | null>(null);
 
-  const enlacesPrincipales = [
-    { label: "Catálogo", path: "/producto" },
-    { label: "Para Empresas", path: "/business" },
-    { label: "Nosotros", path: "/nosotros" },
-    { label: "Ayuda", path: "/ayuda" }
+  // 👇 ENLACES EXCLUSIVOS PARA LA PÁGINA PRINCIPAL 👇
+  const enlacesInicio = [
+    { label: "Inicio", path: "/" },
+    { label: "Catálogo Destacado", path: "/#productos" },
+    { label: "La Experiencia", path: "/#como-funciona" },
+    { label: "Únete a Emotia", path: "/#unete" }
   ];
+
+  // 👇 ENLACES EXCLUSIVOS PARA "NOSOTROS" (Índice estricto de la página) 👇
+  const enlacesNosotros = [
+    { label: "Nuestra Esencia", path: "/nosotros#esencia" },
+    { label: "Nuestra Misión", path: "/nosotros#mision" },
+    { label: "El Equipo", path: "/nosotros#equipo" },
+    { label: "Cómo Funciona", path: "/nosotros#propuesta" }
+  ];
+
+  // El footer decide qué lista usar dependiendo de dónde estamos
+  const enlacesActivos = pathname === "/nosotros" ? enlacesNosotros : enlacesInicio;
 
   const enlacesLegales = [
     { id: "terminos", label: "Términos de Servicio" },
     { id: "privacidad", label: "Política de Privacidad" },
     { id: "cookies", label: "Gestión de Cookies" }
   ];
+
+  // 👇 LÓGICA DE NAVEGACIÓN MEJORADA 👇
+  const handleNavegacion = (path: string) => {
+    if (path === "/") {
+      if (pathname === "/") window.scrollTo({ top: 0, behavior: "smooth" });
+      else router.push("/");
+      return;
+    }
+
+    if (path.includes("#")) {
+      const [rutaDestino, sectionId] = path.split("#");
+      const rutaLimpia = rutaDestino === "" ? "/" : rutaDestino;
+
+      // Si ya estamos en la página correcta, hacemos scroll suave
+      if (pathname === rutaLimpia) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        } else {
+          router.push(path); // Por si acaso no encuentra el ID
+        }
+      } else {
+        router.push(path); // Navega a la otra página y salta a la sección
+      }
+    } else {
+      router.push(path);
+    }
+  };
 
   return (
     <>
@@ -51,49 +88,23 @@ export default function Footer() {
           <div className="max-w-[1320px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-12 relative z-10 border-b pb-16" style={{ borderColor: `rgba(255,255,255,0.08)` }}>
             
             <div className="md:col-span-4 space-y-6">
-              {/* 👇 LOGO CORREGIDO: Usando el extendido oficial 👇 */}
               <img 
                 src="/logo/logoextendido.png" 
                 alt="Emotia Logo" 
                 className="h-10 object-contain cursor-pointer transition-transform hover:scale-105" 
                 style={{ filter: "brightness(0) invert(1)" }} 
-                onClick={() => router.push("/")}
+                onClick={() => handleNavegacion("/")}
               />
               <p className="text-sm leading-relaxed max-w-sm" style={{ color: P.beige, opacity: 0.8, fontFamily: "'DM Sans', sans-serif" }}>
                 La primera plataforma inteligente de regalos en Bolivia. Sorprende con detalles únicos, empaque premium y entrega garantizada.
               </p>
               <div className="flex gap-4 pt-2">
-                {/* INSTAGRAM */}
-                <a 
-                  href="https://www.instagram.com/emotia.gifts1/" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="p-3 rounded-full transition-colors hover:bg-white/10 flex items-center justify-center" 
-                  style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}
-                >
-                  <FaInstagram size={20} />
-                </a>
-
-                {/* FACEBOOK */}
-                <a 
-                  href="#" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="p-3 rounded-full transition-colors hover:bg-white/10 flex items-center justify-center" 
-                  style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}
-                >
-                  <FaFacebook size={20} />
-                </a>
-
-                {/* TIKTOK */}
-                <a 
-                  href="https://www.tiktok.com/@emotia.gifts0" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="p-3 rounded-full transition-colors hover:bg-white/10 flex items-center justify-center" 
-                  style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}
-                >
-                  <FaTiktok size={19} /> {/* Tamaño 19 para que encaje perfecto con los demás */}
+                <a href="https://www.instagram.com/emotia.gifts1/" target="_blank" rel="noopener noreferrer" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}><Instagram size={20} /></a>
+                <a href="#" target="_blank" rel="noopener noreferrer" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer" }}><Facebook size={20} /></a>
+                <a href="https://www.tiktok.com/@emotia.gifts0" target="_blank" rel="noopener noreferrer" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: "rgba(0,0,0,0.25)", color: P.beige, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.01.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 2.23-1.13 4.41-2.91 5.67-1.78 1.25-4.14 1.58-6.19 1.15-2.05-.43-3.8-1.74-4.81-3.55-1.02-1.81-1.15-4.06-.55-5.99.6-1.92 2.1-3.48 3.96-4.22 1.86-.74 4.02-.75 5.89-.13v4.06c-1.07-.46-2.32-.41-3.32.14-.99.55-1.68 1.53-1.85 2.66-.17 1.13.16 2.3.89 3.16.73.86 1.85 1.3 2.97 1.28 1.12-.02 2.19-.52 2.87-1.4.67-.88 1.01-2.01.99-3.13.04-4.99.02-9.98.02-14.98z"/>
+                  </svg>
                 </a>
               </div>
             </div>
@@ -101,12 +112,12 @@ export default function Footer() {
             <div className="md:col-span-2 space-y-6">
               <h4 className="text-sm font-black uppercase tracking-widest" style={{ color: P.dorado, fontFamily: "'DM Sans', sans-serif" }}>Navegación</h4>
               <ul className="space-y-4">
-                {enlacesPrincipales.map((enlace) => (
+                {enlacesActivos.map((enlace) => (
                   <li key={enlace.label}>
                     <motion.button 
                       whileHover={{ x: 8 }} 
                       transition={{ type: "spring", stiffness: 300 }}
-                      onClick={() => router.push(enlace.path)}
+                      onClick={() => handleNavegacion(enlace.path)}
                       className="text-sm font-medium transition-colors hover:text-white flex items-center gap-2"
                       style={{ color: P.beige, opacity: 0.7, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
                     >

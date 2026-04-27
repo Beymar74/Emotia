@@ -26,7 +26,12 @@ export default function HomeClientWrapper({ initialProducts }: { initialProducts
       <Navbar onOpenLogin={openLogin} onOpenRegister={openRegister} />
       <HeroSection onOpenRegister={openRegister} />
       <ProductsSection initialProducts={initialProducts} />
-      <JoinSection onOpenRegister={openRegister} />
+      
+      {/* 👇 AQUÍ LE PONEMOS EL ID "unete" PARA QUE EL FOOTER LO ENCUENTRE 👇 */}
+      <div id="unete">
+        <JoinSection onOpenRegister={openRegister} />
+      </div>
+      
       <Footer />
       <AuthModal 
         isOpen={isAuthOpen} 
