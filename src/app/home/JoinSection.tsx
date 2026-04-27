@@ -26,7 +26,7 @@ export default function JoinSection({ onOpenRegister }: JoinSectionProps) {
     {
       id:      "cliente",
       icon:    <User size={16} strokeWidth={2} />,
-      imgSrc:  "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=800&auto=format&fit=crop",
+      imgSrc:  "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777328641/emotia_store_lqk7hw.jpg",
       title:   "Soy cliente",
       desc:    "Descubre cientos de regalos artesanales bolivianos y usa nuestra IA para encontrar el match perfecto. Entrega hoy en La Paz.",
       btn:     "Crear cuenta gratis",
