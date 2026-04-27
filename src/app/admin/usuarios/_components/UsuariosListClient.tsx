@@ -78,6 +78,7 @@ export default function UsuariosListClient({ usuarios }: UsuariosListClientProps
           >
             <option value="Todos">Todos los Tipos</option>
             <option value="Usuario">Usuario</option>
+            <option value="Operador">Operador</option>
             <option value="Admin">Admin</option>
           </select>
           <select 
@@ -127,6 +128,7 @@ export default function UsuariosListClient({ usuarios }: UsuariosListClientProps
                   const estadoActual = u.activo ? "activo" : "suspendido";
                   const esGoogle = u.google_id !== null;
                   const esAdmin = u.tipo === "admin";
+                  const esOperador = u.tipo === "operador";
 
                   return (
                     <tr key={u.id} className="hover:bg-[#FDFBF9] transition-colors group">
@@ -157,10 +159,14 @@ export default function UsuariosListClient({ usuarios }: UsuariosListClientProps
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1.5">
-                          <span className={`inline-block w-fit px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${esAdmin ? "bg-[#5A0F24] text-white" : "bg-[#E6F1FB] text-[#185FA5]"}`}>
+                          <span className={`inline-block w-fit px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                            esAdmin ? "bg-[#5A0F24] text-white" :
+                            esOperador ? "bg-[#2D5C7A] text-white" :
+                            "bg-[#E6F1FB] text-[#185FA5]"
+                          }`}>
                             {u.tipo}
                           </span>
-                          {!esAdmin && (
+                          {!esAdmin && !esOperador && (
                             <span className={`inline-block w-fit px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${planPill[(u.plan || 'basico') as Plan]}`}>
                               {u.plan}
                             </span>
@@ -179,8 +185,8 @@ export default function UsuariosListClient({ usuarios }: UsuariosListClientProps
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-[#5A0F24]">{u.tipo === 'admin' ? "—" : u._count?.pedidos || 0}</span>
-                          {u.tipo !== 'admin' && <span className="text-[10px] text-[#7A5260] uppercase tracking-tighter">órdenes</span>}
+                          <span className="text-sm font-bold text-[#5A0F24]">{(esAdmin || esOperador) ? "—" : u._count?.pedidos || 0}</span>
+                          {!esAdmin && !esOperador && <span className="text-[10px] text-[#7A5260] uppercase tracking-tighter">órdenes</span>}
                         </div>
                       </td>
                       <td className="px-6 py-4">

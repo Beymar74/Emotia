@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { Loader2, ExternalLink, Edit3, ShieldOff, ShieldCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toggleSuspensionProveedor } from "../../actions";
 import ModalConfirmacion from "@/app/admin/productos/_components/ModalConfirmacion";
 
@@ -10,12 +11,32 @@ interface ActividadProveedoresClientProps {
   proveedoresReales: any[];
 }
 
+// Avatar reutilizable: foto si tiene logo_url, iniciales si no
+function ProveedorAvatar({ nombre, logoUrl, size = "md" }: { nombre: string; logoUrl?: string | null; size?: "sm" | "md" }) {
+  const dim = size === "sm" ? "w-8 h-8" : "w-9 h-9";
+  const rounded = "rounded-lg";
+  const initials = nombre ? nombre.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() : "PR";
+
+  if (logoUrl) {
+    return (
+      <div className={`${dim} ${rounded} overflow-hidden flex-shrink-0 relative`}>
+        <Image src={logoUrl} alt={nombre} fill className="object-cover" sizes="40px" />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${dim} ${rounded} bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-xs font-bold text-white flex-shrink-0`}>
+      {initials}
+    </div>
+  );
+}
+
 export default function ActividadProveedoresClient({ proveedoresReales }: ActividadProveedoresClientProps) {
   const [isPending, startTransition] = useTransition();
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<any>(null);
 
-  // --- HANDLERS ---
   const handleToggleEstado = (p: any) => {
     setSelectedProvider(p);
     setModalOpen(true);
@@ -23,17 +44,10 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
 
   const confirmarCambioEstado = () => {
     if (!selectedProvider) return;
-    
     startTransition(async () => {
       await toggleSuspensionProveedor(selectedProvider.id, selectedProvider.estado);
       setModalOpen(false);
     });
-  };
-
-  // --- HELPERS REPLICADOS (Para mantener coherencia visual) ---
-  const getInitials = (nombre: string) => {
-    if (!nombre) return "PR";
-    return nombre.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
   };
 
   const getTiempoTranscurrido = (fecha: Date | string) => {
@@ -50,7 +64,6 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
 
   return (
     <div className="relative">
-      {/* Overlay de Carga Global */}
       {isPending && (
         <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center rounded-xl">
           <Loader2 className="w-8 h-8 animate-spin text-[#8E1B3A]" />
@@ -68,9 +81,7 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
             <div key={p.id} className="border border-[#8E1B3A]/8 rounded-xl p-4 space-y-3 bg-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 text-left">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                    {getInitials(p.nombre_negocio)}
-                  </div>
+                  <ProveedorAvatar nombre={p.nombre_negocio} logoUrl={p.logo_url} size="md" />
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-[#2A0E18]">{p.nombre_negocio}</p>
                     <p className="text-xs text-[#7A5260]">★ {p.calificacion_prom ? Number(p.calificacion_prom).toFixed(1) : "—"}</p>
@@ -99,23 +110,17 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
               </div>
 
               <div className="flex flex-wrap items-center gap-2 pt-1">
-                <Link
-                  href={`/admin/proveedores/actividad/${p.id}`}
-                  className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-bold hover:bg-[#8E1B3A]/15 transition-all"
-                >
+                <Link href={`/admin/proveedores/actividad/${p.id}`} className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-bold hover:bg-[#8E1B3A]/15 transition-all">
                   Ver
                 </Link>
-                <Link
-                  href={`/admin/proveedores/${p.id}/editar`}
-                  className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-[#F1EFE8] text-[#7A5260] font-bold hover:bg-[#E5E3DC] transition-all"
-                >
+                <Link href={`/admin/proveedores/${p.id}/editar`} className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-[#F1EFE8] text-[#7A5260] font-bold hover:bg-[#E5E3DC] transition-all">
                   Editar
                 </Link>
                 <button
                   onClick={() => handleToggleEstado(p)}
                   className={`flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg font-bold transition-all ${
-                    p.estado === 'aprobado' 
-                      ? "bg-[#FBF0F0] text-[#A32D2D] hover:bg-[#A32D2D]/10" 
+                    p.estado === 'aprobado'
+                      ? "bg-[#FBF0F0] text-[#A32D2D] hover:bg-[#A32D2D]/10"
                       : "bg-[#EEF8F0] text-[#2D7A47] hover:bg-[#2D7A47]/10"
                   }`}
                 >
@@ -149,9 +154,7 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
                 <tr key={p.id} className="hover:bg-[#FAF3EC]/50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                        {getInitials(p.nombre_negocio)}
-                      </div>
+                      <ProveedorAvatar nombre={p.nombre_negocio} logoUrl={p.logo_url} size="sm" />
                       <span className="text-sm font-medium text-[#2A0E18]">{p.nombre_negocio}</span>
                     </div>
                   </td>
@@ -170,30 +173,21 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
                     </span>
                   </td>
                   <td className="px-4 py-3 text-xs text-[#7A5260]">
-                    Hace {getTiempoTranscurrido(p.updated_at)}
+                    {getTiempoTranscurrido(p.updated_at)}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <Link 
-                        href={`/admin/proveedores/actividad/${p.id}`}
-                        title="Ver Perfil"
-                        className="px-3 py-1.5 rounded-lg bg-[#8E1B3A]/5 text-[#8E1B3A] text-xs font-bold hover:bg-[#8E1B3A] hover:text-white transition-all shadow-sm active:scale-95"
-                      >
+                      <Link href={`/admin/proveedores/actividad/${p.id}`} className="px-3 py-1.5 rounded-lg bg-[#8E1B3A]/5 text-[#8E1B3A] text-xs font-bold hover:bg-[#8E1B3A] hover:text-white transition-all shadow-sm active:scale-95">
                         Ver
                       </Link>
-                      <Link 
-                        href={`/admin/proveedores/${p.id}/editar`}
-                        title="Editar"
-                        className="px-3 py-1.5 rounded-lg bg-[#FAF3EC] text-[#BC9968] text-xs font-bold hover:bg-[#BC9968] hover:text-white transition-all shadow-sm active:scale-95"
-                      >
+                      <Link href={`/admin/proveedores/${p.id}/editar`} className="px-3 py-1.5 rounded-lg bg-[#FAF3EC] text-[#BC9968] text-xs font-bold hover:bg-[#BC9968] hover:text-white transition-all shadow-sm active:scale-95">
                         Editar
                       </Link>
-                      <button 
+                      <button
                         onClick={() => handleToggleEstado(p)}
-                        title={p.estado === 'aprobado' ? "Suspender" : "Activar"}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95 ${
-                          p.estado === 'aprobado' 
-                            ? "bg-[#FBF0F0] text-[#A32D2D] hover:bg-[#A32D2D] hover:text-white" 
+                          p.estado === 'aprobado'
+                            ? "bg-[#FBF0F0] text-[#A32D2D] hover:bg-[#A32D2D] hover:text-white"
                             : "bg-[#EEF8F0] text-[#2D7A47] hover:bg-[#2D7A47] hover:text-white"
                         }`}
                       >
@@ -208,13 +202,12 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
         </table>
       </div>
 
-      {/* Modal de Confirmación Reutilizable */}
-      <ModalConfirmacion 
+      <ModalConfirmacion
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onConfirm={confirmarCambioEstado}
         titulo={selectedProvider?.estado === "aprobado" ? "Suspender Proveedor" : "Activar Proveedor"}
-        mensaje={selectedProvider?.estado === "aprobado" 
+        mensaje={selectedProvider?.estado === "aprobado"
           ? `¿Estás seguro de que deseas suspender a "${selectedProvider?.nombre_negocio}"? No podrá recibir nuevos pedidos ni aparecerá en la tienda.`
           : `¿Deseas activar nuevamente a "${selectedProvider?.nombre_negocio}"? Volverá a estar visible para los clientes.`
         }
