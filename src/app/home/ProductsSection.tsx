@@ -141,7 +141,7 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
       {/* EMOTIA BUSINESS */}
       <div style={{ padding:"20px 24px 80px", background:P.blanco }}>
         <div style={{ maxWidth:1320, margin:"0 auto" }}>
-          <motion.div initial={{ opacity:0, y:22 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} style={{ borderRadius:24, background:`linear-gradient(135deg, ${P.bordo} 0%, ${P.granate} 100%)`, padding:"56px 48px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:32, flexWrap:"wrap", position:"relative", overflow:"hidden", boxShadow:`0 24px 60px ${P.bordo}30` }}>
+          <motion.div initial={{ opacity:0, y:22 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} style={{ borderRadius:24, backgroundImage:`linear-gradient(135deg, ${P.bordo} 0%, ${P.granate} 100%)`, padding:"56px 48px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:32, flexWrap:"wrap", position:"relative", overflow:"hidden", boxShadow:`0 24px 60px ${P.bordo}30` } as any}>
             <div style={{ position:"absolute", top:-60, right:-60, width:300, height:300, borderRadius:"50%", border:`40px solid ${P.blanco}05` }} />
             <div style={{ position:"absolute", bottom:-40, left:20, width:150, height:150, borderRadius:"50%", border:`20px solid ${P.dorado}10` }} />
             <div style={{ position:"relative", zIndex:2, maxWidth: 600 }}>
@@ -154,7 +154,7 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
               </div>
             </div>
             <div style={{ position:"relative", zIndex:2, flexShrink:0 }}>
-              <motion.button whileHover={{ scale:1.05, y:-2 }} whileTap={{ scale:0.97 }} onClick={() => router.push("/business")} style={{ background:P.dorado, color:P.bordo, border:"none", padding:"18px 36px", borderRadius:100, fontFamily:"'DM Sans',sans-serif", fontWeight:800, fontSize:"1.05rem", cursor:"pointer", display:"flex", alignItems:"center", gap:8, boxShadow:`0 12px 30px ${P.dorado}40` }}>
+              <motion.button whileHover={{ scale:1.05, y:-2 }} whileTap={{ scale:0.97 }} onClick={() => router.push("/business")} style={{ backgroundColor:P.dorado, color:P.bordo, border:"none", padding:"18px 36px", borderRadius:100, fontFamily:"'DM Sans',sans-serif", fontWeight:800, fontSize:"1.05rem", cursor:"pointer", display:"flex", alignItems:"center", gap:8, boxShadow:`0 12px 30px ${P.dorado}40` } as any}>
                 Únete como Productor <ArrowRight size={18} strokeWidth={2}/>
               </motion.button>
             </div>
@@ -184,7 +184,7 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
                   transition={{ delay:i*0.15, duration:0.5 }} 
                   whileHover={{ y:-8, boxShadow:`0 24px 50px ${s.color}20`, borderTopColor: s.color }} 
                   style={{ 
-                    background:P.blanco, 
+                    backgroundColor:P.blanco, 
                     borderRadius:24, 
                     padding:"40px 32px", 
                     position:"relative", 
@@ -196,7 +196,7 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
                     display: "flex",
                     flexDirection: "column",
                     height: "100%"
-                  }}
+                  } as any}
                 >
                   <div style={{ position:"absolute", top:-10, right:-10, fontFamily:"'Montserrat',sans-serif", fontSize:"8rem", fontWeight:900, color:`${P.granate}06`, lineHeight:1, userSelect:"none", pointerEvents:"none" }}>{s.num}</div>
                   
@@ -235,7 +235,7 @@ export default function ProductsSection({ initialProducts }: { initialProducts?:
         <div className="marquee-wrapper">
           <div className="marquee-track-slow">
             {marqueeTestimonials.map((t, index) => (
-              <motion.div key={`test-${index}`} whileHover={{ y: -6, borderColor: P.dorado, boxShadow: `0 12px 30px ${P.granate}10` }} style={{ flex: "0 0 380px", background:`${P.beige}20`, borderRadius:24, padding:"32px", border:`1px solid ${P.beige}`, display: "flex", flexDirection: "column", justifyContent: "space-between", transition:"all 0.3s ease", cursor: "default" }}>
+              <motion.div key={`test-${index}`} whileHover={{ y: -6, borderColor: P.dorado, boxShadow: `0 12px 30px ${P.granate}10` }} style={{ flex: "0 0 380px", backgroundColor:`${P.beige}20`, borderRadius:24, padding:"32px", border:`1px solid ${P.beige}`, display: "flex", flexDirection: "column", justifyContent: "space-between", transition:"all 0.3s ease", cursor: "default" } as any}>
                 <div>
                   <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>{[...Array(5)].map((_,i) => <Star key={i} size={14} fill={P.dorado} color={P.dorado} />)}</div>
                   <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:"1.05rem", color:P.chocolate, lineHeight:1.7, fontStyle:"italic", marginBottom:24 }}>"{t.text}"</p>

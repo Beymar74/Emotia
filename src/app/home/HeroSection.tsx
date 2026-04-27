@@ -40,7 +40,7 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
           <div className="hero-grid">
             <div style={{ display: "flex", flexDirection: "column" }}>
               
-              <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: P.blanco, border: `1px solid ${P.dorado}50`, borderRadius: 100, padding: "6px 16px", marginBottom: 20, width: "fit-content", boxShadow: `0 4px 15px ${P.granate}15` }}>
+              <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ display: "inline-flex", alignItems: "center", gap: 8, backgroundColor: P.blanco, border: `1px solid ${P.dorado}50`, borderRadius: 100, padding: "6px 16px", marginBottom: 20, width: "fit-content", boxShadow: `0 4px 15px ${P.granate}15` } as any}>
                 <Star size={12} fill={P.dorado} color={P.dorado} />
                 <span style={{ fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "0.75rem", color: P.bordo, letterSpacing: "0.08em", textTransform: "uppercase" }}>La nueva forma de regalar en Bolivia</span>
               </motion.div>
@@ -54,7 +54,7 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
               </motion.p>
 
               <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 36 }}>
-                <motion.button whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} onClick={() => router.push("/producto")} style={{ background: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", padding: "14px 28px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", boxShadow: `0 8px 25px ${P.granate}40`, display: "flex", alignItems: "center", gap: 8 }}>
+                <motion.button whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} onClick={() => router.push("/producto")} style={{ backgroundImage: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", padding: "14px 28px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", boxShadow: `0 8px 25px ${P.granate}40`, display: "flex", alignItems: "center", gap: 8 } as any}>
                   <Gift size={16} strokeWidth={2.5} /> Explorar Catálogo
                 </motion.button>
               </motion.div>
@@ -82,7 +82,7 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
                 </div>
               </div>
 
-              <motion.div style={{ position: "absolute", top: 40, left: 0, background: P.blanco, padding: "14px 20px", borderRadius: 16, boxShadow: `0 12px 30px ${P.granate}15`, display: "flex", alignItems: "center", gap: 12, animation: "float 6s ease-in-out infinite" }}>
+              <motion.div style={{ position: "absolute", top: 40, left: 0, backgroundColor: P.blanco, padding: "14px 20px", borderRadius: 16, boxShadow: `0 12px 30px ${P.granate}15`, display: "flex", alignItems: "center", gap: 12, animation: "float 6s ease-in-out infinite" } as any}>
                 <div style={{ background: `${P.beige}80`, padding: 8, borderRadius: 10 }}><Gift size={20} color={P.granate} /></div>
                 <div>
                   <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.7rem", fontWeight: 800, color: P.gris, textTransform: "uppercase" }}>Incluido</div>
@@ -90,7 +90,7 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
                 </div>
               </motion.div>
 
-              <motion.div style={{ position: "absolute", bottom: 80, right: -20, background: P.blanco, padding: "14px 20px", borderRadius: 16, boxShadow: `0 12px 30px ${P.granate}15`, display: "flex", alignItems: "center", gap: 12, animation: "float 7s ease-in-out infinite alternate" }}>
+              <motion.div style={{ position: "absolute", bottom: 80, right: -20, backgroundColor: P.blanco, padding: "14px 20px", borderRadius: 16, boxShadow: `0 12px 30px ${P.granate}15`, display: "flex", alignItems: "center", gap: 12, animation: "float 7s ease-in-out infinite alternate" } as any}>
                 <div style={{ background: `${P.dorado}20`, padding: 8, borderRadius: 10 }}><Heart size={20} color={P.dorado} fill={P.dorado} /></div>
                 <div>
                   <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.95rem", fontWeight: 800, color: P.bordo }}>+2,400 Sonrisas</div>

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, LockKeyhole, User, X, Eye, EyeOff } from "lucide-react";
+import { Mail, LockKeyhole, User, X, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { useStackApp } from "@stackframe/stack";
 
 // Icono exacto de Google
 const GoogleIcon = () => (
@@ -23,153 +24,251 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, initialView = "login" }: AuthModalProps) {
   const [view, setView] = useState<"login" | "register">(initialView);
   const [showPassword, setShowPassword] = useState(false);
+  
+  const stackApp = useStackApp();
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setView(initialView);
-      document.body.style.overflow = "hidden"; // Evita que se haga scroll atrás
+      setErrorMsg(null);
+      document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
+      setShowPassword(false);
     }
     return () => { document.body.style.overflow = ""; };
   }, [isOpen, initialView]);
 
-  if (!isOpen) return null;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setLoading(true);
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    // const name = formData.get("name") as string; // Optional name
+
+    try {
+      if (view === "login") {
+        const result = await stackApp.signInWithCredential({ email, password });
+        if (result.status === "error") {
+            throw new Error(result.error.message);
+        }
+      } else {
+        const result = await stackApp.signUpWithCredential({ email, password });
+        if (result.status === "error") {
+            throw new Error(result.error.message);
+        }
+      }
+      onClose();
+      window.location.href = "/producto";
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.message || "Ocurrió un error. Verifica tus datos.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const oauthCallbackUrl = new URL(stackApp.urls.oauthCallback, window.location.origin);
+      oauthCallbackUrl.searchParams.set("after_auth_return_to", "/producto");
+      await stackApp.signInWithOAuth("google", { returnTo: oauthCallbackUrl.toString() });
+    } catch (err: any) {
+      console.error("Error signing in with Google:", err);
+      setErrorMsg("Ocurrió un error al iniciar sesión con Google.");
+    }
+  };
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-        {/* Overlay Oscuro Desenfocado */}
-        <motion.div
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-pointer"
-        />
+      {isOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          {/* Overlay Oscuro */}
+          <motion.div
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-pointer"
+            aria-hidden="true"
+          />
 
-        {/* Contenedor Principal (Clonado exactamente de Producto) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          transition={{ type: "spring", duration: 0.5 }}
-          className="relative w-full max-w-[420px] bg-[#FEFCF8] rounded-3xl p-8 shadow-2xl z-10 font-sans"
-        >
-          {/* Botón Cerrar (X) */}
-          <button onClick={onClose} className="absolute top-5 right-5 p-2 rounded-full hover:bg-black/5 text-gray-500 transition-colors">
-            <X size={20} strokeWidth={2.5} />
-          </button>
-
-          {/* Logo Limpio (Sin el círculo feo, centrado perfecto) */}
-          <div className="flex justify-center mb-6 mt-2">
-            <img 
-              src="/logo/logoextendido.png" 
-              alt="Emotia Logo" 
-              className="h-8 object-contain"
-              style={{ filter: "brightness(0) saturate(100%) invert(13%) sepia(50%) saturate(4000%) hue-rotate(330deg)" }} // Asegura que se vea color bordo
-            />
-          </div>
-
-          {/* Textos del Encabezado */}
-          <div className="text-center mb-6">
-            <h2 className="text-[1.6rem] font-black text-[#3D0A1A] mb-2" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-              Accede a Emotia
-            </h2>
-            <p className="text-[0.9rem] text-[#5C3A2E] leading-relaxed" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-              Inicia sesión o crea tu cuenta para empezar a sorprender a los que más quieres.
-            </p>
-          </div>
-
-          {/* Pestañas (Tabs) Iniciar sesión / Registrarse */}
-          <div className="flex w-full border-b border-[#F5E6D0] mb-6">
+          {/* Contenedor Principal (Ahora Horizontal con max-w-[800px] y flex-row) */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", duration: 0.5 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="auth-modal-title"
+            className="relative w-full max-w-[800px] bg-[#FEFCF8] rounded-xl shadow-2xl z-10 font-sans flex flex-col md:flex-row overflow-hidden max-h-[95vh]"
+          >
+            {/* Botón Cerrar Absoluto */}
             <button 
-              onClick={() => setView("login")}
-              className={`flex-1 pb-3 text-sm font-bold transition-colors ${view === "login" ? "border-b-2 border-[#C13550] text-[#C13550]" : "text-[#B0B0B0] hover:text-[#5A0F24]"}`}
+              onClick={onClose} 
+              type="button"
+              aria-label="Cerrar ventana"
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-black/5 text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C13550] z-20"
             >
-              Iniciar sesión
+              <X size={20} strokeWidth={2.5} />
             </button>
-            <button 
-              onClick={() => setView("register")}
-              className={`flex-1 pb-3 text-sm font-bold transition-colors ${view === "register" ? "border-b-2 border-[#C13550] text-[#C13550]" : "text-[#B0B0B0] hover:text-[#5A0F24]"}`}
-            >
-              Registrarse
-            </button>
-          </div>
 
-          {/* Formulario Idéntico a Producto */}
-          <div className="space-y-4">
-            
-            {/* Campo Nombre (Solo en Registro) */}
-            {view === "register" && (
-              <div>
-                <label className="block text-[0.7rem] font-bold text-[#5C3A2E] uppercase tracking-widest mb-1.5 ml-1">Nombre completo</label>
-                <div className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-[#F5E6D0] bg-[#FFFBF5] focus-within:border-[#C13550] transition-colors">
-                  <User size={18} className="text-[#C13550]" />
-                  <input type="text" placeholder="Tu nombre" className="w-full outline-none text-sm text-[#5C3A2E] bg-transparent placeholder-[#B0B0B0]" />
-                </div>
-              </div>
-            )}
-
-            {/* Campo Correo Electrónico */}
-            <div>
-              <label className="block text-[0.7rem] font-bold text-[#5C3A2E] uppercase tracking-widest mb-1.5 ml-1">Correo electrónico</label>
-              <div className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-[#F5E6D0] bg-[#FFFBF5] focus-within:border-[#C13550] transition-colors">
-                <Mail size={18} className="text-[#C13550]" />
-                <input type="email" placeholder="tu@correo.com" className="w-full outline-none text-sm text-[#5C3A2E] bg-transparent placeholder-[#B0B0B0]" />
-              </div>
+            {/* --- LADO IZQUIERDO: Branding y Bienvenida --- */}
+            <div className="w-full md:w-[45%] bg-[#FFF5E6] p-8 md:p-10 flex flex-col justify-center items-center text-center border-b md:border-b-0 md:border-r border-[#F5E6D0]">
+              <img 
+                src="/logo/logoextendido.png" 
+                alt="Emotia Logo" 
+                className="h-10 object-contain mb-6"
+                style={{ filter: "brightness(0) saturate(100%) invert(13%) sepia(50%) saturate(4000%) hue-rotate(330deg)" }} 
+              />
+              <h2 id="auth-modal-title" className="text-[1.6rem] font-black text-[#3D0A1A] mb-3" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+                Accede a Emotia
+              </h2>
+              <p className="text-[0.95rem] text-[#5C3A2E] leading-relaxed" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                Inicia sesión o crea tu cuenta para empezar a sorprender a los que más quieres con regalos inolvidables.
+              </p>
             </div>
 
-            {/* Campo Contraseña */}
-            <div>
-              <div className="flex justify-between items-center mb-1.5 ml-1 pr-1">
-                <label className="text-[0.7rem] font-bold text-[#5C3A2E] uppercase tracking-widest">Contraseña</label>
-                {view === "login" && <span className="text-[0.75rem] font-bold text-[#5A0F24] cursor-pointer hover:underline">¿La olvidaste?</span>}
-              </div>
-              <div className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-[#F5E6D0] bg-[#FFFBF5] focus-within:border-[#C13550] transition-colors">
-                <LockKeyhole size={18} className="text-[#C13550]" />
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="Mínimo 8 caracteres" 
-                  className="w-full outline-none text-sm text-[#5C3A2E] bg-transparent placeholder-[#B0B0B0]" 
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-[#B0B0B0] hover:text-[#5A0F24]">
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            {/* --- LADO DERECHO: Formulario --- */}
+            <div className="w-full md:w-[55%] p-8 md:p-10 flex flex-col overflow-y-auto">
+              
+              {/* Pestañas (Tabs) */}
+              <div className="flex w-full border-b border-[#F5E6D0] mb-6 mt-2 md:mt-0">
+                <button 
+                  type="button"
+                  onClick={() => setView("login")}
+                  className={`flex-1 pb-3 text-sm font-bold transition-colors ${view === "login" ? "border-b-2 border-[#C13550] text-[#C13550]" : "text-[#B0B0B0] hover:text-[#5A0F24]"}`}
+                >
+                  Iniciar sesión
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setView("register")}
+                  className={`flex-1 pb-3 text-sm font-bold transition-colors ${view === "register" ? "border-b-2 border-[#C13550] text-[#C13550]" : "text-[#B0B0B0] hover:text-[#5A0F24]"}`}
+                >
+                  Registrarse
                 </button>
               </div>
-            </div>
 
-            {/* Botón Principal (Redondeado como pastilla) */}
-            <button className="w-full py-3.5 mt-2 rounded-full font-bold text-white text-[0.95rem] bg-[#C13550] hover:bg-[#A32940] transition-colors shadow-md">
-              {view === "login" ? "Ingresar" : "Crear cuenta"}
-            </button>
-          </div>
+              {/* Formulario */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                
+                {errorMsg && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
+                    <AlertCircle size={18} className="shrink-0" />
+                    <span>{errorMsg}</span>
+                  </div>
+                )}
+                
+                {/* Campo Nombre (Solo en Registro) */}
+                <AnimatePresence mode="popLayout">
+                  {view === "register" && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <label className="block text-[0.7rem] font-bold text-[#5C3A2E] uppercase tracking-widest mb-1.5 ml-1">Nombre completo</label>
+                      <div className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-[#F5E6D0] bg-[#FFFBF5] focus-within:border-[#C13550] transition-colors">
+                        <User size={18} className="text-[#C13550]" />
+                        <input required type="text" name="name" placeholder="Tu nombre" className="w-full outline-none text-sm text-[#5C3A2E] bg-transparent placeholder-[#B0B0B0]" />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-          {/* Divisor */}
-          <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-[#F5E6D0]"></div>
-            <span className="text-[0.7rem] font-bold text-[#B0B0B0] uppercase tracking-wider">O continúa con</span>
-            <div className="flex-1 h-px bg-[#F5E6D0]"></div>
-          </div>
+                {/* Campo Correo Electrónico */}
+                <div>
+                  <label className="block text-[0.7rem] font-bold text-[#5C3A2E] uppercase tracking-widest mb-1.5 ml-1">Correo electrónico</label>
+                  <div className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-[#F5E6D0] bg-[#FFFBF5] focus-within:border-[#C13550] transition-colors">
+                    <Mail size={18} className="text-[#C13550]" />
+                    <input required type="email" name="email" placeholder="tu@correo.com" className="w-full outline-none text-sm text-[#5C3A2E] bg-transparent placeholder-[#B0B0B0]" />
+                  </div>
+                </div>
 
-          {/* Botón Google (Redondeado como pastilla) */}
-          <button className="flex items-center justify-center gap-3 w-full py-3 rounded-full border border-[#F5E6D0] bg-white hover:bg-[#FFFBF5] transition-colors">
-            <GoogleIcon />
-            <span className="text-sm font-bold text-[#5C3A2E]">Google</span>
-          </button>
+                {/* Campo Contraseña */}
+                <div>
+                  <div className="flex justify-between items-center mb-1.5 ml-1 pr-1">
+                    <label className="text-[0.7rem] font-bold text-[#5C3A2E] uppercase tracking-widest">Contraseña</label>
+                    {view === "login" && (
+                      <button type="button" className="text-[0.75rem] font-bold text-[#5A0F24] hover:underline focus:outline-none">
+                        ¿La olvidaste?
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-[#F5E6D0] bg-[#FFFBF5] focus-within:border-[#C13550] transition-colors">
+                    <LockKeyhole size={18} className="text-[#C13550]" />
+                    <input 
+                      required
+                      name="password"
+                      minLength={8}
+                      type={showPassword ? "text" : "password"} 
+                      placeholder="Mínimo 8 caracteres" 
+                      className="w-full outline-none text-sm text-[#5C3A2E] bg-transparent placeholder-[#B0B0B0]" 
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowPassword(!showPassword)} 
+                      className="text-[#B0B0B0] hover:text-[#5A0F24] focus:outline-none"
+                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
 
-          {/* Texto Inferior Dinámico */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-[#5C3A2E]">
-              {view === "register" ? "¿Ya tienes una cuenta?" : "¿Aún no tienes cuenta?"}{" "}
-              <button onClick={() => setView(view === "register" ? "login" : "register")} className="font-bold text-[#C13550] hover:underline">
-                {view === "register" ? "Inicia sesión" : "Regístrate"}
+                {/* Botón Principal */}
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 mt-2 rounded-full font-bold text-white text-[0.95rem] bg-[#C13550] hover:bg-[#A32940] transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C13550] disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Cargando..." : (view === "login" ? "Ingresar" : "Crear cuenta")}
+                </button>
+              </form>
+
+              {/* Divisor */}
+              <div className="flex items-center gap-4 my-6">
+                <div className="flex-1 h-px bg-[#F5E6D0]"></div>
+                <span className="text-[0.7rem] font-bold text-[#B0B0B0] uppercase tracking-wider">O continúa con</span>
+                <div className="flex-1 h-px bg-[#F5E6D0]"></div>
+              </div>
+
+              {/* Botón Google */}
+              <button 
+                type="button"
+                onClick={handleGoogleSignIn}
+                className="flex items-center justify-center gap-3 w-full py-3 rounded-full border border-[#F5E6D0] bg-white hover:bg-[#FFFBF5] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#F5E6D0]"
+              >
+                <GoogleIcon />
+                <span className="text-sm font-bold text-[#5C3A2E]">Google</span>
               </button>
-            </p>
-          </div>
 
-        </motion.div>
-      </div>
+              {/* Texto Inferior Dinámico */}
+              <div className="mt-6 text-center">
+                <p className="text-sm text-[#5C3A2E]">
+                  {view === "register" ? "¿Ya tienes una cuenta?" : "¿Aún no tienes cuenta?"}{" "}
+                  <button 
+                    type="button"
+                    onClick={() => setView(view === "register" ? "login" : "register")} 
+                    className="font-bold text-[#C13550] hover:underline focus:outline-none"
+                  >
+                    {view === "register" ? "Inicia sesión" : "Regístrate"}
+                  </button>
+                </p>
+              </div>
+
+            </div>
+          </motion.div>
+        </div>
+      )}
     </AnimatePresence>
   );
 }
