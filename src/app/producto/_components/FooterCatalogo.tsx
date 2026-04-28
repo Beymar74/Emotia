@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Heart, Instagram, Mail, MapPin, X } from "lucide-react";
-import { FaTiktok } from "react-icons/fa6";
+import { Heart, Mail, MapPin, X } from "lucide-react";
+import { FaTiktok, FaInstagram } from "react-icons/fa6";
 
 const P = {
   bordoNegro: "#3D0A1A",
@@ -107,7 +107,7 @@ export default function FooterCatalogo() {
                   className="flex h-12 w-12 items-center justify-center rounded-full transition-colors hover:bg-white/10"
                   style={{ background: "rgba(0,0,0,0.25)", color: P.beige }}
                 >
-                  <Instagram size={20} />
+                  <FaInstagram size={20} />
                 </a>
                 <a
                   href="https://www.tiktok.com/@emotia.gifts0"
