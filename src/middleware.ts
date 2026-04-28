@@ -12,6 +12,7 @@ const SOLO_ADMIN = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // COMENTA O ELIMINA ESTE BLOQUE TEMPORALMENTE
   if (pathname.startsWith("/admin")) {
     const user = await stackServerApp.getUser({ or: "return-null" });
 
@@ -33,9 +34,10 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*"], // Esto le dice a Next.js que use el middleware en el admin
 };
