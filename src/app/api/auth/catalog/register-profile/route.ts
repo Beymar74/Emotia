@@ -68,7 +68,6 @@ export async function POST(req: Request) {
       update: {
         nombre: nombres,
         apellido: apellidos,
-        fecha_nacimiento: birthDate,
         google_id: currentUser.id,
         updated_at: new Date(),
       },
@@ -76,7 +75,6 @@ export async function POST(req: Request) {
         nombre: nombres,
         apellido: apellidos,
         email: currentUser.primaryEmail,
-        fecha_nacimiento: birthDate,
         google_id: currentUser.id,
         tipo: "usuario",
         plan: "basico",
