@@ -7,7 +7,17 @@ import {
 
 const DESTINATARIOS = ['Mamá 💐', 'Papá 🎩', 'Pareja ❤️', 'Amigo/a 🎉', 'Colega 💼', 'Hijo/a 🌟'];
 
-export default function ProductModal({ product, onClose }: { product: any, onClose: () => void }) {
+type ProductModalData = {
+  img: string;
+  title: string;
+  price: number;
+  category?: string;
+  rating?: number | string;
+  reviews?: number | string;
+  description?: string;
+};
+
+export default function ProductModal({ product, onClose }: { product: ProductModalData | null, onClose: () => void }) {
   const [step, setStep] = useState(0);
   const [usePoints, setUsePoints] = useState(false);
   const [selectedDestinatario, setSelectedDestinatario] = useState('');
@@ -43,7 +53,7 @@ export default function ProductModal({ product, onClose }: { product: any, onClo
         </div>
 
         {/* Contenido */}
-        <div className="w-full md:w-7/12 p-6 md:p-8 relative flex flex-col overflow-y-auto">
+        <div className="w-full md:w-7/12 p-4 sm:p-6 md:p-8 relative flex flex-col overflow-y-auto">
           <button onClick={onClose} className="absolute top-6 right-6 p-2 bg-[#F5E6D0] rounded-full text-[#8E1B3A] hover:bg-[#BC9968] hover:text-[#FFFFFF] transition-colors hidden md:block z-10">
             <X className="w-5 h-5" />
           </button>
@@ -67,7 +77,7 @@ export default function ProductModal({ product, onClose }: { product: any, onClo
             {step === 0 && (
               <div className="animate-in fade-in slide-in-from-right-4">
                 <span className="bg-[#F5E6D0] text-[#8E1B3A] text-xs font-bold px-3 py-1 rounded-full">{product.category ?? 'Regalo'}</span>
-                <h2 className="text-3xl font-extrabold text-[#5A0F24] mt-3 mb-2">{product.title}</h2>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#5A0F24] mt-3 mb-2">{product.title}</h2>
                 <p className="text-2xl font-bold text-[#8E1B3A] mb-2">{product.price} Bs</p>
                 <div className="flex items-center gap-1 mb-6">
                   <Star className="w-4 h-4 text-[#BC9968] fill-[#BC9968]" />
@@ -90,7 +100,7 @@ export default function ProductModal({ product, onClose }: { product: any, onClo
                   {/* Destinatario */}
                   <div>
                     <label className="block text-sm font-bold text-[#5C3A2E] mb-3 flex items-center gap-2"><User className="w-4 h-4 text-[#BC9968]" /> ¿Para quién es?</label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                       {DESTINATARIOS.map((d) => (
                         <button key={d} onClick={() => setSelectedDestinatario(d)}
                           className={`px-2 py-2 rounded-xl text-xs font-bold border transition-all ${selectedDestinatario === d ? 'bg-[#8E1B3A] text-white border-[#8E1B3A]' : 'bg-[#FFFFFF] text-[#5C3A2E] border-[#F5E6D0] hover:border-[#BC9968]'}`}>
@@ -103,7 +113,7 @@ export default function ProductModal({ product, onClose }: { product: any, onClo
                   {/* Empaque */}
                   <div>
                     <label className="block text-sm font-bold text-[#5C3A2E] mb-3">Elige el Empaque</label>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div onClick={() => setSelectedEmpaque('premium')}
                         className={`rounded-xl p-4 cursor-pointer relative overflow-hidden border-2 transition-all ${selectedEmpaque === 'premium' ? 'border-[#8E1B3A] bg-[#F5E6D0]/30' : 'border-[#F5E6D0] hover:border-[#BC9968]'}`}>
                         {selectedEmpaque === 'premium' && <div className="absolute top-0 right-0 bg-[#8E1B3A] text-white text-[10px] px-2 py-1 rounded-bl-lg font-bold">✓</div>}

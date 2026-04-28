@@ -146,7 +146,7 @@ export default async function DetallePedidoPage({
         <table className="w-full border-collapse min-w-[650px]">
           <thead>
             <tr>
-              {["Producto", "Proveedor", "Cant.", "Precio unit.", "Subtotal", "Calificación", "Reseña"].map(
+              {["Producto", "Proveedor", "Cant.", "Precio unit.", "Subtotal", "Calificación", "resena"].map(
                 (h) => (
                   <th
                     key={h}

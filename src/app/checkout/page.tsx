@@ -2,9 +2,10 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CircleHelp, CreditCard, Landmark, MapPin, QrCode, ShieldCheck, Truck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Mail, CreditCard, Landmark, MapPin, QrCode, ShieldCheck, Truck } from "lucide-react";
 import AuthModal from "../producto/components/AuthModal";
 import Header from "../producto/components/Header";
+import FooterCatalogo from "../producto/_components/FooterCatalogo";
 import { useCart } from "../producto/components/cart/useCart";
 import { useSession } from "../producto/components/auth/useSession";
 
@@ -46,7 +47,7 @@ const zonasEntrega: Array<{ id: ZonaEntrega; label: string; eta: string; extra: 
 export default function CheckoutPage() {
   const [showAuth, setShowAuth] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [codigoPedido] = useState(() => `EMO-${Math.floor(10000 + Math.random() * 90000)}`);
+  const [codigoPedido, setCodigoPedido] = useState<string | null>(null);
   const [metodoSeleccionado, setMetodoSeleccionado] = useState<MetodoPago>("qr");
   const [zonaEntrega, setZonaEntrega] = useState<ZonaEntrega>("centro");
   const [direccion, setDireccion] = useState("");
@@ -58,9 +59,10 @@ export default function CheckoutPage() {
   const [fechaTarjeta, setFechaTarjeta] = useState("");
   const [cvvTarjeta, setCvvTarjeta] = useState("");
   const [comprobante, setComprobante] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const qrImageUrl = "URL_DE_TU_QR_AQUI";
   const cuentaBancaria = "Banco Unión - Cuenta corriente 100-2458796";
-  const { items, subtotal } = useCart();
+  const { items, subtotal, clearCart } = useCart();
   const { isLoggedIn } = useSession();
 
   const zonaActiva = useMemo(
@@ -81,7 +83,32 @@ export default function CheckoutPage() {
       cvvTarjeta.trim().length >= 3) ||
     (metodoSeleccionado === "transferencia" && Boolean(comprobante));
 
-  const handleProceed = () => {
+  const abrirAyuda = () => {
+    const asunto = encodeURIComponent("Solicitud de ayuda o soporte - Emotia");
+    const cuerpo = encodeURIComponent(
+      [
+        "Hola equipo de Emotia,",
+        "",
+        "Necesito ayuda o soporte con lo siguiente:",
+        "",
+        "- Motivo de la consulta:",
+        "- Numero de pedido (si aplica):",
+        "- Detalles adicionales:",
+        "",
+        "Quedo atento(a) a su respuesta.",
+        "",
+        "Gracias.",
+      ].join("\n"),
+    );
+
+    window.open(
+      `https://mail.google.com/mail/?view=cm&fs=1&to=emotia.support@gmail.com&su=${asunto}&body=${cuerpo}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  };
+
+  const handleProceed = async () => {
     if (!isLoggedIn) {
       setShowAuth(true);
       return;
@@ -92,7 +119,48 @@ export default function CheckoutPage() {
       return;
     }
 
-    setShowSuccessModal(true);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/auth/catalog/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          items: items.map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+          })),
+          zonaEntrega,
+          direccion,
+          destinatario,
+          telefono,
+          referencia,
+          metodoPago: metodoSeleccionado,
+        }),
+      });
+
+      const data = (await response.json()) as {
+        ok?: boolean;
+        orderCode?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !data.ok || !data.orderCode) {
+        throw new Error(data.error || "No pudimos registrar tu pedido.");
+      }
+
+      setCodigoPedido(data.orderCode);
+      clearCart();
+      setShowSuccessModal(true);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No pudimos registrar tu pedido.";
+      alert(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderPanelPago = () => {
@@ -227,7 +295,7 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-[linear-gradient(180deg,#fffdfb_0%,#fff7f2_100%)]">
       <Header showSearch={false} />
 
-      <div className="mx-auto grid max-w-[1500px] grid-cols-1 gap-8 px-6 py-8 xl:grid-cols-[minmax(0,1.3fr)_420px]">
+      <div className="mx-auto grid max-w-[1500px] grid-cols-1 gap-6 px-4 py-6 sm:px-6 sm:py-8 xl:grid-cols-[minmax(0,1.3fr)_420px] xl:gap-8">
         <section className="space-y-6">
           <div>
             <Link
@@ -238,7 +306,7 @@ export default function CheckoutPage() {
               Volver al catálogo
             </Link>
             <p className="mb-2 text-sm font-extrabold uppercase tracking-[0.22em] text-[#C6284F]">Pago</p>
-            <h1 className="text-4xl font-black tracking-[-0.04em] text-[#5C3A2E] md:text-5xl">Selecciona tu método de pago</h1>
+            <h1 className="text-3xl font-black tracking-[-0.04em] text-[#5C3A2E] sm:text-4xl md:text-5xl">Selecciona tu método de pago</h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-[#8A6F62]">
               Completa la dirección de entrega, revisa el tiempo estimado y elige cómo quieres pagar tu pedido.
             </p>
@@ -422,10 +490,10 @@ export default function CheckoutPage() {
 
             <button
               onClick={handleProceed}
-              disabled={items.length === 0}
+              disabled={items.length === 0 || isSubmitting}
               className="mt-8 flex min-h-[62px] w-full items-center justify-center gap-3 rounded-full bg-[linear-gradient(135deg,#C6284F,#E04A64)] px-6 text-lg font-black text-white shadow-[0_18px_30px_rgba(198,40,79,0.24)] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:bg-[#D8C9E4] disabled:shadow-none"
             >
-              Confirmar pago
+              {isSubmitting ? "Registrando pedido..." : "Confirmar pago"}
               <ArrowRight size={20} strokeWidth={2.4} />
             </button>
 
@@ -435,36 +503,44 @@ export default function CheckoutPage() {
           <div className="rounded-[28px] border border-[#E6885C]/12 bg-white p-6 shadow-[0_16px_30px_rgba(92,58,46,0.05)]">
             <div className="flex items-start gap-4">
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#FFE3E8,#FFF3E6)] text-[#C6284F]">
-                <CircleHelp size={20} strokeWidth={2.2} />
+                <Mail size={20} strokeWidth={2.2} />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-[#5C3A2E]">¿Necesitas ayuda?</h3>
-                <p className="mt-2 text-sm leading-6 text-[#8A6F62]">Nuestro equipo puede ayudarte con dudas sobre la entrega, el pago o la validación de tu comprobante.</p>
+                <p className="mt-2 text-sm leading-6 text-[#8A6F62]">
+                  Si tienes dudas sobre el pago, la entrega o tu comprobante, te llevamos al mismo canal de ayuda del footer.
+                </p>
+                <button
+                  type="button"
+                  onClick={abrirAyuda}
+                  className="mt-4 inline-flex min-h-[46px] items-center justify-center rounded-full bg-[#FFF3E6] px-5 text-sm font-black text-[#8E3651] transition hover:bg-[#FFE8D3]"
+                >
+                  Abrir ayuda
+                </button>
               </div>
             </div>
           </div>
         </aside>
       </div>
 
+      <FooterCatalogo />
+
       <AuthModal
         isOpen={showAuth}
         onClose={() => setShowAuth(false)}
         onLoginSuccess={() => {
           setShowAuth(false);
-          if (direccionCompleta && metodoListo) {
-            setShowSuccessModal(true);
-          }
         }}
       />
 
       {showSuccessModal ? (
         <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-[rgba(44,27,20,0.48)] px-4 backdrop-blur-[6px]">
-          <div className="w-full max-w-[520px] rounded-[32px] border border-[#E6885C]/16 bg-[linear-gradient(180deg,#FFFDFC_0%,#FFF4F6_100%)] p-8 text-center shadow-[0_28px_80px_rgba(92,58,46,0.22)]">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[linear-gradient(135deg,#C6284F,#E04A64)] text-4xl font-black text-white">
+          <div className="w-full max-w-[520px] rounded-[28px] border border-[#E6885C]/16 bg-[linear-gradient(180deg,#FFFDFC_0%,#FFF4F6_100%)] p-6 text-center shadow-[0_28px_80px_rgba(92,58,46,0.22)] sm:rounded-[32px] sm:p-8">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,#C6284F,#E04A64)] text-3xl font-black text-white sm:h-20 sm:w-20 sm:text-4xl">
               ✓
             </div>
             <p className="mt-6 text-sm font-extrabold uppercase tracking-[0.22em] text-[#8A6F62]">Pago confirmado</p>
-            <h2 className="mt-3 text-4xl font-black tracking-[-0.04em] text-[#5C3A2E]">Tu pedido fue registrado con éxito</h2>
+            <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] text-[#5C3A2E] sm:text-4xl">Tu pedido fue registrado con éxito</h2>
             <p className="mt-4 text-base leading-7 text-[#8A6F62]">
               Recibimos tu pago y estamos preparando la entrega. Te notificaremos cualquier actualización del envío.
             </p>
@@ -472,7 +548,7 @@ export default function CheckoutPage() {
             <div className="mt-6 rounded-[24px] border border-[#E6885C]/14 bg-white/80 p-5 text-left">
               <div className="flex items-center justify-between gap-4">
                 <span className="text-sm font-bold uppercase tracking-[0.16em] text-[#8A6F62]">Pedido</span>
-                <span className="text-base font-black text-[#C6284F]">{codigoPedido}</span>
+                <span className="text-base font-black text-[#C6284F]">{codigoPedido || "EM-----"}</span>
               </div>
               <div className="mt-3 flex items-center justify-between gap-4">
                 <span className="text-sm font-bold uppercase tracking-[0.16em] text-[#8A6F62]">Total</span>
@@ -485,16 +561,15 @@ export default function CheckoutPage() {
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <button
-                type="button"
-                onClick={() => setShowSuccessModal(false)}
-                className="flex min-h-[56px] flex-1 items-center justify-center rounded-full border border-[#E6885C]/20 bg-white px-6 text-sm font-black text-[#8E3651]"
+              <Link
+                href="/mis-pedidos"
+                className="flex min-h-[56px] flex-1 items-center justify-center rounded-full bg-[linear-gradient(135deg,#C6284F,#E04A64)] px-6 text-sm font-black text-white shadow-[0_18px_30px_rgba(198,40,79,0.22)]"
               >
-                Seguir revisando
-              </button>
+                Ver mis pedidos
+              </Link>
               <Link
                 href="/producto"
-                className="flex min-h-[56px] flex-1 items-center justify-center rounded-full bg-[linear-gradient(135deg,#C6284F,#E04A64)] px-6 text-sm font-black text-white shadow-[0_18px_30px_rgba(198,40,79,0.22)]"
+                className="flex min-h-[56px] flex-1 items-center justify-center rounded-full border border-[#E6885C]/20 bg-white px-6 text-sm font-black text-[#8E3651]"
               >
                 Volver al catálogo
               </Link>

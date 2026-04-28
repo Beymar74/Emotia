@@ -16,7 +16,7 @@ export async function seedNotificaciones(prisma: PrismaClient) {
                 usuario_id: beymar.id,
                 tipo: 'pedido',
                 titulo: '¡Tu pedido fue entregado!',
-                mensaje: 'El collar de plata artesanal llegó a tu dirección. ¿Cómo estuvo tu experiencia?',
+                mensaje: 'Tu juego de cadena de aleación llegó a tu dirección. ¿Cómo estuvo tu experiencia?',
                 leida: true,
             },
             {
@@ -37,7 +37,7 @@ export async function seedNotificaciones(prisma: PrismaClient) {
                 usuario_id: evelyn.id,
                 tipo: 'pedido',
                 titulo: 'Pedido confirmado',
-                mensaje: 'Tu caja de chocolates artesanales está siendo preparada por el proveedor.',
+                mensaje: 'Tu mini bouquet para mamá está siendo preparado por el proveedor.',
                 leida: true,
             },
             {
@@ -58,7 +58,7 @@ export async function seedNotificaciones(prisma: PrismaClient) {
                 usuario_id: mauricio.id,
                 tipo: 'pedido',
                 titulo: 'Tu pedido está en preparación',
-                mensaje: 'Los audífonos personalizados están siendo preparados. Tiempo estimado: 2 días.',
+                mensaje: 'Tus auriculares plegables están siendo preparados. Tiempo estimado: 2 días.',
                 leida: true,
             },
             {

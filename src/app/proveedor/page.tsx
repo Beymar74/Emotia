@@ -27,7 +27,7 @@ const notificacionesMock = [
   { id: 1, icon: <ShoppingCart size={18} color="#3b82f6" />, titulo: "Nuevo pedido recibido", desc: "Pedido #2049 recibido por Bs. 250.", tiempo: "Hace 5 min", leida: false },
   { id: 2, icon: <Package size={18} color="#BC9968" />, titulo: "Producto aprobado", desc: "Caja de chocolates artesanales ha sido aprobada.", tiempo: "Hace 15 min", leida: false },
   { id: 3, icon: <AlertTriangle size={18} color="#9B2335" />, titulo: "Alerta de stock", desc: "El Set de Vinos Premium tiene solo 2 unidades.", tiempo: "Hace 30 min", leida: false },
-  { id: 4, icon: <Star size={18} color="#10b981" />, titulo: "Nueva reseña", desc: "María García te ha dejado 5 estrellas.", tiempo: "Hace 1 hora", leida: false },
+  { id: 4, icon: <Star size={18} color="#10b981" />, titulo: "Nueva resena", desc: "María García te ha dejado 5 estrellas.", tiempo: "Hace 1 hora", leida: false },
   { id: 5, icon: <ShoppingCart size={18} color="#9ca3af" />, titulo: "Pedido cancelado", desc: "Pedido #2010 ha sido cancelado por el cliente.", tiempo: "Ayer", leida: true },
 ];
 

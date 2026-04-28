@@ -101,6 +101,12 @@
   gap: 0.95rem;
 }
 
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -126,6 +132,12 @@
   color: #8e3651;
   font-size: 0.8rem;
   font-weight: 700;
+}
+
+.helperText {
+  color: #9a8a82;
+  font-size: 0.76rem;
+  line-height: 1.45;
 }
 
 .inputWrap {
@@ -258,4 +270,20 @@
   color: #c6284f;
   font-weight: 800;
   cursor: pointer;
+}
+
+@media (max-width: 560px) {
+  .modal {
+    width: min(100%, 100%);
+    padding: 1.8rem 1.1rem 1.5rem;
+  }
+
+  .fieldRow {
+    grid-template-columns: 1fr;
+    gap: 0.95rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
 }

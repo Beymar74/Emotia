@@ -1,18 +1,18 @@
 "use client";
 import Link from 'next/link';
 import { useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
-import { useUser } from '@stackframe/stack';
 import { 
   Star, Bell, User, LayoutGrid, Package, Crown, 
   Truck, CalendarDays, Settings, LogOut, CreditCard, 
   Menu, X, ChevronRight
 } from 'lucide-react';
+import { useSession } from '@/app/producto/components/auth/useSession';
 
 const navLinks = [
   { href: '/dashboard/catalog', name: 'Catálogo', icon: LayoutGrid },
-  { href: '/dashboard/orders', name: 'Mis Pedidos', icon: Package },
+  { href: '/mis-pedidos', name: 'Mis Pedidos', icon: Package },
   { href: '/dashboard/special-dates', name: 'Fechas Especiales', icon: CalendarDays },
   { href: '/dashboard/points', name: 'Mis Puntos', icon: Star },
   { href: '/dashboard/payments', name: 'Historial de Pagos', icon: CreditCard },
@@ -21,24 +21,20 @@ const navLinks = [
 
 export default function Topbar({ points = 450, onOpenProfile }: { points?: number, onOpenProfile?: () => void }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const user = useUser();
+  const { user, isLoggedIn, isLoggingOut, logout } = useSession();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
-  // Nombre real desde Stack Auth
-  const userName = user?.displayName
-    ?? user?.primaryEmail?.split('@')[0]
-    ?? 'Usuario';
+  const userName = user?.name ?? (isLoggedIn ? 'Usuario' : 'Invitado');
 
   const closeAll = () => {
     setShowNotifications(false);
     setShowProfileMenu(false);
   };
 
-  const handleLogout = () => {
-    router.push('/login');
+  const handleLogout = async () => {
+    await logout('/producto');
   };
 
   return (
@@ -119,9 +115,9 @@ export default function Topbar({ points = 450, onOpenProfile }: { points?: numbe
                     <Settings className="w-4 h-4" /> Editar Perfil
                   </button>
                   <div className="h-px bg-[#F5E6D0] my-1"></div>
-                  <button onClick={handleLogout}
+                  <button onClick={() => void handleLogout()} disabled={isLoggingOut}
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                    <LogOut className="w-4 h-4" /> Cerrar Sesión
+                    <LogOut className="w-4 h-4" /> {isLoggingOut ? 'Cerrando...' : 'Cerrar Sesión'}
                   </button>
                 </div>
               </div>
@@ -174,10 +170,10 @@ export default function Topbar({ points = 450, onOpenProfile }: { points?: numbe
                 <Settings className="w-5 h-5" />
                 <span className="font-semibold text-sm">Editar Perfil</span>
               </button>
-              <button onClick={handleLogout}
+              <button onClick={() => void handleLogout()} disabled={isLoggingOut}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors">
                 <LogOut className="w-5 h-5" />
-                <span className="font-semibold text-sm">Cerrar Sesión</span>
+                <span className="font-semibold text-sm">{isLoggingOut ? 'Cerrando...' : 'Cerrar Sesión'}</span>
               </button>
             </div>
           </div>

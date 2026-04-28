@@ -6,12 +6,12 @@
 }
 
 .wrapper {
-  max-width: 1220px;
+  max-width: 1360px;
   margin: 0 auto;
   padding: 2rem 1.4rem 3rem;
   display: grid;
-  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
-  gap: 1.1rem;
+  grid-template-columns: minmax(460px, 620px) minmax(0, 1fr);
+  gap: 1.5rem;
   align-items: start;
 }
 
@@ -24,7 +24,7 @@
   position: sticky;
   top: 6.5rem;
   align-self: start;
-  max-width: 520px;
+  max-width: 620px;
 }
 
 .backLink {
@@ -43,9 +43,9 @@
   border-radius: 34px;
   overflow: hidden;
   background: linear-gradient(135deg, #c6284f 0%, #e04a64 48%, #ffd1b3 100%);
-  min-height: 300px;
-  padding: 0.6rem;
-  box-shadow: 0 24px 48px rgba(92, 58, 46, 0.16);
+  min-height: 430px;
+  padding: 0.78rem;
+  box-shadow: 0 28px 56px rgba(92, 58, 46, 0.18);
 }
 
 .productTag {
@@ -67,21 +67,15 @@
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 268px;
-  max-height: 340px;
-  border-radius: 22px;
-  object-fit: cover;
+  min-height: 400px;
+  max-height: 560px;
+  border-radius: 26px;
+  object-fit: contain;
+  background: #ffffff;
 }
 
 .galleryInfoBlock {
-  margin-top: 0.85rem;
-}
-
-.thumbRow {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(120px, 1fr));
-  gap: 0.7rem;
-  align-items: stretch;
+  margin-top: 0.95rem;
 }
 
 .thumbPlaceholder,
@@ -156,11 +150,19 @@
 }
 
 .deliveryCard {
-  margin-top: 0.85rem;
-  padding: 1rem 1.05rem 1.05rem;
+  margin-top: 0;
+  padding: 1.15rem 1.15rem 1.2rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  text-decoration: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.deliveryCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(198, 40, 79, 0.24);
+  box-shadow: 0 18px 34px rgba(92, 58, 46, 0.1);
 }
 
 .commentsSection {
@@ -318,12 +320,54 @@
   font-size: 1.12rem;
 }
 
+.brandHeaderRow {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  text-decoration: none;
+}
+
+.brandAvatarWrap {
+  width: 74px;
+  height: 74px;
+  flex-shrink: 0;
+  border-radius: 22px;
+  padding: 0.22rem;
+  background: linear-gradient(135deg, #c6284f 0%, #e04a64 48%, #ffd1b3 100%);
+  box-shadow: 0 14px 28px rgba(198, 40, 79, 0.18);
+}
+
+.brandAvatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  object-fit: cover;
+  background: #ffffff;
+}
+
+.brandIdentity {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.brandMetaLink {
+  margin-top: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: #c6284f;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
 .ratingRow {
   display: flex;
   align-items: center;
   gap: 0.38rem;
   flex-wrap: wrap;
-  margin-top: 0.6rem;
+  margin-top: 0.85rem;
 }
 
 .stars {
@@ -339,7 +383,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: default;
 }
 
 .ratingValue {
@@ -361,10 +405,25 @@
 }
 
 .deliveryText {
-  margin: 0.45rem 0 0;
+  margin: 0.6rem 0 0;
   color: #8a6f62;
   font-size: 0.96rem;
   line-height: 1.55;
+}
+
+.brandQuickInfo {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.brandQuickInfo span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #8a6f62;
+  font-size: 0.86rem;
+  line-height: 1.45;
 }
 
 .productHead {
@@ -447,7 +506,7 @@
   background: #ffffff;
   border-radius: 24px;
   padding: 0.7rem;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
@@ -503,62 +562,15 @@
 .templatePreview p {
   position: relative;
   z-index: 1;
-  margin: 1.5rem 0 0;
-  padding: 0 0.55rem;
+  margin: 0;
+  padding: 0 1rem;
   font-size: 0.88rem;
   line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.templateBadge {
-  position: absolute;
-  top: 0.65rem;
-  left: 0.65rem;
-  z-index: 1;
-  color: #ffffff;
-  padding: 0.28rem 0.55rem;
-  border-radius: 999px;
-  font-size: 0.6rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.templateMeta {
-  margin-top: 0.7rem;
-}
-
-.templateMeta strong,
-.templateMeta span {
-  display: block;
-}
-
-.templateMeta strong {
-  color: #5c3a2e;
-  font-size: 0.88rem;
-}
-
-.templateMeta span {
-  margin-top: 0.18rem;
-  color: #9a8a82;
-  font-size: 0.74rem;
-}
-
-.templateSource {
-  display: inline-flex;
-  width: fit-content;
-  margin-top: 0.45rem;
-  color: #c6284f;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.templateSource:hover {
-  text-decoration: underline;
+  text-align: center;
 }
 
 .textArea {
@@ -626,14 +638,7 @@
 }
 
 .previewRibbon {
-  position: relative;
-  z-index: 1;
-  padding: 0.85rem 1rem;
-  color: #ffffff;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-size: 0.72rem;
+  display: none;
 }
 
 .previewContent {
@@ -642,39 +647,23 @@
   padding: 1.55rem 1.5rem;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
   min-height: 190px;
+  text-align: center;
 }
 
 .previewBadge {
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  display: none;
 }
 
 .previewContent p {
-  margin: 1rem 0 0;
+  margin: 0;
   font-size: 1.4rem;
   line-height: 1.45;
   white-space: pre-wrap;
   text-wrap: balance;
-}
-
-.previewSourceNote {
-  margin: -0.35rem 0 1.4rem;
-  color: #8a6f62;
-  font-size: 0.76rem;
-  font-weight: 600;
-}
-
-.previewSourceNote a {
-  color: #c6284f;
-  text-decoration: none;
-}
-
-.previewSourceNote a:hover {
-  text-decoration: underline;
+  text-align: center;
 }
 
 .btnBolsa {
@@ -702,11 +691,11 @@
   }
 
   .mainVisual {
-    min-height: 340px;
+    min-height: 360px;
   }
 
   .mainImage {
-    min-height: 308px;
+    min-height: 328px;
   }
 
   .commentsLayout {
@@ -718,6 +707,14 @@
   .wrapper {
     padding: 1.2rem 1rem 2rem;
     gap: 1.25rem;
+  }
+
+  .mainVisual {
+    min-height: 300px;
+  }
+
+  .mainImage {
+    min-height: 270px;
   }
 
   .thumbRow {
@@ -742,5 +739,154 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 0.3rem;
+  }
+
+  .brandHeaderRow {
+    align-items: flex-start;
+  }
+
+  .commentsSection {
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+  }
+
+  .previewContent p {
+    font-size: 1.08rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .wrapper,
+  .commentsSection {
+    padding-left: 0.9rem;
+    padding-right: 0.9rem;
+  }
+
+  .backLink {
+    font-size: 0.84rem;
+  }
+
+  .mainVisual {
+    min-height: 250px;
+    padding: 0.65rem;
+    border-radius: 28px;
+  }
+
+  .mainImage {
+    min-height: 218px;
+    border-radius: 20px;
+  }
+
+  .productTag {
+    top: 0.85rem;
+    left: 0.85rem;
+    padding: 0.35rem 0.72rem;
+    font-size: 0.64rem;
+  }
+
+  .deliveryCard,
+  .commentComposer,
+  .commentCard,
+  .customCardPanel {
+    border-radius: 24px;
+  }
+
+  .brandHeaderRow {
+    gap: 0.75rem;
+  }
+
+  .brandAvatarWrap {
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
+  }
+
+  .brandAvatar {
+    border-radius: 14px;
+  }
+
+  .deliveryCard strong {
+    font-size: 1rem;
+  }
+
+  .productName {
+    font-size: 1.9rem;
+  }
+
+  .price {
+    font-size: 1.7rem;
+  }
+
+  .description,
+  .deliveryText,
+  .commentCard p {
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+
+  .textArea,
+  .commentArea {
+    min-height: 116px;
+    border-radius: 20px;
+    padding: 0.9rem;
+  }
+
+  .templatePreview {
+    min-height: 132px;
+  }
+
+  .templatePreview p {
+    padding: 0 0.55rem;
+    font-size: 0.8rem;
+  }
+
+  .livePreview {
+    min-height: 210px;
+    border-radius: 22px;
+  }
+
+  .previewContent {
+    min-height: 168px;
+    padding: 1.2rem 1rem;
+  }
+
+  .previewContent p {
+    font-size: 0.98rem;
+  }
+
+  .fontSelector {
+    gap: 0.5rem;
+  }
+
+  .fontButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btnBolsa,
+  .commentButton {
+    min-height: 56px;
+    font-size: 0.92rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .wrapper,
+  .commentsSection {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .productName {
+    font-size: 1.72rem;
+  }
+
+  .category,
+  .commentsEyebrow {
+    font-size: 0.68rem;
+  }
+
+  .commentsTitle {
+    font-size: 1.45rem;
   }
 }

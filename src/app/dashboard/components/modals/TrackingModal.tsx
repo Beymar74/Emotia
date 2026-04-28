@@ -1,25 +1,32 @@
 "use client";
 import { X, Package, Truck, CheckCircle } from 'lucide-react';
 
-export default function TrackingModal({ order, onClose }: { order: any, onClose: () => void }) {
+type TrackingOrder = {
+  id: string;
+  title: string;
+  recipient: string;
+  progress?: number;
+};
+
+export default function TrackingModal({ order, onClose }: { order: TrackingOrder | null, onClose: () => void }) {
   if (!order) return null;
   const progress = order.progress ?? 2;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#5A0F24]/40 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-[#FFFFFF] w-full max-w-md rounded-3xl overflow-hidden shadow-2xl p-8 animate-in slide-in-from-bottom-10 duration-300">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-[#5A0F24]">Rastreo de Pedido</h2>
+      <div className="bg-[#FFFFFF] w-full max-w-md rounded-3xl overflow-hidden shadow-2xl p-5 sm:p-8 animate-in slide-in-from-bottom-10 duration-300">
+        <div className="flex justify-between items-center mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#5A0F24]">Rastreo de Pedido</h2>
           <button onClick={onClose} className="p-2 bg-[#F5E6D0] rounded-full text-[#8E1B3A] hover:bg-[#BC9968] hover:text-[#FFFFFF] transition-colors"><X className="w-5 h-5" /></button>
         </div>
 
-        <div className="bg-[#F5E6D0]/30 rounded-xl p-4 mb-8 border border-[#F5E6D0]">
+        <div className="bg-[#F5E6D0]/30 rounded-xl p-4 mb-6 sm:mb-8 border border-[#F5E6D0]">
           <p className="text-sm text-[#B0B0B0] font-medium">Pedido {order.id}</p>
           <p className="font-bold text-[#5C3A2E]">{order.title}</p>
           <p className="text-xs text-[#8E1B3A] font-semibold mt-1">Para: {order.recipient}</p>
         </div>
 
-        <div className="space-y-8 relative">
+        <div className="space-y-6 sm:space-y-8 relative">
           {/* Línea de fondo */}
           <div className="absolute top-5 left-5 w-0.5 h-[calc(100%-2.5rem)] bg-[#F5E6D0]"></div>
           {/* Línea de progreso */}
@@ -29,7 +36,7 @@ export default function TrackingModal({ order, onClose }: { order: any, onClose:
           ></div>
 
           {/* Paso 1 */}
-          <div className="relative flex items-center gap-6">
+          <div className="relative flex items-center gap-4 sm:gap-6">
             <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#FFFFFF] ${progress >= 1 ? 'bg-[#8E1B3A] text-[#FFFFFF]' : 'bg-[#E5E7EB] text-[#9CA3AF]'} shadow shrink-0 z-10 transition-colors duration-500`}>
               <Package className="w-5 h-5" />
             </div>
@@ -40,7 +47,7 @@ export default function TrackingModal({ order, onClose }: { order: any, onClose:
           </div>
 
           {/* Paso 2 */}
-          <div className="relative flex items-center gap-6">
+          <div className="relative flex items-center gap-4 sm:gap-6">
             <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#FFFFFF] ${progress >= 2 ? 'bg-[#BC9968] text-[#FFFFFF]' : 'bg-[#E5E7EB] text-[#9CA3AF]'} shadow shrink-0 z-10 transition-colors duration-500`}>
               <Truck className={`w-5 h-5 ${progress === 2 ? 'animate-pulse' : ''}`} />
             </div>
@@ -51,7 +58,7 @@ export default function TrackingModal({ order, onClose }: { order: any, onClose:
           </div>
 
           {/* Paso 3 */}
-          <div className="relative flex items-center gap-6">
+          <div className="relative flex items-center gap-4 sm:gap-6">
             <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#FFFFFF] ${progress === 3 ? 'bg-[#10B981] text-[#FFFFFF]' : 'bg-[#E5E7EB] text-[#9CA3AF]'} shadow shrink-0 z-10 transition-colors duration-500`}>
               <CheckCircle className="w-5 h-5" />
             </div>
