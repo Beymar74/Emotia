@@ -6,7 +6,7 @@ import { ArrowRight, PackagePlus, BarChart, Settings } from "lucide-react";
 
 export default function BusinessWelcome() {
   return (
-    <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
       
       {/* Estilo para la fuente cursiva carta */}
       <style dangerouslySetInnerHTML={{ __html: `
@@ -16,9 +16,9 @@ export default function BusinessWelcome() {
         }
       `}} />
 
-      {/* Banner de Bienvenida con tu Degradado Correcto */}
+      {/* Banner de Bienvenida */}
       <div 
-        className="rounded-3xl p-10 text-white shadow-xl relative overflow-hidden"
+        className="rounded-2xl p-8 sm:p-12 text-white shadow-lg relative overflow-hidden mb-10"
         style={{ background: "linear-gradient(135deg, #3D0A1A 0%, #8E1B3A 100%)" }}
       >
         {/* Decoración de fondo original */}
@@ -30,58 +30,61 @@ export default function BusinessWelcome() {
 
         <div className="relative z-10">
           {/* Título con Letra Carta Aplicada */}
-          <h1 className="text-5xl md:text-6xl mb-4 fuente-carta tracking-wide">
+          <h1 className="text-5xl md:text-6xl mb-4 fuente-carta tracking-wide drop-shadow-md">
             ¡Hola, Artesanías La Paz!
           </h1>
-          <p className="text-lg md:text-xl text-[#F5E6D0] max-w-2xl font-light">
+          <p className="text-lg md:text-xl text-[#F5E6D0] max-w-2xl font-light leading-relaxed">
             Bienvenido al panel premium de proveedores de Emotia. Estamos listos para ayudarte a llevar regalos inolvidables a más personas. ¿Qué te gustaría hacer hoy?
           </p>
         </div>
       </div>
 
-      {/* Accesos Rápidos */}
-      <h2 className="text-2xl font-bold text-[#1A1A1A] mt-12 mb-6">Accesos Rápidos</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Título de Sección con formato Admin */}
+      <section>
+        <h2 className="text-[10px] tracking-[2.5px] uppercase text-[#BC9968] font-bold mb-5">
+          Accesos rápidos de tu tienda
+        </h2>
         
-        {/* ARREGLO DE RUTAS EN LAS CARDS */}
-        {/* Card 1 */}
-        <Link href="/business/proveedores/dashboard" className="group bg-white p-8 rounded-2xl shadow-sm hover:shadow-md border border-[#F5E6D0] transition-all">
-          <div className="h-14 w-14 rounded-full bg-[#F5E6D0] text-[#8E1B3A] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <BarChart size={28} />
-          </div>
-          <h3 className="text-xl font-bold text-[#3D0A1A] mb-2">Ver mi Dashboard</h3>
-          <p className="text-[#B0B0B0] text-sm mb-6">Revisa tus ventas, ingresos y pedidos pendientes de hoy.</p>
-          <div className="flex items-center text-[#BC9968] font-bold text-sm">
-            Ir al dashboard <ArrowRight size={16} className="ml-2 group-hover:translate-x-2 transition-transform" />
-          </div>
-        </Link>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 xl:gap-6">
+          
+          {/* Card 1: Dashboard */}
+          <Link href="/business/proveedores/dashboard" className="group bg-white p-6 xl:p-8 rounded-2xl shadow-sm hover:shadow-md border border-[#BC9968]/20 transition-all">
+            <div className="h-12 w-12 rounded-xl bg-[#5A0F24]/5 text-[#8E1B3A] flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+              <BarChart size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-[#3D0A1A] mb-2">Ver mi Dashboard</h3>
+            <p className="text-gray-500 text-sm mb-6 line-clamp-2">Revisa tus ventas, ingresos y pedidos pendientes de hoy.</p>
+            <div className="flex items-center text-[#BC9968] font-semibold text-sm">
+              Ir al dashboard <ArrowRight size={16} className="ml-2 group-hover:translate-x-2 transition-transform" />
+            </div>
+          </Link>
 
-        {/* Card 2 */}
-        <Link href="/business/proveedores/productos" className="group bg-white p-8 rounded-2xl shadow-sm hover:shadow-md border border-[#F5E6D0] transition-all">
-          <div className="h-14 w-14 rounded-full bg-[#F5E6D0] text-[#8E1B3A] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <PackagePlus size={28} />
-          </div>
-          <h3 className="text-xl font-bold text-[#3D0A1A] mb-2">Añadir Productos</h3>
-          <p className="text-[#B0B0B0] text-sm mb-6">Actualiza tu catálogo y añade nuevas opciones de personalización.</p>
-          <div className="flex items-center text-[#BC9968] font-bold text-sm">
-            Ir al catálogo <ArrowRight size={16} className="ml-2 group-hover:translate-x-2 transition-transform" />
-          </div>
-        </Link>
+          {/* Card 2: Catálogo */}
+          <Link href="/business/proveedores/productos" className="group bg-white p-6 xl:p-8 rounded-2xl shadow-sm hover:shadow-md border border-[#BC9968]/20 transition-all">
+            <div className="h-12 w-12 rounded-xl bg-[#5A0F24]/5 text-[#8E1B3A] flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+              <PackagePlus size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-[#3D0A1A] mb-2">Añadir Productos</h3>
+            <p className="text-gray-500 text-sm mb-6 line-clamp-2">Actualiza tu catálogo y añade nuevas opciones de personalización.</p>
+            <div className="flex items-center text-[#BC9968] font-semibold text-sm">
+              Ir al catálogo <ArrowRight size={16} className="ml-2 group-hover:translate-x-2 transition-transform" />
+            </div>
+          </Link>
 
-        {/* Card 3 */}
-        <Link href="/business/proveedores/perfil" className="group bg-white p-8 rounded-2xl shadow-sm hover:shadow-md border border-[#F5E6D0] transition-all">
-          <div className="h-14 w-14 rounded-full bg-[#F5E6D0] text-[#8E1B3A] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <Settings size={28} />
-          </div>
-          <h3 className="text-xl font-bold text-[#3D0A1A] mb-2">Configurar Tienda</h3>
-          <p className="text-[#B0B0B0] text-sm mb-6">Actualiza tu logo, descripción y datos de contacto de tu negocio.</p>
-          <div className="flex items-center text-[#BC9968] font-bold text-sm">
-            Ir a mi perfil <ArrowRight size={16} className="ml-2 group-hover:translate-x-2 transition-transform" />
-          </div>
-        </Link>
+          {/* Card 3: Configuración */}
+          <Link href="/business/proveedores/perfil" className="group bg-white p-6 xl:p-8 rounded-2xl shadow-sm hover:shadow-md border border-[#BC9968]/20 transition-all">
+            <div className="h-12 w-12 rounded-xl bg-[#5A0F24]/5 text-[#8E1B3A] flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+              <Settings size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-[#3D0A1A] mb-2">Configurar Tienda</h3>
+            <p className="text-gray-500 text-sm mb-6 line-clamp-2">Actualiza tu logo, descripción y datos de contacto de tu negocio.</p>
+            <div className="flex items-center text-[#BC9968] font-semibold text-sm">
+              Ir a mi perfil <ArrowRight size={16} className="ml-2 group-hover:translate-x-2 transition-transform" />
+            </div>
+          </Link>
 
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

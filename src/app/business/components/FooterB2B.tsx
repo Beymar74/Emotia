@@ -140,9 +140,6 @@ export default function FooterB2B() {
                 <a href="#" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: P.bordoOscuro, color: P.beige }}>
                   <FaTiktok size={19} /> {/* Un poco más pequeño para que encaje perfecto */}
                 </a>
-                <a href="#" className="p-3 rounded-full transition-colors hover:bg-white/10" style={{ background: P.bordoOscuro, color: P.beige }}>
-                  <FaFacebook size={20} />
-                </a>
               </div>
             </div>
 
@@ -196,7 +193,7 @@ export default function FooterB2B() {
                 </div>
                 <div className="flex items-center gap-4" style={{ color: P.beige, opacity: 0.8 }}>
                   <Mail size={20} className="shrink-0" style={{ color: P.dorado }} />
-                  <p className="text-sm">socios@emotia.com.bo</p>
+                  <p className="text-sm">emotia.support@gmail.com</p>
                 </div>
               </div>
 
