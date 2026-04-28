@@ -10,22 +10,22 @@
   width: 100%;
   max-width: 1560px;
   margin: 0 auto;
-  padding: 1.25rem 1.35rem 2rem 0;
+  padding: 1.25rem 1.35rem 2rem 1.35rem;
   display: grid;
-  grid-template-columns: 348px minmax(0, 1fr);
-  gap: 1.1rem;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 1.5rem;
 }
 
 .sidebar {
   position: sticky;
   top: 6.4rem;
   align-self: start;
-  margin-left: -0.7rem;
-  padding: 1rem;
+  margin-left: 0;
+  padding: 1.25rem;
   border: 1px solid rgba(198, 40, 79, 0.12);
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 20px 40px rgba(92, 58, 46, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 32px rgba(92, 58, 46, 0.10);
   backdrop-filter: blur(14px);
 }
 
@@ -349,12 +349,33 @@
 
 .productRail {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(168px, 200px);
   gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(198, 40, 79, 0.25) transparent;
+}
+
+.productRail::-webkit-scrollbar {
+  height: 4px;
+}
+
+.productRail::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.productRail::-webkit-scrollbar-thumb {
+  background: rgba(198, 40, 79, 0.25);
+  border-radius: 999px;
 }
 
 .productRailFiltered {
-  grid-template-columns: repeat(auto-fill, minmax(168px, 186px));
+  grid-auto-flow: row;
+  grid-auto-columns: auto;
+  overflow-x: visible;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
   justify-content: flex-start;
 }
 
@@ -510,13 +531,12 @@
 @media (max-width: 1120px) {
   .layout {
     grid-template-columns: 1fr;
-    padding-right: 1.35rem;
+    padding: 1rem 1.35rem 2rem 1.35rem;
   }
 
   .sidebar {
     position: static;
     top: auto;
-    margin-left: 0;
   }
 }
 

@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import { PrismaClient } from '../src/generated/prisma'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { redis } from '../src/lib/redis'
 import { seedCategorias } from './seeds/categorias'
 import { seedProveedores } from './seeds/proveedores'
 import { seedUsuarios } from './seeds/usuarios'
@@ -77,6 +78,14 @@ async function main() {
 
     await seedAuditLog(prisma)
     console.log('✅ Audit log')
+
+    console.log('\n🧹 Limpiando caché de Redis...')
+    try {
+        await redis.flushdb()
+        console.log('✅ Caché de Redis limpia')
+    } catch (error) {
+        console.log('⚠️ No se pudo limpiar la caché de Redis. Error:', error)
+    }
 
     console.log('\n🎉 Seed completado exitosamente!')
 }

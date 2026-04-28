@@ -382,7 +382,7 @@ export default function CatalogoClient({
         <main className={styles.mainContent}>
           <div className={styles.heroBar}>
             <div>
-              <h1 className={styles.heroTitle}>Catalogo</h1>
+              <h1 className={styles.heroTitle}>Catálogo</h1>
             </div>
             <div className={styles.toolbarRight}>
               <span className={styles.resultsCount}>{productosFiltrados.length} productos</span>
