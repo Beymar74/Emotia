@@ -2,7 +2,6 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { invalidateFeaturedProductsCache } from "@/lib/services/productService";
 
 export async function actualizarProductoAction(formData: FormData) {
   const id = Number(formData.get('id'));
@@ -72,8 +71,6 @@ export async function actualizarImagenProducto(id: number, url: string | null) {
     revalidatePath(`/admin/productos/${id}/editar`);
     revalidatePath('/admin/productos');
     revalidatePath('/');
-    // Invalidar el caché de Upstash para que el Home muestre la imagen actualizada
-    await invalidateFeaturedProductsCache();
     return { success: true };
   } catch (error) {
     console.error("Error al actualizar imagen del producto:", error);
