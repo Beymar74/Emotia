@@ -3,8 +3,8 @@ import { redis } from '../redis';
 
 // Clave para la caché de productos destacados en el Home
 const FEATURED_PRODUCTS_CACHE_KEY = 'home:featured_products';
-// Tiempo de expiración en caché (segundos) - ej. 1 hora = 3600
-const CACHE_TTL = 3600;
+// Tiempo de expiración en caché (segundos) - 10 minutos para evitar datos stale
+const CACHE_TTL = 600;
 
 export async function getFeaturedProducts() {
   try {
@@ -48,12 +48,30 @@ export async function getFeaturedProducts() {
       brand: p.proveedores?.nombre_negocio || "Marca Local",
     }));
 
-    // 3. Guardar el resultado formateado en Redis
-    await redis.setex(FEATURED_PRODUCTS_CACHE_KEY, CACHE_TTL, JSON.stringify(formattedProducts));
+    // 3. Solo guardar en caché si hay productos con imágenes reales de Cloudinary
+    const conImagenes = formattedProducts.filter((p: any) => p.imgSrc.includes('cloudinary.com'));
+    console.log(`📸 ${conImagenes.length}/${formattedProducts.length} productos tienen imagen de Cloudinary`);
+
+    if (formattedProducts.length > 0) {
+      await redis.setex(FEATURED_PRODUCTS_CACHE_KEY, CACHE_TTL, JSON.stringify(formattedProducts));
+    }
 
     return formattedProducts;
   } catch (error) {
     console.error("Error al obtener productos destacados:", error);
     return []; // En caso de error (ej. Redis caído), devolver array vacío para no romper la app
+  }
+}
+
+/**
+ * Invalida el caché de productos destacados del Home.
+ * Llamar esto cada vez que se actualice una imagen de producto.
+ */
+export async function invalidateFeaturedProductsCache() {
+  try {
+    await redis.del(FEATURED_PRODUCTS_CACHE_KEY);
+    console.log('🗑️ Caché de productos del Home invalidada');
+  } catch (error) {
+    console.error('Error al invalidar caché:', error);
   }
 }
