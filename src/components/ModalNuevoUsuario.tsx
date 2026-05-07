@@ -107,6 +107,14 @@ export default function ModalNuevoUsuario({ variante = "boton" }: { variante?: "
                 </div>
               </div>
 
+              {/* Fila 4: Contraseña */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider">Contraseña *</label>
+                <input required name="password" type="password" className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all" placeholder="••••••••" minLength={6} />
+                <p className="text-[10px] text-[#BC9968] italic">Mínimo 6 caracteres.</p>
+              </div>
+
+
               {/* Botones de Acción */}
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={() => setIsOpen(false)} className="flex-1 py-3 px-4 rounded-xl font-bold text-sm text-[#7A5260] bg-[#F1EFE8] hover:bg-[#E5E3DC] transition-colors">

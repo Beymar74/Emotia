@@ -20,7 +20,7 @@ Stack: Next.js 15 (App Router) + Prisma + PostgreSQL + TailwindCSS. Paleta: vino
 | pedidos         | /admin/pedidos + [id]      | ✅ Completo   |
 | productos       | /admin/productos           | ✅ CRUD       |
 | proveedores     | /admin/proveedores         | ✅ CRUD       |
-| recomendaciones | (pendiente — asistente IA) | ⏳ Pendiente  |
+| recomendaciones | /admin/reportes/fidelizacion | ✅ Reporte   |
 | recordatorios   | /admin/recordatorios       | ✅ Supervisión|
 | usuarios        | /admin/usuarios            | ✅ Completo   |
 | insignias       | ELIMINADO (sin gamificación)|❌ Removido   |
@@ -70,7 +70,12 @@ Stack: Next.js 15 (App Router) + Prisma + PostgreSQL + TailwindCSS. Paleta: vino
 ### Corrección de errores de compilación en Vercel (Conversación actual)
 - ✅ Solucionado error "Export Facebook/Instagram doesn't exist in target module" en `Footer.tsx`.
 - ✅ Se migraron los iconos de redes sociales de `lucide-react` a `react-icons/fa6` para evitar conflictos de exportación en Turbopack/Next.js 16.
-
+### Completar centro de reportes (Conversación actual)
+- ✅ Implementación completa de `/admin/reportes/calidad` (calificaciones y reseñas).
+- ✅ Implementación completa de `/admin/reportes/fidelizacion` (puntos, insignias y conversión IA).
+- ✅ Implementación completa de `/admin/reportes/proveedores` (rendimiento y catálogo).
+- ✅ Mejora de la coherencia visual en todos los reportes individuales.
+- ✅ Migración completa de emojis a iconos vectoriales de Lucide-React en el centro de reportes y dashboard.
 
 ---
 
@@ -79,3 +84,15 @@ Stack: Next.js 15 (App Router) + Prisma + PostgreSQL + TailwindCSS. Paleta: vino
 - [ ] Conectar `/admin/asistente` con datos reales de `recomendaciones`
 - [ ] Mejorar `/admin/pagos` para que los métodos no sean hardcodeados
 - [ ] Mejorar detalles en `/admin/usuarios` (mostrar plan, puntos, cambiar tipo)
+- [/] Gestión de Contraseñas por Administrador (Crear con contraseña y Editar contraseña con hashing)
+
+### Plan Actual: Instalación de reCAPTCHA
+
+#### Objetivo
+Implementar Google reCAPTCHA para mejorar la seguridad del sitio contra bots y spam.
+
+#### Pasos
+1. ✅ Instalar dependencias: `react-google-recaptcha` y `@types/react-google-recaptcha`.
+2. [ ] Configurar las claves de sitio y secretas en el archivo `.env`.
+3. [ ] Implementar el componente de reCAPTCHA en los formularios críticos (Login, Registro, etc.).
+

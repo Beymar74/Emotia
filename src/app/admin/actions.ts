@@ -12,7 +12,7 @@ export async function aprobarProveedor(formData: FormData) {
     where: { id },
     data: { estado: "aprobado" },
   });
-  revalidatePath("/admin/proveedores");
+  revalidatePath("/admin/empresas");
 }
 
 export async function rechazarProveedor(formData: FormData) {
@@ -23,7 +23,7 @@ export async function rechazarProveedor(formData: FormData) {
     where: { id },
     data: { estado: "rechazado" },
   });
-  revalidatePath("/admin/proveedores");
+  revalidatePath("/admin/empresas");
 }
 
 

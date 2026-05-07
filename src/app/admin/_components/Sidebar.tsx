@@ -23,12 +23,13 @@ const navSections = [
     ],
   },
   {
-    label: "Proveedores",
-    icon: IconCheck,
+    label: "Empresas",
+    icon: IconBuilding,
     soloAdmin: false,
     items: [
-      { href: "/admin/proveedores/actividad", label: "Supervisar actividad", soloAdmin: false },
-      { href: "/admin/proveedores/rendimiento", label: "Rendimiento", soloAdmin: false },
+      { href: "/admin/empresas", label: "Directorio", soloAdmin: false },
+      { href: "/admin/empresas/actividad", label: "Supervisar actividad", soloAdmin: false },
+      { href: "/admin/empresas/rendimiento", label: "Rendimiento", soloAdmin: false },
     ],
   },
   {
@@ -73,7 +74,6 @@ const navSections = [
     soloAdmin: false,
     items: [
       { href: "/admin/reportes", label: "Reportes de ventas", soloAdmin: false },
-      { href: "/admin/auditoria", label: "Log de auditoría", soloAdmin: true },
       { href: "/admin/configuracion", label: "Configuración", soloAdmin: true },
     ],
   },
@@ -336,6 +336,15 @@ function IconStar({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 14 14" fill="none">
       <path d="M7 1.5l1.5 3.1 3.4.5-2.5 2.4.6 3.4L7 9.3l-3 1.6.6-3.4L2.1 5.1l3.4-.5L7 1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function IconBuilding({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 14 14" fill="none">
+      <rect x="1.5" y="2.5" width="11" height="9.5" rx="1" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M4.5 5.5h1M8.5 5.5h1M4.5 8h1M8.5 8h1M6 12V9.5h2V12" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+      <path d="M1.5 4.5h11" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
     </svg>
   );
 }

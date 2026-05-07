@@ -6,7 +6,6 @@ import type { NextRequest } from "next/server";
 const SOLO_ADMIN = [
   "/admin/usuarios",
   "/admin/configuracion",
-  "/admin/auditoria",
 ];
 
 export async function middleware(request: NextRequest) {

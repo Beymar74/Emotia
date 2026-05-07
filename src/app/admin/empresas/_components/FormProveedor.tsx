@@ -30,24 +30,24 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
       setError(result.error);
       setIsSubmitting(false);
     } else {
-      router.push("/admin/proveedores/actividad");
+      router.push("/admin/empresas/actividad");
       router.refresh();
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* ── Logo del Proveedor (solo al editar) ───────────────── */}
+      {/* Logo (solo al editar) */}
       {isEditing && (
         <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm p-6">
           <h3 className="text-xs font-bold text-[#BC9968] uppercase tracking-widest flex items-center gap-2 mb-5">
             <ImageIcon size={14} />
-            Logo del Negocio
+            Logo de la Empresa
           </h3>
           <div className="flex justify-center">
             <AvatarUploader
               currentUrl={proveedor?.logo_url}
-              label="Logo del proveedor"
+              label="Logo de la empresa"
               shape="square"
               uploadPreset="emotia_preset"
               onSave={async (url) => {
@@ -61,10 +61,14 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
         </div>
       )}
 
-      {/* ── Formulario de Datos ───────────────────────────────── */}
+      {/* Formulario */}
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm p-6 space-y-8">
         {error && (
-          <div className="bg-[#FBF0F0] text-[#A32D2D] text-sm font-bold p-4 rounded-xl border border-[#A32D2D]/10">
+          <div className="bg-[#FBF0F0] text-[#A32D2D] text-sm font-bold p-4 rounded-xl border border-[#A32D2D]/10 flex items-center gap-3">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
+              <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.3" />
+              <path d="M8 4.5v4M8 10.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
             {error}
           </div>
         )}
@@ -72,7 +76,7 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
         {isEditing && <input type="hidden" name="id" value={proveedor.id} />}
 
         <div className="space-y-6">
-          {/* Sección: Información Básica */}
+          {/* Información Básica */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold text-[#BC9968] uppercase tracking-widest flex items-center gap-2">
               <span className="w-6 h-[1px] bg-[#BC9968]/30"></span>
@@ -80,7 +84,7 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
                   <Store size={14} /> Nombre del Negocio *
                 </label>
@@ -90,11 +94,11 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
                   defaultValue={proveedor?.nombre_negocio}
                   type="text"
                   placeholder="Ej. Florería Rosalía"
-                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
+                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 focus:border-[#8E1B3A]/30 transition-all font-medium text-[#2A0E18] placeholder:text-[#7A5260]/40"
                 />
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
                   <Mail size={14} /> Correo Electrónico *
                 </label>
@@ -103,14 +107,14 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
                   name="email"
                   defaultValue={proveedor?.email}
                   type="email"
-                  placeholder="proveedor@ejemplo.com"
-                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
+                  placeholder="empresa@ejemplo.com"
+                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 focus:border-[#8E1B3A]/30 transition-all font-medium text-[#2A0E18] placeholder:text-[#7A5260]/40"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
                   <Phone size={14} /> Teléfono / WhatsApp
                 </label>
@@ -119,11 +123,11 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
                   defaultValue={proveedor?.telefono}
                   type="text"
                   placeholder="+591 ..."
-                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
+                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 focus:border-[#8E1B3A]/30 transition-all font-medium text-[#2A0E18] placeholder:text-[#7A5260]/40"
                 />
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
                   <Lock size={14} /> {isEditing ? "Nueva Contraseña (opcional)" : "Contraseña de Acceso *"}
                 </label>
@@ -132,19 +136,19 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
                   name="password"
                   type="password"
                   placeholder={isEditing ? "Dejar en blanco para mantener" : "Mínimo 8 caracteres"}
-                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
+                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 focus:border-[#8E1B3A]/30 transition-all font-medium text-[#2A0E18] placeholder:text-[#7A5260]/40"
                 />
               </div>
             </div>
           </div>
 
-          {/* Sección: Detalles Adicionales */}
+          {/* Descripción */}
           <div className="space-y-4 pt-2">
             <h3 className="text-xs font-bold text-[#BC9968] uppercase tracking-widest flex items-center gap-2">
               <span className="w-6 h-[1px] bg-[#BC9968]/30"></span>
               Descripción del Perfil
             </h3>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
                 <FileText size={14} /> Resumen del Negocio
               </label>
@@ -152,8 +156,8 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
                 name="descripcion"
                 defaultValue={proveedor?.descripcion || ""}
                 rows={4}
-                placeholder="Describe lo que ofrece este proveedor..."
-                className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all resize-none font-medium text-[#2A0E18]"
+                placeholder="Describe lo que ofrece esta empresa..."
+                className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 focus:border-[#8E1B3A]/30 transition-all resize-none font-medium text-[#2A0E18] placeholder:text-[#7A5260]/40"
               />
             </div>
           </div>
@@ -176,7 +180,7 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
               <Loader2 size={18} className="animate-spin" />
             ) : (
               <>
-                {isEditing ? "Guardar Cambios" : "Registrar Proveedor"}
+                {isEditing ? "Guardar Cambios" : "Registrar Empresa"}
                 <ChevronRight size={18} />
               </>
             )}

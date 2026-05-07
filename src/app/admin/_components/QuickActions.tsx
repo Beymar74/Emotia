@@ -11,9 +11,9 @@ export default async function QuickActions() {
 
   const actions = [
     {
-      label: "Aprobar proveedores",
+      label: "Aprobar empresas",
       sub: `${provPendientes} ${provPendientes === 1 ? "pendiente" : "pendientes"}`,
-      href: "/admin/proveedores/actividad",
+      href: "/admin/empresas/actividad",
       bg: "bg-[#8E1B3A]/10",
       icon: (
         <svg width="20" height="20" viewBox="0 0 16 16" fill="none">

@@ -1,3 +1,5 @@
+import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
+
 type DeltaType = "up" | "down" | "neutral";
 
 interface MetricCardProps {
@@ -15,10 +17,10 @@ const deltaStyles: Record<DeltaType, string> = {
   neutral: "bg-[#BC9968]/15 text-[#5C3A2E]",
 };
 
-const deltaPrefix: Record<DeltaType, string> = {
-  up:      "↑ ",
-  down:    "↓ ",
-  neutral: "",
+const deltaIcons: Record<DeltaType, any> = {
+  up:      <ArrowUpRight className="w-3 h-3" />,
+  down:    <ArrowDownRight className="w-3 h-3" />,
+  neutral: <Minus className="w-3 h-3" />,
 };
 
 export default function MetricCard({ value, label, delta, deltaType, barFrom, barTo }: MetricCardProps) {
@@ -33,7 +35,7 @@ export default function MetricCard({ value, label, delta, deltaType, barFrom, ba
       </p>
       <p className="text-sm text-[#7A5260] mt-2 mb-4">{label}</p>
       <span className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full font-medium ${deltaStyles[deltaType]}`}>
-        {deltaPrefix[deltaType]}{delta}
+        {deltaIcons[deltaType]}{delta}
       </span>
     </div>
   );

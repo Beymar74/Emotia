@@ -1,9 +1,10 @@
 "use client";
 
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertCircle, Cake, Eye, EyeOff, LockKeyhole, Mail, User, X } from "lucide-react";
+import { AlertCircle, Cake, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, User, X } from "lucide-react";
 import Image from "next/image";
+import ReCAPTCHA from "react-google-recaptcha";
 import { useSession } from "./auth/useSession";
 
 type AuthModalProps = {
@@ -48,11 +49,18 @@ export default function AuthModal({
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA | null>(null);
 
   const buildShortDisplayName = (valueNombres: string, valueApellidos: string) => {
     const primerNombre = valueNombres.trim().split(/\s+/).filter(Boolean)[0] || "Usuario";
     const primerApellido = valueApellidos.trim().split(/\s+/).filter(Boolean)[0] || "";
     return [primerNombre, primerApellido].filter(Boolean).join(" ");
+  };
+
+  const resetCaptcha = () => {
+    setCaptchaToken(null);
+    recaptchaRef.current?.reset();
   };
 
   useEffect(() => {
@@ -61,14 +69,23 @@ export default function AuthModal({
       setView(initialView);
       setError("");
       setShowPassword(false);
+      resetCaptcha();
     } else {
       document.body.style.overflow = "";
+      resetCaptcha();
     }
 
     return () => {
       document.body.style.overflow = "";
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialView, isOpen]);
+
+  useEffect(() => {
+    resetCaptcha();
+    setError("");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -76,6 +93,23 @@ export default function AuthModal({
     setError("");
 
     try {
+      if (!captchaToken) {
+        setError("Completa la verificación de seguridad antes de continuar.");
+        return;
+      }
+
+      const captchaResponse = await fetch("/api/auth/catalog/verify-captcha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: captchaToken }),
+      });
+
+      if (!captchaResponse.ok) {
+        resetCaptcha();
+        setError("La verificación de seguridad falló. Inténtalo de nuevo.");
+        return;
+      }
+
       if (view === "register") {
         const shortDisplayName = buildShortDisplayName(nombres, apellidos);
         const selectedBirthDate = new Date(`${birthDate}T12:00:00.000Z`);
@@ -94,6 +128,7 @@ export default function AuthModal({
         const result = await registerWithCredential(shortDisplayName, email, password);
 
         if (result.status !== "ok") {
+          resetCaptcha();
           setError("No pudimos crear tu cuenta. Revisa tus datos e intenta otra vez.");
           return;
         }
@@ -115,6 +150,7 @@ export default function AuthModal({
         };
 
         if (!profileResponse.ok) {
+          resetCaptcha();
           setError(profileData.error || "No pudimos completar tu registro.");
           return;
         }
@@ -127,6 +163,7 @@ export default function AuthModal({
       const result = await loginWithCredential(email, password);
 
       if (result.status !== "ok") {
+        resetCaptcha();
         setError("No pudimos iniciar sesión. Verifica tu correo y contraseña.");
         return;
       }
@@ -134,6 +171,7 @@ export default function AuthModal({
       onLoginSuccess?.();
       onClose();
     } catch {
+      resetCaptcha();
       setError("Ocurrió un error inesperado. Intenta nuevamente.");
     } finally {
       setLoading(false);
@@ -151,6 +189,8 @@ export default function AuthModal({
       setLoading(false);
     }
   };
+
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? "";
 
   return (
     <AnimatePresence>
@@ -360,9 +400,36 @@ export default function AuthModal({
                   </span>
                 </label>
 
+                {/* Google reCAPTCHA v2 */}
+                <div className="rounded-xl border border-[#F5E6D0] bg-[#FFFBF5] px-4 py-3">
+                  <div className="mb-2 flex items-center gap-2">
+                    <ShieldCheck size={15} className="shrink-0 text-[#C13550]" />
+                    <span className="text-[0.7rem] font-bold tracking-widest text-[#5C3A2E] uppercase">
+                      Verificación de seguridad
+                    </span>
+                  </div>
+                  <div className="flex justify-center">
+                    <ReCAPTCHA
+                      ref={recaptchaRef}
+                      sitekey={siteKey}
+                      onChange={(token: string | null) => {
+                        setCaptchaToken(token);
+                        setError("");
+                      }}
+                      onExpired={() => setCaptchaToken(null)}
+                      onErrored={() => {
+                        setCaptchaToken(null);
+                        setError("Error en la verificación de seguridad. Recarga la página.");
+                      }}
+                      theme="light"
+                      hl="es"
+                    />
+                  </div>
+                </div>
+
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !captchaToken}
                   className="mt-2 w-full rounded-full bg-[#C13550] py-3.5 text-[0.95rem] font-bold text-white shadow-md transition-colors hover:bg-[#A32940] focus:outline-none focus:ring-2 focus:ring-[#C13550] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {loading ? "Procesando..." : view === "register" ? "Crear cuenta" : "Ingresar"}

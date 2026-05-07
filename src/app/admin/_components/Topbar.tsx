@@ -30,8 +30,8 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
         <span className="hidden sm:inline text-xs bg-[#8E1B3A]/10 text-[#8E1B3A] px-4 py-1.5 rounded-full font-medium tracking-wide">
           Acceso total
         </span>
-        <span className="hidden md:inline text-sm text-[#7A5260] bg-[#F5E6D0] px-4 py-1.5 rounded-full">
-          Abril 2026
+        <span className="hidden md:inline text-sm text-[#7A5260] bg-[#F5E6D0] px-4 py-1.5 rounded-full capitalize">
+          {new Intl.DateTimeFormat("es-BO", { month: "long", year: "numeric", timeZone: "America/La_Paz" }).format(new Date())}
         </span>
         <button className="relative p-1.5">
           <svg width="22" height="22" viewBox="0 0 18 18" fill="none">

@@ -116,6 +116,16 @@ export default function BotonesAccion({ usuario, esAdmin }: { usuario: any, esAd
                 </div>
               </div>
 
+              {/* CAMBIO DE CONTRASEÑA (OPCIONAL) */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-[#7A5260] uppercase tracking-wider ml-1">Cambiar Contraseña (Opcional)</label>
+                <input name="password" type="password" className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all text-[#2A0E18]" placeholder="Nueva contraseña o dejar vacío" minLength={6} />
+                <p className="text-[9px] text-[#BC9968] italic px-1 leading-tight">
+                  Deja este campo vacío para mantener la contraseña actual. El administrador no puede ver la contraseña vigente.
+                </p>
+              </div>
+
+
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 py-3 px-4 rounded-xl font-bold text-sm text-[#7A5260] bg-[#F1EFE8] hover:bg-[#E5E3DC] transition-colors">
                   Cancelar

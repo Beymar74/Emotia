@@ -3,21 +3,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, Phone, Calendar, Star, Package, ShoppingBag, TrendingUp } from "lucide-react";
 
-export default async function DetalleActividadProveedorPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function DetalleActividadEmpresaPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const proveedorId = parseInt(id);
+    const empresaId = parseInt(id);
 
-    // 1. Validar que el ID sea un número
-    if (isNaN(proveedorId)) {
+    if (isNaN(empresaId)) {
         notFound();
     }
 
-    // 2. Buscar el proveedor y contar sus productos y pedidos relacionados
-    const proveedor = await prisma.proveedores.findUnique({
-        where: { id: proveedorId },
+    const empresa = await prisma.proveedores.findUnique({
+        where: { id: empresaId },
         include: {
             _count: {
-                select: { 
+                select: {
                     productos: true,
                     detalle_pedidos: true
                 }
@@ -25,12 +23,10 @@ export default async function DetalleActividadProveedorPage({ params }: { params
         }
     });
 
-    // Si no existe, lanza error 404
-    if (!proveedor) {
+    if (!empresa) {
         notFound();
     }
 
-    // --- FUNCIONES AUXILIARES ---
     const formatFecha = (fecha: Date) => {
         return new Intl.DateTimeFormat('es-BO', {
             day: '2-digit', month: 'long', year: 'numeric'
@@ -38,7 +34,7 @@ export default async function DetalleActividadProveedorPage({ params }: { params
     };
 
     const getInitials = (nombre: string) => {
-        if (!nombre) return "PR";
+        if (!nombre) return "EM";
         return nombre.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
     };
 
@@ -49,19 +45,34 @@ export default async function DetalleActividadProveedorPage({ params }: { params
         rechazado: "bg-[#FBF0F0] text-[#A32D2D]",
     };
 
+    const estadoLabel: Record<string, string> = {
+        aprobado: "Activa",
+        suspendido: "Suspendida",
+        pendiente: "Pendiente",
+        rechazado: "Rechazada",
+    };
+
     return (
         <div className="space-y-6 max-w-5xl mx-auto">
             {/* Header con botón de volver */}
             <div className="flex items-center gap-4">
-                <Link 
-                    href="/admin/proveedores/actividad" 
+                <Link
+                    href="/admin/empresas/actividad"
                     className="p-2 bg-white border border-[#8E1B3A]/10 rounded-xl text-[#7A5260] hover:text-[#8E1B3A] hover:bg-[#FDFBF9] transition-all shadow-sm"
                 >
                     <ArrowLeft size={20} />
                 </Link>
                 <div>
-                    <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Actividad de Proveedores</p>
+                    <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Actividad de Empresas</p>
                     <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Perfil del Negocio</h1>
+                </div>
+                <div className="ml-auto">
+                    <Link
+                        href={`/admin/empresas/${empresa.id}/editar`}
+                        className="text-sm text-[#8E1B3A] font-bold border border-[#8E1B3A]/20 px-4 py-2 rounded-xl hover:bg-[#8E1B3A]/5 transition-all"
+                    >
+                        Editar empresa
+                    </Link>
                 </div>
             </div>
 
@@ -72,11 +83,11 @@ export default async function DetalleActividadProveedorPage({ params }: { params
                     <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm overflow-hidden">
                         <div className="bg-gradient-to-br from-[#FDFBF9] to-[#FAF3EC] p-6 flex flex-col items-center text-center border-b border-[#8E1B3A]/10">
                             <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] flex items-center justify-center text-3xl font-bold text-white shadow-md mb-4">
-                                {getInitials(proveedor.nombre_negocio)}
+                                {getInitials(empresa.nombre_negocio)}
                             </div>
-                            <h2 className="text-xl font-bold text-[#2A0E18]">{proveedor.nombre_negocio}</h2>
-                            <span className={`mt-3 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${estadoPill[proveedor.estado] || 'bg-[#F1EFE8] text-[#5F5E5A]'}`}>
-                                Estado: {proveedor.estado}
+                            <h2 className="text-xl font-bold text-[#2A0E18]">{empresa.nombre_negocio}</h2>
+                            <span className={`mt-3 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${estadoPill[empresa.estado] || 'bg-[#F1EFE8] text-[#5F5E5A]'}`}>
+                                {estadoLabel[empresa.estado] || empresa.estado}
                             </span>
                         </div>
 
@@ -84,12 +95,12 @@ export default async function DetalleActividadProveedorPage({ params }: { params
                             <h3 className="font-bold text-[#7A5260] uppercase tracking-wider text-xs border-b border-[#8E1B3A]/5 pb-2">
                                 Información de Contacto
                             </h3>
-                            
+
                             <div className="flex items-start gap-3 text-[#2A0E18]">
                                 <Mail size={16} className="text-[#8E1B3A] mt-0.5" />
                                 <div className="min-w-0">
                                     <p className="text-xs text-[#7A5260]">Correo Electrónico</p>
-                                    <p className="font-medium break-all">{proveedor.email}</p>
+                                    <p className="font-medium break-all">{empresa.email}</p>
                                 </div>
                             </div>
 
@@ -97,28 +108,28 @@ export default async function DetalleActividadProveedorPage({ params }: { params
                                 <Phone size={16} className="text-[#8E1B3A] mt-0.5" />
                                 <div>
                                     <p className="text-xs text-[#7A5260]">Teléfono</p>
-                                    <p className="font-medium">{proveedor.telefono || 'No registrado'}</p>
+                                    <p className="font-medium">{empresa.telefono || 'No registrado'}</p>
                                 </div>
                             </div>
 
                             <div className="flex items-start gap-3 text-[#2A0E18]">
                                 <Calendar size={16} className="text-[#8E1B3A] mt-0.5" />
                                 <div>
-                                    <p className="text-xs text-[#7A5260]">Registrado el</p>
-                                    <p className="font-medium">{formatFecha(proveedor.created_at)}</p>
+                                    <p className="text-xs text-[#7A5260]">Registrada el</p>
+                                    <p className="font-medium">{formatFecha(empresa.created_at)}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Descripción */}
-                    {proveedor.descripcion && (
+                    {empresa.descripcion && (
                         <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm p-6">
                             <h3 className="font-bold text-[#7A5260] uppercase tracking-wider text-xs border-b border-[#8E1B3A]/5 pb-2 mb-3">
                                 Sobre el Negocio
                             </h3>
                             <p className="text-sm text-[#2A0E18] leading-relaxed">
-                                {proveedor.descripcion}
+                                {empresa.descripcion}
                             </p>
                         </div>
                     )}
@@ -126,8 +137,8 @@ export default async function DetalleActividadProveedorPage({ params }: { params
 
                 {/* COLUMNA DERECHA: Rendimiento y Estadísticas */}
                 <div className="lg:col-span-2 space-y-6">
-                    
-                    {/* Tarjetas de Métricas Rápidas */}
+
+                    {/* Métricas Rápidas */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm p-5 flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl bg-[#FAF3EC] flex items-center justify-center text-[#8C5E08]">
@@ -137,7 +148,7 @@ export default async function DetalleActividadProveedorPage({ params }: { params
                                 <p className="text-xs text-[#7A5260] uppercase font-bold tracking-wider mb-1">Calificación</p>
                                 <div className="flex items-end gap-2">
                                     <span className="text-3xl font-serif font-bold text-[#5A0F24]">
-                                        {proveedor.calificacion_prom ? Number(proveedor.calificacion_prom).toFixed(1) : "N/A"}
+                                        {empresa.calificacion_prom ? Number(empresa.calificacion_prom).toFixed(1) : "N/A"}
                                     </span>
                                     <span className="text-sm text-[#7A5260] mb-1">/ 5.0</span>
                                 </div>
@@ -151,7 +162,7 @@ export default async function DetalleActividadProveedorPage({ params }: { params
                             <div>
                                 <p className="text-xs text-[#7A5260] uppercase font-bold tracking-wider mb-1">Total Generado</p>
                                 <span className="text-3xl font-serif font-bold text-[#5A0F24]">
-                                    Bs. {proveedor.total_vendido ? Number(proveedor.total_vendido).toFixed(2) : "0.00"}
+                                    Bs. {empresa.total_vendido ? Number(empresa.total_vendido).toFixed(2) : "0.00"}
                                 </span>
                             </div>
                         </div>
@@ -163,7 +174,7 @@ export default async function DetalleActividadProveedorPage({ params }: { params
                             <div>
                                 <p className="text-xs text-[#7A5260] uppercase font-bold tracking-wider mb-1">Catálogo</p>
                                 <span className="text-3xl font-serif font-bold text-[#5A0F24]">
-                                    {proveedor._count.productos}
+                                    {empresa._count.productos}
                                 </span>
                                 <span className="text-sm text-[#7A5260] ml-2">Productos</span>
                             </div>
@@ -176,29 +187,36 @@ export default async function DetalleActividadProveedorPage({ params }: { params
                             <div>
                                 <p className="text-xs text-[#7A5260] uppercase font-bold tracking-wider mb-1">Órdenes</p>
                                 <span className="text-3xl font-serif font-bold text-[#5A0F24]">
-                                    {proveedor._count.detalle_pedidos}
+                                    {empresa._count.detalle_pedidos}
                                 </span>
                                 <span className="text-sm text-[#7A5260] ml-2">Despachadas</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Resumen extra o Placeholder para Gráficos */}
+                    {/* Resumen de Actividad */}
                     <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm p-6">
                         <div className="flex items-center justify-between border-b border-[#8E1B3A]/5 pb-4 mb-4">
                             <h3 className="font-serif text-lg font-bold text-[#5A0F24]">Resumen de Actividad</h3>
                             <span className="text-xs text-[#7A5260] font-medium bg-[#FDFBF9] px-3 py-1 rounded-lg border border-[#8E1B3A]/10">
-                                Última act: {formatFecha(proveedor.updated_at)}
+                                Última act: {formatFecha(empresa.updated_at)}
                             </span>
                         </div>
-                        
-                        {proveedor._count.detalle_pedidos === 0 && proveedor._count.productos === 0 ? (
+
+                        {empresa._count.detalle_pedidos === 0 && empresa._count.productos === 0 ? (
                             <div className="py-8 text-center text-[#7A5260] bg-[#FAF3EC] rounded-xl border border-[#8E1B3A]/5">
-                                Este proveedor aún no ha registrado productos ni procesado pedidos en el sistema.
+                                Esta empresa aún no ha registrado productos ni procesado pedidos en el sistema.
                             </div>
                         ) : (
-                            <div className="py-8 text-center text-[#7A5260] bg-[#FDFBF9] rounded-xl border border-[#8E1B3A]/5">
-                                Aquí podrías integrar un gráfico de ventas mensual o el historial de los últimos 5 pedidos despachados.
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-[#FAF3EC] rounded-xl p-4 text-center">
+                                    <p className="font-serif text-3xl font-bold text-[#5A0F24]">{empresa._count.productos}</p>
+                                    <p className="text-sm text-[#7A5260] mt-1">Productos publicados</p>
+                                </div>
+                                <div className="bg-[#EEF8F0] rounded-xl p-4 text-center">
+                                    <p className="font-serif text-3xl font-bold text-[#2D7A47]">{empresa._count.detalle_pedidos}</p>
+                                    <p className="text-sm text-[#7A5260] mt-1">Órdenes procesadas</p>
+                                </div>
                             </div>
                         )}
                     </div>

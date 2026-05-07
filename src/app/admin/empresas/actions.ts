@@ -5,31 +5,25 @@ import { revalidatePath } from "next/cache";
 
 import bcrypt from "bcryptjs";
 
-/**
- * Alterna el estado de un proveedor entre 'aprobado' y 'suspendido'
- */
 export async function toggleSuspensionProveedor(id: number, estadoActual: string) {
   try {
     const nuevoEstado = estadoActual === "aprobado" ? "suspendido" : "aprobado";
-    
+
     await prisma.proveedores.update({
       where: { id },
       data: { estado: nuevoEstado },
     });
 
-    revalidatePath("/admin/proveedores/actividad");
-    revalidatePath("/admin/proveedores");
-    
+    revalidatePath("/admin/empresas/actividad");
+    revalidatePath("/admin/empresas");
+
     return { success: true, nuevoEstado };
   } catch (error) {
-    console.error("Error al cambiar estado del proveedor:", error);
-    return { success: false, error: "No se pudo cambiar el estado del proveedor" };
+    console.error("Error al cambiar estado de la empresa:", error);
+    return { success: false, error: "No se pudo cambiar el estado de la empresa" };
   }
 }
 
-/**
- * Crea un nuevo proveedor
- */
 export async function crearProveedorAction(formData: FormData) {
   const nombre_negocio = formData.get("nombre_negocio") as string;
   const email = formData.get("email") as string;
@@ -38,7 +32,6 @@ export async function crearProveedorAction(formData: FormData) {
   const password = formData.get("password") as string;
 
   try {
-    // Verificar si el email ya existe
     const existe = await prisma.proveedores.findUnique({ where: { email } });
     if (existe) return { error: "El correo electrónico ya está registrado." };
 
@@ -51,31 +44,28 @@ export async function crearProveedorAction(formData: FormData) {
         telefono,
         descripcion,
         password_hash,
-        estado: "aprobado", // Los administradores crean proveedores ya aprobados
+        estado: "aprobado",
         calificacion_prom: 0,
         total_vendido: 0
       }
     });
 
-    revalidatePath("/admin/proveedores/actividad");
-    revalidatePath("/admin/proveedores");
+    revalidatePath("/admin/empresas/actividad");
+    revalidatePath("/admin/empresas");
     return { success: true };
   } catch (error) {
-    console.error("Error al crear proveedor:", error);
-    return { error: "Ocurrió un error al crear el proveedor." };
+    console.error("Error al crear empresa:", error);
+    return { error: "Ocurrió un error al crear la empresa." };
   }
 }
 
-/**
- * Actualiza la información de un proveedor existente
- */
 export async function actualizarProveedorAction(formData: FormData) {
   const id = Number(formData.get("id"));
   const nombre_negocio = formData.get("nombre_negocio") as string;
   const email = formData.get("email") as string;
   const telefono = formData.get("telefono") as string;
   const descripcion = formData.get("descripcion") as string;
-  const password = formData.get("password") as string; // Opcional al editar
+  const password = formData.get("password") as string;
 
   try {
     const data: any = {
@@ -94,31 +84,27 @@ export async function actualizarProveedorAction(formData: FormData) {
       data
     });
 
-    revalidatePath("/admin/proveedores/actividad");
-    revalidatePath("/admin/proveedores");
+    revalidatePath("/admin/empresas/actividad");
+    revalidatePath("/admin/empresas");
     return { success: true };
   } catch (error) {
-    console.error("Error al actualizar proveedor:", error);
-    return { error: "Ocurrió un error al actualizar el proveedor." };
+    console.error("Error al actualizar empresa:", error);
+    return { error: "Ocurrió un error al actualizar la empresa." };
   }
 }
 
-/**
- * Guarda la URL de Cloudinary como logo_url del proveedor.
- * Se llama después de que el widget de Cloudinary entrega la secure_url.
- */
 export async function actualizarLogoProveedor(id: number, url: string | null) {
   try {
     await prisma.proveedores.update({
       where: { id },
       data: { logo_url: url },
     });
-    revalidatePath(`/admin/proveedores/${id}/editar`);
-    revalidatePath("/admin/proveedores/actividad");
-    revalidatePath("/admin/proveedores");
+    revalidatePath(`/admin/empresas/${id}/editar`);
+    revalidatePath("/admin/empresas/actividad");
+    revalidatePath("/admin/empresas");
     return { success: true };
   } catch (error) {
-    console.error("Error al actualizar logo del proveedor:", error);
-    return { error: "No se pudo guardar el logo del proveedor." };
+    console.error("Error al actualizar logo de la empresa:", error);
+    return { error: "No se pudo guardar el logo de la empresa." };
   }
 }
