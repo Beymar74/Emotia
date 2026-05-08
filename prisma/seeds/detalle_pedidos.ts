@@ -4,35 +4,68 @@ export async function seedDetallePedidos(prisma: PrismaClient) {
 
     const pedidos = await prisma.pedidos.findMany()
     const productos = await prisma.productos.findMany()
-    const proveedores = await prisma.proveedores.findMany()
 
-    const findProducto = (nombre: string) => {
-        const producto = productos.find((p: any) => p.nombre === nombre)
-        if (!producto) throw new Error(`Producto no encontrado en seedDetallePedidos: ${nombre}`)
-        return producto
+    if (productos.length === 0 || pedidos.length === 0) return;
+
+    const resenas_5_estrellas = ['¡Excelente producto!', 'Llegó a tiempo y muy bonito.', 'A mi pareja le encantó, 10/10.', 'Muy buena calidad, superó mis expectativas.', 'Totalmente recomendado, volveré a pedir.', 'Hermoso detalle, muy cuidadosos con el empaque.', 'El empaque estaba precioso y el producto impecable.', 'Fascinada con la compra.'];
+    const resenas_4_estrellas = ['Buen producto, me gustó.', 'Todo muy bien, aunque llegó un poquito tarde.', 'Bonito, igual a la foto.', 'Me parece muy buen regalo.', 'Buen material y buen servicio.'];
+    const resenas_3_estrellas = ['Buen producto, pero tardó bastante en llegar.', 'Es bonito pero me imaginaba otra cosa por las fotos.', 'Está bien para el precio.', 'Aceptable, aunque el empaque venía un poco maltratado.'];
+    const resenas_1_2_estrellas = ['Pésima experiencia, llegó roto.', 'No era lo que pedí, muy decepcionado.', 'La calidad deja mucho que desear.', 'El envío fue un desastre y no responden los mensajes.'];
+
+    const detallesData = []
+
+    for (const pedido of pedidos) {
+        const numItems = Math.floor(Math.random() * 3) + 1
+        
+        let subtotalPedido = 0;
+
+        for (let i = 0; i < numItems; i++) {
+            const producto = productos[Math.floor(Math.random() * productos.length)]
+            const cantidad = Math.floor(Math.random() * 2) + 1
+            const precio = Number(producto.precio_venta)
+            const subtotal = precio * cantidad
+
+            let calificacion = null
+            let resena = null
+
+            // 85% chance to have a review if delivered
+            if (pedido.estado === 'entregado' && Math.random() > 0.15) {
+                const rand = Math.random()
+                if (rand < 0.6) {
+                    calificacion = 5
+                    resena = resenas_5_estrellas[Math.floor(Math.random() * resenas_5_estrellas.length)]
+                } else if (rand < 0.8) {
+                    calificacion = 4
+                    resena = resenas_4_estrellas[Math.floor(Math.random() * resenas_4_estrellas.length)]
+                } else if (rand < 0.95) {
+                    calificacion = 3
+                    resena = resenas_3_estrellas[Math.floor(Math.random() * resenas_3_estrellas.length)]
+                } else {
+                    calificacion = Math.floor(Math.random() * 2) + 1 // 1 o 2 estrellas
+                    resena = resenas_1_2_estrellas[Math.floor(Math.random() * resenas_1_2_estrellas.length)]
+                }
+            }
+
+            detallesData.push({
+                pedido_id: pedido.id,
+                producto_id: producto.id,
+                proveedor_id: producto.proveedor_id,
+                cantidad: cantidad,
+                precio_unitario: precio,
+                subtotal: subtotal,
+                mensaje_personal: Math.random() > 0.5 ? 'Con mucho amor ❤️' : null,
+                empaque_especial: Math.random() > 0.5,
+                calificacion: calificacion,
+                resena: resena,
+                created_at: pedido.created_at
+            })
+            
+            subtotalPedido += subtotal;
+        }
     }
 
-    const findProveedor = (nombre: string) => {
-        const proveedor = proveedores.find((p: any) => p.nombre_negocio === nombre)
-        if (!proveedor) throw new Error(`Proveedor no encontrado en seedDetallePedidos: ${nombre}`)
-        return proveedor
-    }
-
-    const cadena = findProducto('Juego de cadena de aleación-BM23')
-    const bouquetMama = findProducto('MINI BOUQUET GRACIAS MAMA')
-    const auriculares = findProducto('Auriculares plegables')
-    const rosas = findProducto('Ramo de 6 rosas')
-
-    const miniso = findProveedor('Miniso Bolivia')
-    const missFlores = findProveedor('Miss Flores')
-
-    await prisma.$executeRaw`
-        INSERT INTO detalle_pedidos 
-            (pedido_id, producto_id, proveedor_id, cantidad, precio_unitario, subtotal, mensaje_personal, empaque_especial, calificacion, resena)
-        VALUES
-            (${pedidos[0].id}, ${cadena.id}, ${miniso.id}, 1, 143.00, 143.00, 'Feliz cumpleaños amor ❤️', true, 5, 'Hermoso detalle, llegó perfecto y bien empaquetado'),
-            (${pedidos[1].id}, ${bouquetMama.id}, ${missFlores.id}, 1, 220.00, 220.00, 'Para mi mamá con todo mi amor', true, null, null),
-            (${pedidos[2].id}, ${auriculares.id}, ${miniso.id}, 1, 143.00, 143.00, null, true, null, null),
-            (${pedidos[3].id}, ${rosas.id}, ${missFlores.id}, 1, 115.00, 115.00, 'Te quiero mucho', false, null, null)
-    `
+    await prisma.detalle_pedidos.createMany({
+        skipDuplicates: true,
+        data: detallesData,
+    })
 }

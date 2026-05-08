@@ -19,6 +19,7 @@ export async function seedProveedores(prisma: PrismaClient) {
                 rep_anio_nacimiento: 1988,
                 estado: 'aprobado',
                 calificacion_prom: 4.7,
+                total_vendido: 45800.50,
             },
             {
                 nombre_negocio: 'Giftland Bolivia',
@@ -34,6 +35,7 @@ export async function seedProveedores(prisma: PrismaClient) {
                 rep_anio_nacimiento: 1992,
                 estado: 'aprobado',
                 calificacion_prom: 4.5,
+                total_vendido: 32450.00,
             },
             {
                 nombre_negocio: 'Miss Flores',
@@ -49,6 +51,7 @@ export async function seedProveedores(prisma: PrismaClient) {
                 rep_anio_nacimiento: 1985,
                 estado: 'aprobado',
                 calificacion_prom: 4.9,
+                total_vendido: 58200.75,
             },
             {
                 nombre_negocio: 'Arte Floral Bolivia',
@@ -64,6 +67,7 @@ export async function seedProveedores(prisma: PrismaClient) {
                 rep_anio_nacimiento: 1980,
                 estado: 'aprobado',
                 calificacion_prom: 4.6,
+                total_vendido: 21900.00,
             },
             {
                 nombre_negocio: 'Wonder Perfumes Bolivia',
@@ -79,6 +83,7 @@ export async function seedProveedores(prisma: PrismaClient) {
                 rep_anio_nacimiento: 1990,
                 estado: 'aprobado',
                 calificacion_prom: 4.4,
+                total_vendido: 39500.25,
             },
         ],
     })

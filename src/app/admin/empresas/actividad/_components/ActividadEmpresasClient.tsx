@@ -7,15 +7,14 @@ import { Loader2 } from "lucide-react";
 import { toggleSuspensionProveedor } from "../../actions";
 import ModalConfirmacion from "@/app/admin/productos/_components/ModalConfirmacion";
 
-interface ActividadProveedoresClientProps {
-  proveedoresReales: any[];
+interface ActividadEmpresasClientProps {
+  empresasReales: any[];
 }
 
-// Avatar reutilizable: foto si tiene logo_url, iniciales si no
-function ProveedorAvatar({ nombre, logoUrl, size = "md" }: { nombre: string; logoUrl?: string | null; size?: "sm" | "md" }) {
+function EmpresaAvatar({ nombre, logoUrl, size = "md" }: { nombre: string; logoUrl?: string | null; size?: "sm" | "md" }) {
   const dim = size === "sm" ? "w-8 h-8" : "w-9 h-9";
   const rounded = "rounded-lg";
-  const initials = nombre ? nombre.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() : "PR";
+  const initials = nombre ? nombre.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() : "EM";
 
   if (logoUrl) {
     return (
@@ -32,20 +31,20 @@ function ProveedorAvatar({ nombre, logoUrl, size = "md" }: { nombre: string; log
   );
 }
 
-export default function ActividadProveedoresClient({ proveedoresReales }: ActividadProveedoresClientProps) {
+export default function ActividadEmpresasClient({ empresasReales }: ActividadEmpresasClientProps) {
   const [isPending, startTransition] = useTransition();
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<any>(null);
+  const [selectedEmpresa, setSelectedEmpresa] = useState<any>(null);
 
   const handleToggleEstado = (p: any) => {
-    setSelectedProvider(p);
+    setSelectedEmpresa(p);
     setModalOpen(true);
   };
 
   const confirmarCambioEstado = () => {
-    if (!selectedProvider) return;
+    if (!selectedEmpresa) return;
     startTransition(async () => {
-      await toggleSuspensionProveedor(selectedProvider.id, selectedProvider.estado);
+      await toggleSuspensionProveedor(selectedEmpresa.id, selectedEmpresa.estado);
       setModalOpen(false);
     });
   };
@@ -72,7 +71,7 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
 
       {/* Mobile: cards */}
       <div className="block lg:hidden space-y-3">
-        {proveedoresReales.map((p) => {
+        {empresasReales.map((p) => {
           const ventas = Number(p.total_vendido || 0);
           const simuladoCompletados = Math.floor(ventas / 150) + 1;
           const simuladoCancelados = Math.floor(simuladoCompletados * 0.1);
@@ -81,7 +80,7 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
             <div key={p.id} className="border border-[#8E1B3A]/8 rounded-xl p-4 space-y-3 bg-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 text-left">
-                  <ProveedorAvatar nombre={p.nombre_negocio} logoUrl={p.logo_url} size="md" />
+                  <EmpresaAvatar nombre={p.nombre_negocio} logoUrl={p.logo_url} size="md" />
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-[#2A0E18]">{p.nombre_negocio}</p>
                     <p className="text-xs text-[#7A5260]">★ {p.calificacion_prom ? Number(p.calificacion_prom).toFixed(1) : "—"}</p>
@@ -110,10 +109,10 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
               </div>
 
               <div className="flex flex-wrap items-center gap-2 pt-1">
-                <Link href={`/admin/proveedores/actividad/${p.id}`} className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-bold hover:bg-[#8E1B3A]/15 transition-all">
+                <Link href={`/admin/empresas/actividad/${p.id}`} className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-bold hover:bg-[#8E1B3A]/15 transition-all">
                   Ver
                 </Link>
-                <Link href={`/admin/proveedores/${p.id}/editar`} className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-[#F1EFE8] text-[#7A5260] font-bold hover:bg-[#E5E3DC] transition-all">
+                <Link href={`/admin/empresas/${p.id}/editar`} className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-[#F1EFE8] text-[#7A5260] font-bold hover:bg-[#E5E3DC] transition-all">
                   Editar
                 </Link>
                 <button
@@ -137,7 +136,7 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-[#FDFBF9]/30">
-              {["Proveedor", "Recibidos", "Completados", "Cancelados", "Estado", "Última actividad", "Acciones"].map((h) => (
+              {["Empresa", "Recibidos", "Completados", "Cancelados", "Estado", "Última actividad", "Acciones"].map((h) => (
                 <th key={h} className="px-4 py-3 text-xs tracking-widest uppercase text-[#7A5260] font-bold border-b border-[#8E1B3A]/10">
                   {h}
                 </th>
@@ -145,7 +144,7 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
             </tr>
           </thead>
           <tbody className="divide-y divide-[#8E1B3A]/5">
-            {proveedoresReales.map((p) => {
+            {empresasReales.map((p) => {
               const ventas = Number(p.total_vendido || 0);
               const simuladoCompletados = Math.floor(ventas / 150) + 1;
               const simuladoCancelados = Math.floor(simuladoCompletados * 0.1);
@@ -154,7 +153,7 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
                 <tr key={p.id} className="hover:bg-[#FAF3EC]/50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <ProveedorAvatar nombre={p.nombre_negocio} logoUrl={p.logo_url} size="sm" />
+                      <EmpresaAvatar nombre={p.nombre_negocio} logoUrl={p.logo_url} size="sm" />
                       <span className="text-sm font-medium text-[#2A0E18]">{p.nombre_negocio}</span>
                     </div>
                   </td>
@@ -177,10 +176,10 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <Link href={`/admin/proveedores/actividad/${p.id}`} className="px-3 py-1.5 rounded-lg bg-[#8E1B3A]/5 text-[#8E1B3A] text-xs font-bold hover:bg-[#8E1B3A] hover:text-white transition-all shadow-sm active:scale-95">
+                      <Link href={`/admin/empresas/actividad/${p.id}`} className="px-3 py-1.5 rounded-lg bg-[#8E1B3A]/5 text-[#8E1B3A] text-xs font-bold hover:bg-[#8E1B3A] hover:text-white transition-all shadow-sm active:scale-95">
                         Ver
                       </Link>
-                      <Link href={`/admin/proveedores/${p.id}/editar`} className="px-3 py-1.5 rounded-lg bg-[#FAF3EC] text-[#BC9968] text-xs font-bold hover:bg-[#BC9968] hover:text-white transition-all shadow-sm active:scale-95">
+                      <Link href={`/admin/empresas/${p.id}/editar`} className="px-3 py-1.5 rounded-lg bg-[#FAF3EC] text-[#BC9968] text-xs font-bold hover:bg-[#BC9968] hover:text-white transition-all shadow-sm active:scale-95">
                         Editar
                       </Link>
                       <button
@@ -206,13 +205,13 @@ export default function ActividadProveedoresClient({ proveedoresReales }: Activi
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onConfirm={confirmarCambioEstado}
-        titulo={selectedProvider?.estado === "aprobado" ? "Suspender Proveedor" : "Activar Proveedor"}
-        mensaje={selectedProvider?.estado === "aprobado"
-          ? `¿Estás seguro de que deseas suspender a "${selectedProvider?.nombre_negocio}"? No podrá recibir nuevos pedidos ni aparecerá en la tienda.`
-          : `¿Deseas activar nuevamente a "${selectedProvider?.nombre_negocio}"? Volverá a estar visible para los clientes.`
+        titulo={selectedEmpresa?.estado === "aprobado" ? "Suspender Empresa" : "Activar Empresa"}
+        mensaje={selectedEmpresa?.estado === "aprobado"
+          ? `¿Estás seguro de que deseas suspender a "${selectedEmpresa?.nombre_negocio}"? No podrá recibir nuevos pedidos ni aparecerá en la tienda.`
+          : `¿Deseas activar nuevamente a "${selectedEmpresa?.nombre_negocio}"? Volverá a estar visible para los clientes.`
         }
-        confirmText={selectedProvider?.estado === "aprobado" ? "Suspender" : "Activar"}
-        isDestructive={selectedProvider?.estado === "aprobado"}
+        confirmText={selectedEmpresa?.estado === "aprobado" ? "Suspender" : "Activar"}
+        isDestructive={selectedEmpresa?.estado === "aprobado"}
       />
     </div>
   );

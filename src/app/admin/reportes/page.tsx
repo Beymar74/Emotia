@@ -1,233 +1,211 @@
+import Link from "next/link";
 import prisma from "@/lib/prisma";
-import ExportarPDFButton from "./_components/ExportarPDFButton";
 
-export default async function ReportesPage() {
-  // --- 1. CONSULTAS A LA BASE DE DATOS ---
-  // A. Obtenemos pedidos completados
-  const pedidosCompletados = await prisma.pedidos.findMany({
+export default async function ReportesHubPage() {
+  const [
+    totalIngresos,
+    totalPedidos,
+    totalUsuarios,
+    totalEmpresas,
+    totalProductos,
+    totalCalificaciones,
+  ] = await Promise.all([
+    prisma.pedidos.aggregate({ _sum: { total: true }, where: { estado: 'entregado' } }),
+    prisma.pedidos.count({ where: { estado: 'entregado' } }),
+    prisma.usuarios.count({ where: { activo: true, tipo: 'usuario' } }),
+    prisma.proveedores.count({ where: { estado: 'aprobado' } }),
+    prisma.productos.count({ where: { activo: true } }),
+    prisma.detalle_pedidos.count({ where: { calificacion: { not: null } } }),
+  ]);
 
-    where: { estado: 'entregado' }, // Solo contamos ventas reales finalizadas
-    select: { id: true, total: true, created_at: true }
-  });
+  const ingresos = Number(totalIngresos._sum.total || 0);
+  const formatBs = (n: number) => `Bs ${n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
-  // B. Obtenemos el top de proveedores
-  const proveedoresDB = await prisma.proveedores.findMany({
-    where: { estado: 'aprobado' },
-    orderBy: { total_vendido: 'desc' },
-    take: 4, // Top 4 como en tu diseño
-    include: {
-      _count: { select: { detalle_pedidos: true } } // Contamos cuántos items han vendido
-    }
-  });
-
-  // C. Proveedores activos
-  const provActivosCount = await prisma.proveedores.count({ where: { estado: 'aprobado' } });
-
-  // D. Detalles de pedidos para agrupar por categoría
-  const detallesDB = await prisma.detalle_pedidos.findMany({
-    where: { pedidos: { estado: 'entregado' } }, // Solo detalles de pedidos completados
-    include: {
-      productos: {
-        include: { categorias: true }
-      }
-    }
-  });
-
-
-  // --- 2. CÁLCULO DE MÉTRICAS GLOBALES ---
-  const totalIngresosNum = pedidosCompletados.reduce((sum: number, p: any) => sum + Number(p.total), 0);
-  const totalPedidosNum = pedidosCompletados.length;
-  const ticketPromedioNum = totalPedidosNum > 0 ? (totalIngresosNum / totalPedidosNum) : 0;
-
-  const formatBs = (monto: number) => `Bs ${monto.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}`;
-
-
-  // --- 3. PROCESAMIENTO: VENTAS POR PROVEEDOR ---
-  type VentaProveedor = { proveedor: string; pedidos: number; monto: string; porcentaje: number };
-  
-  const ventasPorProveedor: VentaProveedor[] = proveedoresDB.map((p: any) => {
-    const ventas = Number(p.total_vendido || 0);
-    const porcentaje = totalIngresosNum > 0 ? Math.round((ventas / totalIngresosNum) * 100) : 0;
-    return {
-      proveedor: p.nombre_negocio,
-      pedidos: p._count.detalle_pedidos,
-      monto: formatBs(ventas),
-      porcentaje: porcentaje > 100 ? 100 : porcentaje // Seguridad visual
-    };
-  });
-
-
-  // --- 4. PROCESAMIENTO: VENTAS POR SEMANA (Agrupación dinámica) ---
-  type VentaSemana = { periodo: string; pedidos: number; montoStr: string; montoNum: number };
-  
-  // Inicializamos las 4 semanas
-  const semanasData = [
-    { periodo: "Semana 1 Abril", pedidos: 0, montoNum: 0 },
-    { periodo: "Semana 2 Abril", pedidos: 0, montoNum: 0 },
-    { periodo: "Semana 3 Abril", pedidos: 0, montoNum: 0 },
-    { periodo: "Semana 4 Abril", pedidos: 0, montoNum: 0 },
+  const reportes = [
+    {
+      href: "/admin/reportes/ventas",
+      titulo: "Ventas",
+      descripcion: "Ingresos, ticket promedio, evolución semanal y ventas por empresa.",
+      icono: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <path d="M3 17l4-6 4 4 5-8 4 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+      stat: formatBs(ingresos),
+      statLabel: "en ventas totales",
+      color: "#8E1B3A",
+      bg: "bg-[#8E1B3A]/8",
+    },
+    {
+      href: "/admin/reportes/clientes",
+      titulo: "Clientes",
+      descripcion: "Usuarios registrados, retención, actividad y compradores top.",
+      icono: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <circle cx="9" cy="7" r="3" stroke="currentColor" strokeWidth="2" />
+          <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="17" cy="9" r="2" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M21 20c0-2.2-1.8-4-4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      ),
+      stat: String(totalUsuarios),
+      statLabel: "clientes activos",
+      color: "#BC9968",
+      bg: "bg-[#BC9968]/10",
+    },
+    {
+      href: "/admin/reportes/pedidos",
+      titulo: "Pedidos",
+      descripcion: "Estado de pedidos, tiempos, cancelaciones y distribución.",
+      icono: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
+          <path d="M8 6V4a4 4 0 018 0v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <path d="M9 12h6M9 16h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      ),
+      stat: String(totalPedidos),
+      statLabel: "pedidos completados",
+      color: "#5C3A2E",
+      bg: "bg-[#5C3A2E]/8",
+    },
+    {
+      href: "/admin/reportes/productos",
+      titulo: "Productos",
+      descripcion: "Catálogo, más vendidos, inventario por categoría.",
+      icono: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <path d="M3 3h3l2 9h10l2-6H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="9" cy="20" r="1.5" fill="currentColor" />
+          <circle cx="17" cy="20" r="1.5" fill="currentColor" />
+        </svg>
+      ),
+      stat: String(totalProductos),
+      statLabel: "productos activos",
+      color: "#185FA5",
+      bg: "bg-[#185FA5]/8",
+    },
+    {
+      href: "/admin/reportes/empresas",
+      titulo: "Empresas",
+      descripcion: "Desempeño, ventas y métricas de cada empresa registrada.",
+      icono: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="10" width="18" height="11" rx="1" stroke="currentColor" strokeWidth="2" />
+          <path d="M7 10V7a5 5 0 0110 0v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <path d="M9 15h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      ),
+      stat: String(totalEmpresas),
+      statLabel: "empresas activas",
+      color: "#AB3A50",
+      bg: "bg-[#AB3A50]/8",
+    },
+    {
+      href: "/admin/reportes/fidelizacion",
+      titulo: "Fidelización",
+      descripcion: "Lealtad de clientes, frecuencia de compra y retención.",
+      icono: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <path d="M12 21C12 21 3 15.5 3 9a5 5 0 0110-1 5 5 0 0110 1c0 6.5-9 12-9 12z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+        </svg>
+      ),
+      stat: String(totalPedidos > 0 ? Math.round((totalUsuarios / Math.max(totalPedidos, 1)) * 100) : 0) + "%",
+      statLabel: "tasa de retorno",
+      color: "#8C5E08",
+      bg: "bg-[#8C5E08]/8",
+    },
+    {
+      href: "/admin/reportes/calidad",
+      titulo: "Calidad",
+      descripcion: "Calificaciones, reseñas, satisfacción y métricas de servicio.",
+      icono: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2l3 6.3 7 1-5 4.9 1.2 6.8L12 17.8l-6.2 3.2L7 14.2 2 9.3l7-1L12 2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+        </svg>
+      ),
+      stat: String(totalCalificaciones),
+      statLabel: "reseñas registradas",
+      color: "#2D7A47",
+      bg: "bg-[#2D7A47]/8",
+    },
+    {
+      href: "/admin/reportes/global",
+      titulo: "Reporte Global",
+      descripcion: "Visión consolidada de todas las métricas del sistema.",
+      icono: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+          <path d="M12 3c0 0-4 4-4 9s4 9 4 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M3 12h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M4.5 7.5h15M4.5 16.5h15" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+        </svg>
+      ),
+      stat: formatBs(ingresos),
+      statLabel: "ingresos consolidados",
+      color: "#5A0F24",
+      bg: "bg-[#5A0F24]/8",
+    },
   ];
 
-  // Agrupamos los pedidos según el día del mes
-  pedidosCompletados.forEach((p: any) => {
-    const dia = p.created_at.getDate();
-    let index = 0; // Semana 1 (1-7)
-    if (dia >= 8 && dia <= 14) index = 1; // Semana 2
-    else if (dia >= 15 && dia <= 21) index = 2; // Semana 3
-    else if (dia >= 22) index = 3; // Semana 4
-
-    semanasData[index].pedidos += 1;
-    semanasData[index].montoNum += Number(p.total);
-  });
-
-  const ventasPorPeriodo: VentaSemana[] = semanasData.map(s => ({
-    periodo: s.periodo,
-    pedidos: s.pedidos,
-    montoNum: s.montoNum,
-    montoStr: formatBs(s.montoNum)
-  }));
-
-
-  // --- 5. PROCESAMIENTO: VENTAS POR CATEGORÍA ---
-  type CategoriaMap = Record<string, { monto: number; pedidos: number }>;
-  const categoriasMap: CategoriaMap = {};
-
-  detallesDB.forEach((det: any) => {
-    const nombreCat = det.productos?.categorias?.nombre || "Otros";
-    const subtotal = Number(det.subtotal || 0);
-    const cantidad = Number(det.cantidad || 0);
-
-    if (!categoriasMap[nombreCat]) {
-      categoriasMap[nombreCat] = { monto: 0, pedidos: 0 };
-    }
-    categoriasMap[nombreCat].monto += subtotal;
-    categoriasMap[nombreCat].pedidos += cantidad;
-  });
-
-  type VentaCategoria = { nombre: string; monto: string; pedidos: number; pct: number; montoRaw: number };
-  
-  const ventasPorCategoria: VentaCategoria[] = Object.keys(categoriasMap)
-    .map(cat => {
-      const data = categoriasMap[cat];
-      const pct = totalIngresosNum > 0 ? Math.round((data.monto / totalIngresosNum) * 100) : 0;
-      return {
-        nombre: cat,
-        montoRaw: data.monto,
-        monto: formatBs(data.monto),
-        pedidos: data.pedidos,
-        pct: pct
-      };
-    })
-    .sort((a, b) => b.montoRaw - a.montoRaw) // Ordenamos de mayor a menor venta
-    .slice(0, 5); // Tomamos el Top 5 categorías
-
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes & Sistema</p>
-          <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">Reportes de ventas</h1>
-        </div>
-        <div className="flex gap-3">
-          <select className="text-sm border border-[#8E1B3A]/15 rounded-lg px-4 py-2.5 outline-none text-[#7A5260] bg-white">
-            <option>Abril 2026</option>
-            <option>Marzo 2026</option>
-            <option>Febrero 2026</option>
-          </select>
-          <ExportarPDFButton />
-
-        </div>
+      <div>
+        <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
+        <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">Centro de Reportes</h1>
+        <p className="text-sm text-[#7A5260] mt-1">Selecciona un tipo de reporte para ver el análisis detallado.</p>
       </div>
 
-      {/* Métricas del periodo */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* Métricas rápidas */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Ingresos totales",     valor: formatBs(totalIngresosNum), color: "#8E1B3A" },
-          { label: "Total pedidos",        valor: String(totalPedidosNum),    color: "#BC9968" },
-          { label: "Ticket promedio",      valor: formatBs(ticketPromedioNum), color: "#5C3A2E" },
-          { label: "Proveedores activos",  valor: String(provActivosCount),   color: "#AB3A50" },
-        ].map((s) => (
-          <div key={s.label} className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: s.color }} />
-            <p className="font-serif text-3xl sm:text-4xl font-bold text-[#5A0F24]">{s.valor}</p>
-            <p className="text-sm text-[#7A5260] mt-1">{s.label}</p>
+          { label: "Ingresos totales", valor: formatBs(ingresos), color: "#8E1B3A" },
+          { label: "Pedidos entregados", valor: String(totalPedidos), color: "#2D7A47" },
+          { label: "Clientes activos", valor: String(totalUsuarios), color: "#BC9968" },
+          { label: "Empresas activas", valor: String(totalEmpresas), color: "#AB3A50" },
+        ].map((m) => (
+          <div key={m.label} className="bg-white rounded-xl border border-[#8E1B3A]/10 p-4 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: m.color }} />
+            <p className="font-serif text-2xl font-bold text-[#5A0F24]">{m.valor}</p>
+            <p className="text-xs text-[#7A5260] mt-1">{m.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Ventas por proveedor */}
-        <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
-          <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Ventas por proveedor (Top 4)</h3>
-          
-          {ventasPorProveedor.length === 0 ? (
-             <p className="text-sm text-[#7A5260] text-center py-4">Sin datos de proveedores.</p>
-          ) : (
-            <div className="space-y-4">
-              {ventasPorProveedor.map((v: VentaProveedor) => (
-                <div key={v.proveedor}>
-                  <div className="flex justify-between text-sm mb-1.5">
-                    <span className="font-medium text-[#2A0E18]">{v.proveedor}</span>
-                    <div className="flex gap-4 text-[#7A5260]">
-                      <span>{v.pedidos} items</span>
-                      <span className="font-semibold text-[#5A0F24]">{v.monto}</span>
-                    </div>
-                  </div>
-                  <div className="h-2 bg-[#8E1B3A]/8 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${v.porcentaje}%`, background: "linear-gradient(90deg,#8E1B3A,#BC9968)" }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Ventas por semana */}
-        <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
-          <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Evolución semanal</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr>
-                  {["Período", "Pedidos", "Monto"].map(h => (
-                    <th key={h} className="text-left px-3 py-2 text-xs tracking-widest uppercase text-[#7A5260] font-medium border-b border-[#8E1B3A]/10">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {ventasPorPeriodo.map((v: VentaSemana, i: number) => (
-                  <tr key={i} className="border-b border-[#8E1B3A]/5 last:border-0 hover:bg-[#FAF3EC]/50">
-                    <td className="px-3 py-3 text-sm text-[#2A0E18]">{v.periodo}</td>
-                    <td className="px-3 py-3 text-sm text-[#7A5260]">{v.pedidos}</td>
-                    <td className="px-3 py-3 text-sm font-semibold text-[#5A0F24]">{v.montoStr}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Ventas por categoría */}
-      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 overflow-x-auto">
-        <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Desglose por categoría</h3>
-        
-        {ventasPorCategoria.length === 0 ? (
-          <p className="text-sm text-[#7A5260] text-center py-4">Aún no hay ventas categorizadas.</p>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {ventasPorCategoria.map((c: VentaCategoria) => (
-              <div key={c.nombre} className="bg-[#FAF3EC] rounded-xl p-4 text-center">
-                <p className="text-sm font-medium text-[#5A0F24] mb-1 truncate" title={c.nombre}>{c.nombre}</p>
-                <p className="font-serif text-2xl font-bold text-[#8E1B3A]">{c.pct}%</p>
-                <p className="text-xs text-[#7A5260] mt-1">{c.monto}</p>
-                <p className="text-xs text-[#B0B0B0]">{c.pedidos} items</p>
+      {/* Grid de reportes */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {reportes.map((r) => (
+          <Link
+            key={r.href}
+            href={r.href}
+            className="group bg-white rounded-2xl border border-[#8E1B3A]/10 p-5 hover:border-[#8E1B3A]/30 hover:shadow-md transition-all flex flex-col gap-4"
+          >
+            <div className="flex items-start justify-between">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${r.bg}`} style={{ color: r.color }}>
+                {r.icono}
               </div>
-            ))}
-          </div>
-        )}
+              <svg
+                className="w-4 h-4 text-[#7A5260] opacity-0 group-hover:opacity-100 transition-opacity mt-1"
+                viewBox="0 0 16 16" fill="none"
+              >
+                <path d="M3 13L13 3M13 3H7M13 3v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+
+            <div className="flex-1">
+              <h3 className="font-serif text-lg font-bold text-[#2A0E18] group-hover:text-[#8E1B3A] transition-colors">
+                {r.titulo}
+              </h3>
+              <p className="text-xs text-[#7A5260] mt-1 leading-relaxed">{r.descripcion}</p>
+            </div>
+
+            <div className="pt-3 border-t border-[#8E1B3A]/8">
+              <p className="font-serif text-xl font-bold" style={{ color: r.color }}>{r.stat}</p>
+              <p className="text-xs text-[#7A5260] mt-0.5">{r.statLabel}</p>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
