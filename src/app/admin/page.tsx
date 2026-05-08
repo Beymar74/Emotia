@@ -82,7 +82,7 @@ export default async function AdminPage() {
           />
           <MetricCard
             value={formatNum(proveedoresAprobados)}
-            label="Proveedores Aprobados"
+            label="Empresas Aprobadas"
             delta="Estable"
             deltaType="neutral"
             barFrom="#BC9968"

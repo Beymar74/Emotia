@@ -6,11 +6,11 @@ import { Loader2, Store, Mail, Phone, Lock, FileText, ChevronRight, ImageIcon } 
 import { crearProveedorAction, actualizarProveedorAction, actualizarLogoProveedor } from "../actions";
 import AvatarUploader from "@/components/AvatarUploader";
 
-interface FormProveedorProps {
+interface FormEmpresaProps {
   proveedor?: any;
 }
 
-export default function FormProveedor({ proveedor }: FormProveedorProps) {
+export default function FormEmpresa({ proveedor }: FormEmpresaProps) {
   const router = useRouter();
   const isEditing = !!proveedor;
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,24 +30,23 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
       setError(result.error);
       setIsSubmitting(false);
     } else {
-      router.push("/admin/proveedores/actividad");
+      router.push("/admin/empresas/actividad");
       router.refresh();
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* ── Logo del Proveedor (solo al editar) ───────────────── */}
       {isEditing && (
         <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm p-6">
           <h3 className="text-xs font-bold text-[#BC9968] uppercase tracking-widest flex items-center gap-2 mb-5">
             <ImageIcon size={14} />
-            Logo del Negocio
+            Logo de la Empresa
           </h3>
           <div className="flex justify-center">
             <AvatarUploader
               currentUrl={proveedor?.logo_url}
-              label="Logo del proveedor"
+              label="Logo de la empresa"
               shape="square"
               uploadPreset="emotia_preset"
               onSave={async (url) => {
@@ -61,7 +60,6 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
         </div>
       )}
 
-      {/* ── Formulario de Datos ───────────────────────────────── */}
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm p-6 space-y-8">
         {error && (
           <div className="bg-[#FBF0F0] text-[#A32D2D] text-sm font-bold p-4 rounded-xl border border-[#A32D2D]/10">
@@ -72,7 +70,6 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
         {isEditing && <input type="hidden" name="id" value={proveedor.id} />}
 
         <div className="space-y-6">
-          {/* Sección: Información Básica */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold text-[#BC9968] uppercase tracking-widest flex items-center gap-2">
               <span className="w-6 h-[1px] bg-[#BC9968]/30"></span>
@@ -103,7 +100,7 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
                   name="email"
                   defaultValue={proveedor?.email}
                   type="email"
-                  placeholder="proveedor@ejemplo.com"
+                  placeholder="empresa@ejemplo.com"
                   className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
                 />
               </div>
@@ -138,7 +135,6 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
             </div>
           </div>
 
-          {/* Sección: Detalles Adicionales */}
           <div className="space-y-4 pt-2">
             <h3 className="text-xs font-bold text-[#BC9968] uppercase tracking-widest flex items-center gap-2">
               <span className="w-6 h-[1px] bg-[#BC9968]/30"></span>
@@ -152,7 +148,7 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
                 name="descripcion"
                 defaultValue={proveedor?.descripcion || ""}
                 rows={4}
-                placeholder="Describe lo que ofrece este proveedor..."
+                placeholder="Describe lo que ofrece esta empresa..."
                 className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all resize-none font-medium text-[#2A0E18]"
               />
             </div>
@@ -176,7 +172,7 @@ export default function FormProveedor({ proveedor }: FormProveedorProps) {
               <Loader2 size={18} className="animate-spin" />
             ) : (
               <>
-                {isEditing ? "Guardar Cambios" : "Registrar Proveedor"}
+                {isEditing ? "Guardar Cambios" : "Registrar Empresa"}
                 <ChevronRight size={18} />
               </>
             )}

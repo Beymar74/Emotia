@@ -74,6 +74,20 @@ Stack: Next.js 15 (App Router) + Prisma + PostgreSQL + TailwindCSS. Paleta: vino
 
 ---
 
+## Cargar Base de Datos Prisma (Conversación Actual acec1d23)
+
+### Objetivo
+Sincronizar el esquema de Prisma con la base de datos PostgreSQL local corriendo en Docker y poblar la base de datos utilizando el script de seed (`prisma/seed.ts`).
+
+### Plan y Pasos de Ejecución
+1. **Verificar Conexión de Base de Datos**: Comprobar que el contenedor Docker `emotia_db` está arriba y respondiendo en el puerto 5432.
+2. **Generar Cliente de Prisma**: Ejecutar `npx prisma generate` para compilar los tipos del cliente de Prisma en `src/generated/prisma`.
+3. **Sincronizar Esquema (`db push`)**: Ejecutar `npx prisma db push` para mapear y crear todas las tablas definidas en `schema.prisma` dentro de PostgreSQL.
+4. **Poblar la Base de Datos (`db seed`)**: Ejecutar `npx prisma db seed` para correr el script `prisma/seed.ts` que limpia e inserta datos iniciales premium de categorías, proveedores, usuarios, productos, pedidos, etc., y limpia la caché de Redis.
+5. **Verificación**: Asegurar que las tablas tengan los datos cargados y listos para el panel de administración.
+
+---
+
 ## Pendiente
 
 - [ ] Conectar `/admin/asistente` con datos reales de `recomendaciones`

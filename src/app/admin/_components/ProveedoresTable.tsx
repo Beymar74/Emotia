@@ -9,12 +9,12 @@ export default function ProveedoresTable({ data }: Props) {
   return (
     <div className="bg-white rounded-sm border border-[#F5E6D0] p-5 shadow-sm">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-[#5C3A2E] font-serif text-lg">Proveedores registrados</h3>
+        <h3 className="text-[#5C3A2E] font-serif text-lg">Empresas registradas</h3>
         <Link
-          href="/admin/proveedores"
+          href="/admin/empresas"
           className="text-[#BC9968] text-[10px] uppercase tracking-wider hover:underline"
         >
-          Ver todos →
+          Ver todas →
         </Link>
       </div>
 
@@ -64,7 +64,7 @@ export default function ProveedoresTable({ data }: Props) {
                 </td>
                 <td className="py-4 text-right">
                   <Link
-                    href="/admin/proveedores"
+                    href="/admin/empresas"
                     className="text-[#7A5260] hover:text-[#8E1B3A] text-[10px] font-medium px-2 transition-colors"
                   >
                     Gestionar →

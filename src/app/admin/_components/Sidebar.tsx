@@ -23,12 +23,12 @@ const navSections = [
     ],
   },
   {
-    label: "Proveedores",
+    label: "Empresas",
     icon: IconCheck,
     soloAdmin: false,
     items: [
-      { href: "/admin/proveedores/actividad", label: "Supervisar actividad", soloAdmin: false },
-      { href: "/admin/proveedores/rendimiento", label: "Rendimiento", soloAdmin: false },
+      { href: "/admin/empresas/actividad", label: "Supervisar actividad", soloAdmin: false },
+      { href: "/admin/empresas/rendimiento", label: "Rendimiento", soloAdmin: false },
     ],
   },
   {
@@ -68,11 +68,26 @@ const navSections = [
     ],
   },
   {
-    label: "Reportes & Sistema",
+    label: "Reportes",
     icon: IconReport,
     soloAdmin: false,
     items: [
-      { href: "/admin/reportes", label: "Reportes de ventas", soloAdmin: false },
+      { href: "/admin/reportes", label: "Centro de reportes", soloAdmin: false },
+      { href: "/admin/reportes/global", label: "Reporte global", soloAdmin: false },
+      { href: "/admin/reportes/ventas", label: "Ventas", soloAdmin: false },
+      { href: "/admin/reportes/clientes", label: "Clientes", soloAdmin: false },
+      { href: "/admin/reportes/pedidos", label: "Pedidos", soloAdmin: false },
+      { href: "/admin/reportes/productos", label: "Productos", soloAdmin: false },
+      { href: "/admin/reportes/empresas", label: "Empresas", soloAdmin: false },
+      { href: "/admin/reportes/fidelizacion", label: "Fidelización", soloAdmin: false },
+      { href: "/admin/reportes/calidad", label: "Calidad", soloAdmin: false },
+    ],
+  },
+  {
+    label: "Sistema",
+    icon: IconSettings,
+    soloAdmin: true,
+    items: [
       { href: "/admin/auditoria", label: "Log de auditoría", soloAdmin: true },
       { href: "/admin/configuracion", label: "Configuración", soloAdmin: true },
     ],
@@ -184,7 +199,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
               <div
                 className={`overflow-hidden transition-all duration-200 ease-in-out ${
-                  isOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
+                  isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
                 }`}
               >
                 <div className="ml-5 pl-4 border-l border-[#BC9968]/20 mb-1 space-y-0.5">
@@ -336,6 +351,14 @@ function IconStar({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 14 14" fill="none">
       <path d="M7 1.5l1.5 3.1 3.4.5-2.5 2.4.6 3.4L7 9.3l-3 1.6.6-3.4L2.1 5.1l3.4-.5L7 1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function IconSettings({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 14 14" fill="none">
+      <circle cx="7" cy="7" r="2" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.6 2.6l1.1 1.1M10.3 10.3l1.1 1.1M11.4 2.6l-1.1 1.1M3.7 10.3l-1.1 1.1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   );
 }

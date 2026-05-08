@@ -12,22 +12,21 @@ const estadoLabel: Record<string, string> = {
   suspendido: "Suspendido",
 };
 
-// Sub-navegación actualizada (Sin Aprobar/Rechazar)
 const subPages = [
-  { href: "/admin/proveedores/actividad", label: "Supervisar actividad", icon: "◷", active: true },
-  { href: "/admin/proveedores/rendimiento", label: "Rendimiento", icon: "▲" },
+  { href: "/admin/empresas/actividad", label: "Supervisar actividad", icon: "◷", active: true },
+  { href: "/admin/empresas/rendimiento", label: "Rendimiento", icon: "▲" },
 ];
 
-export default async function ProveedoresPage() {
-  const proveedoresReales = await prisma.proveedores.findMany({
+export default async function EmpresasPage() {
+  const empresasReales = await prisma.proveedores.findMany({
     orderBy: { nombre_negocio: "asc" },
     where: {
       estado: { in: ["aprobado", "suspendido"] }
     }
   });
 
-  const totalAprobados = proveedoresReales.filter((p: proveedores) => p.estado === "aprobado").length;
-  const totalSuspendidos = proveedoresReales.filter((p: proveedores) => p.estado === "suspendido").length;
+  const totalAprobados = empresasReales.filter((p: proveedores) => p.estado === "aprobado").length;
+  const totalSuspendidos = empresasReales.filter((p: proveedores) => p.estado === "suspendido").length;
 
   const formatFecha = (fecha: Date) =>
     new Intl.DateTimeFormat("es-BO", {
@@ -37,23 +36,21 @@ export default async function ProveedoresPage() {
     }).format(fecha);
 
   const getInitials = (nombre: string) => {
-    if (!nombre) return "PR";
+    if (!nombre) return "EM";
     return nombre.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
   };
 
   return (
     <div className="space-y-6">
-      {/* Header Limpio */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Panel de Control</p>
           <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">
-            Directorio de Proveedores
+            Directorio de Empresas
           </h1>
         </div>
       </div>
 
-      {/* Sub-navegación */}
       <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-1.5 flex flex-col sm:flex-row gap-1.5">
         {subPages.map((sp) => (
           <Link
@@ -70,11 +67,10 @@ export default async function ProveedoresPage() {
         ))}
       </div>
 
-      {/* Stats de Directorio */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {[
-          { label: "Total en directorio", valor: String(proveedoresReales.length), color: "#8E1B3A" },
-          { label: "Proveedores activos", valor: String(totalAprobados), color: "#2D7A47" },
+          { label: "Total en directorio", valor: String(empresasReales.length), color: "#8E1B3A" },
+          { label: "Empresas activas", valor: String(totalAprobados), color: "#2D7A47" },
           { label: "Cuentas suspendidas", valor: String(totalSuspendidos), color: "#A32D2D" },
         ].map((s) => (
           <div
@@ -88,20 +84,19 @@ export default async function ProveedoresPage() {
         ))}
       </div>
 
-      {/* Listado de Directorio */}
       <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-3 sm:p-5">
         <h3 className="font-serif text-lg sm:text-xl font-semibold text-[#5A0F24] mb-4">
-          Proveedores registrados
+          Empresas registradas
         </h3>
 
-        {proveedoresReales.length === 0 ? (
-          <p className="text-sm text-[#7A5260] text-center py-8">No hay proveedores en el directorio.</p>
+        {empresasReales.length === 0 ? (
+          <p className="text-sm text-[#7A5260] text-center py-8">No hay empresas en el directorio.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  {["Proveedor", "Email", "Teléfono", "Fecha de Alta", "Estado", "Acción"].map((h) => (
+                  {["Empresa", "Email", "Teléfono", "Fecha de Alta", "Estado", "Acción"].map((h) => (
                     <th
                       key={h}
                       className="text-left px-3 py-2 text-xs tracking-widest uppercase text-[#7A5260] font-medium border-b border-[#8E1B3A]/10"
@@ -112,7 +107,7 @@ export default async function ProveedoresPage() {
                 </tr>
               </thead>
               <tbody>
-                {proveedoresReales.map((s: proveedores) => (
+                {empresasReales.map((s: proveedores) => (
                   <tr
                     key={s.id}
                     className="border-b border-[#8E1B3A]/5 last:border-0 hover:bg-[#FAF3EC]/50 transition-colors"
@@ -138,7 +133,7 @@ export default async function ProveedoresPage() {
                     </td>
                     <td className="px-3 py-3">
                       <Link
-                        href={`/admin/proveedores/actividad/${s.id}`}
+                        href={`/admin/empresas/actividad/${s.id}`}
                         className="text-xs text-[#8E1B3A] font-bold hover:underline"
                       >
                         Ver detalles

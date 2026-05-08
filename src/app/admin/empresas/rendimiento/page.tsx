@@ -2,29 +2,25 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { proveedores } from "@/generated/prisma/client";
 
-// Sub-navegación alineada con el resto del panel
 const subPages = [
-  { href: "/admin/proveedores/actividad", label: "Supervisar actividad", icon: "◷" },
-  { href: "/admin/proveedores/rendimiento", label: "Rendimiento", icon: "▲", active: true },
+  { href: "/admin/empresas/actividad", label: "Supervisar actividad", icon: "◷" },
+  { href: "/admin/empresas/rendimiento", label: "Rendimiento", icon: "▲", active: true },
 ];
 
-export default async function RendimientoPage() {
-  // --- 1. CONSULTA A LA BASE DE DATOS ---
-  const proveedoresDB = await prisma.proveedores.findMany({
+export default async function RendimientoEmpresasPage() {
+  const empresasDB = await prisma.proveedores.findMany({
     where: { estado: 'aprobado' },
     orderBy: { total_vendido: 'desc' }
   });
 
-  // --- 2. FUNCIONES AUXILIARES ---
   const getInitials = (nombre: string) => {
-    if (!nombre) return "PR";
+    if (!nombre) return "EM";
     return nombre.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
   };
 
-  // Define la estructura de los datos para TypeScript
   type RendimientoData = {
     id: number;
-    proveedor: string;
+    empresa: string;
     initials: string;
     montoTotal: string;
     pedidosCompletados: number;
@@ -34,17 +30,12 @@ export default async function RendimientoPage() {
     semana: number[];
   };
 
-  // --- 3. MAPEO DE DATOS ---
-  const rendimientoMapeado: RendimientoData[] = proveedoresDB.map((p: proveedores) => {
+  const rendimientoMapeado: RendimientoData[] = empresasDB.map((p: proveedores) => {
     const ventas = Number(p.total_vendido || 0);
-    const calif = Number(p.calificacion_prom || 5.0); 
+    const calif = Number(p.calificacion_prom || 5.0);
     const califPct = Math.round((calif / 5) * 100);
-    
-    // Estimación de métricas basada en ventas reales
-    const completados = Math.floor(ventas / 150) + 1; 
-    const cancelados = Math.floor(completados * 0.08); 
-
-    // Generamos un gráfico semanal "determinista" (siempre igual para el mismo proveedor)
+    const completados = Math.floor(ventas / 150) + 1;
+    const cancelados = Math.floor(completados * 0.08);
     const baseChart = Math.max(5, Math.floor(completados / 4));
     const semana = [
       baseChart + (p.id % 5),
@@ -58,7 +49,7 @@ export default async function RendimientoPage() {
 
     return {
       id: p.id,
-      proveedor: p.nombre_negocio,
+      empresa: p.nombre_negocio,
       initials: getInitials(p.nombre_negocio),
       montoTotal: `Bs ${ventas.toLocaleString('en-US', { minimumFractionDigits: 0 })}`,
       pedidosCompletados: completados,
@@ -71,11 +62,10 @@ export default async function RendimientoPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Proveedores</p>
-          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Rendimiento de proveedores</h1>
+          <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Empresas</p>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Rendimiento de empresas</h1>
         </div>
         <select className="self-start sm:self-auto text-sm border border-[#8E1B3A]/15 rounded-lg px-4 py-2.5 outline-none text-[#7A5260] bg-white cursor-pointer hover:border-[#8E1B3A]/30 transition-colors">
           <option>Abril 2026</option>
@@ -84,7 +74,6 @@ export default async function RendimientoPage() {
         </select>
       </div>
 
-      {/* Sub-navegación */}
       <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-1.5 flex flex-col sm:flex-row gap-1.5">
         {subPages.map((sp) => (
           <Link
@@ -102,19 +91,17 @@ export default async function RendimientoPage() {
         ))}
       </div>
 
-      {/* Cards de rendimiento */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
         {rendimientoMapeado.map((r: RendimientoData) => (
           <div key={r.id} className="bg-white rounded-xl border border-[#8E1B3A]/10 p-4 sm:p-5 flex flex-col h-full">
             <div className="flex-1">
-              {/* Header card */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-sm font-bold text-white">
                     {r.initials}
                   </div>
                   <div>
-                    <p className="text-sm sm:text-base font-semibold text-[#2A0E18]">{r.proveedor}</p>
+                    <p className="text-sm sm:text-base font-semibold text-[#2A0E18]">{r.empresa}</p>
                     <div className="flex items-center gap-1 mt-0.5">
                       <span className="text-yellow-500 text-xs">★</span>
                       <span className="text-sm font-medium text-[#5A0F24]">{r.calificacion}</span>
@@ -125,7 +112,6 @@ export default async function RendimientoPage() {
                 <p className="font-serif text-xl sm:text-2xl font-bold text-[#5A0F24]">{r.montoTotal}</p>
               </div>
 
-              {/* Métricas */}
               <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
                 <div className="bg-[#FAF3EC] rounded-lg p-2 sm:p-3 text-center">
                   <p className="font-serif text-lg sm:text-2xl font-bold text-[#5A0F24]">{r.pedidosCompletados}</p>
@@ -141,7 +127,6 @@ export default async function RendimientoPage() {
                 </div>
               </div>
 
-              {/* Barra de satisfacción */}
               <div>
                 <div className="flex justify-between text-xs text-[#7A5260] mb-1.5">
                   <span>Índice de satisfacción</span>
@@ -155,7 +140,6 @@ export default async function RendimientoPage() {
                 </div>
               </div>
 
-              {/* Mini gráfico de barras semanal */}
               <div className="mt-4">
                 <p className="text-xs text-[#7A5260] mb-2">Pedidos por día (última semana)</p>
                 <div className="flex items-end gap-1 h-10">
@@ -178,11 +162,9 @@ export default async function RendimientoPage() {
         ))}
       </div>
 
-      {/* Tabla comparativa */}
       <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-3 sm:p-5">
         <h3 className="font-serif text-lg sm:text-xl font-semibold text-[#5A0F24] mb-4">Comparativa general</h3>
 
-        {/* Mobile: cards */}
         <div className="block lg:hidden space-y-3">
           {[...rendimientoMapeado]
             .sort((a, b) => Number(b.calificacion) - Number(a.calificacion))
@@ -196,12 +178,7 @@ export default async function RendimientoPage() {
                       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] text-white text-xs font-bold flex items-center justify-center">
                         #{i + 1}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-xs font-bold text-white">
-                          {r.initials}
-                        </div>
-                        <span className="text-sm font-medium text-[#2A0E18]">{r.proveedor}</span>
-                      </div>
+                      <span className="text-sm font-medium text-[#2A0E18]">{r.empresa}</span>
                     </div>
                     <span className="font-serif text-lg font-bold text-[#5A0F24]">{r.montoTotal}</span>
                   </div>
@@ -218,12 +195,11 @@ export default async function RendimientoPage() {
             })}
         </div>
 
-        {/* Desktop: tabla */}
         <div className="hidden lg:block overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr>
-                {["Proveedor", "Monto total", "Completados", "Cancelados", "Tasa éxito", "Calificación", "Ranking", "Acción"].map((h) => (
+                {["Empresa", "Monto total", "Completados", "Cancelados", "Tasa éxito", "Calificación", "Ranking", "Acción"].map((h) => (
                   <th key={h} className="text-left px-3 py-2 text-xs tracking-widest uppercase text-[#7A5260] font-medium border-b border-[#8E1B3A]/10">
                     {h}
                   </th>
@@ -243,7 +219,7 @@ export default async function RendimientoPage() {
                           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-xs font-bold text-white">
                             {r.initials}
                           </div>
-                          <span className="text-sm font-medium text-[#2A0E18]">{r.proveedor}</span>
+                          <span className="text-sm font-medium text-[#2A0E18]">{r.empresa}</span>
                         </div>
                       </td>
                       <td className="px-3 py-3 text-sm font-semibold text-[#5A0F24]">{r.montoTotal}</td>
@@ -261,8 +237,8 @@ export default async function RendimientoPage() {
                         </span>
                       </td>
                       <td className="px-3 py-3">
-                        <Link 
-                          href={`/admin/proveedores/actividad/${r.id}`}
+                        <Link
+                          href={`/admin/empresas/actividad/${r.id}`}
                           className="text-xs px-3 py-1.5 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-medium hover:opacity-80 block w-max"
                         >
                           Ver reporte
