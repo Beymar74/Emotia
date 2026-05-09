@@ -2,17 +2,30 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import DescargarReporteBtn from "../_components/DescargarReporteBtn";
 import { GraficoNuevosClientes, GraficoSegmentacionClientes, GraficoTopCompradores } from "./ClientesCharts";
+import { Suspense } from "react";
+import EmpresaFilter from "../../_components/EmpresaFilter";
 
-export default async function ReporteClientesPage() {
-  const [usuariosDB, pedidosDB] = await Promise.all([
+export default async function ReporteClientesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sp = await searchParams;
+  const empresaId = typeof sp.empresa === "string" && sp.empresa !== "todas" ? parseInt(sp.empresa) : 0;
+  
+  const empresaFiltroUsuario = empresaId > 0 ? { pedidos: { some: { detalle_pedidos: { some: { proveedor_id: empresaId } } } } } : {};
+  const empresaFiltroPedido = empresaId > 0 ? { detalle_pedidos: { some: { proveedor_id: empresaId } } } : {};
+  const [usuariosDB, pedidosDB, empresasLista] = await Promise.all([
     prisma.usuarios.findMany({
-      where: { tipo: 'usuario' },
+      where: { tipo: 'usuario', ...empresaFiltroUsuario },
       select: { id: true, nombre: true, email: true, activo: true, created_at: true },
       orderBy: { created_at: 'desc' },
     }),
     prisma.pedidos.findMany({
+      where: { ...empresaFiltroPedido },
       select: { id: true, usuario_id: true, total: true, estado: true, created_at: true },
     }),
+    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } })
   ]);
 
   const totalUsuarios = usuariosDB.length;
@@ -122,9 +135,15 @@ export default async function ReporteClientesPage() {
           <div>
             <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Clientes</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          En esta sección puedes evaluar el crecimiento de la base de usuarios, demografía y el comportamiento de consumo de tus clientes.
+        </p>
           </div>
         </div>
-        <DescargarReporteBtn config={config} />
+        <div className="flex gap-3">
+          <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
+          <DescargarReporteBtn config={config} />
+        </div>
       </div>
 
       {/* KPIs */}

@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import CambiarEstadoBtn from "../_components/CambiarEstadoBtn";
+import Breadcrumbs from "../../_components/Breadcrumbs";
 
 export const dynamic = "force-dynamic";
 
@@ -41,15 +42,14 @@ export default async function DetallePedidoPage({
 
   return (
     <div className="space-y-6 max-w-4xl">
+      <Breadcrumbs crumbs={[
+        { label: "Admin", href: "/admin" },
+        { label: "Pedidos", href: "/admin/pedidos" },
+        { label: `Pedido #${String(pedido.id).padStart(4, "0")}` },
+      ]} />
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <Link
-            href="/admin/pedidos"
-            className="text-xs text-[#BC9968] hover:underline mb-1 inline-block"
-          >
-            ← Volver a pedidos
-          </Link>
           <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">
             Pedidos &amp; Pagos
           </p>

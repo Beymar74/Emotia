@@ -1,19 +1,31 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import DescargarReporteBtn from "../_components/DescargarReporteBtn";
+import { Suspense } from "react";
+import EmpresaFilter from "../../_components/EmpresaFilter";
 
-export default async function ReporteEmpresasPage() {
-  const [empresasDB, detallesDB] = await Promise.all([
+export default async function ReporteEmpresasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sp = await searchParams;
+  const empresaId = typeof sp.empresa === "string" && sp.empresa !== "todas" ? parseInt(sp.empresa) : 0;
+  const empresaFiltroDetalle = empresaId > 0 ? { proveedor_id: empresaId } : {};
+  const empresaFiltroEmpresa = empresaId > 0 ? { id: empresaId } : {};
+  const [empresasDB, detallesDB, empresasLista] = await Promise.all([
     prisma.proveedores.findMany({
+      where: { ...empresaFiltroEmpresa },
       orderBy: { total_vendido: 'desc' },
       include: {
         _count: { select: { productos: true, detalle_pedidos: true } },
       },
     }),
     prisma.detalle_pedidos.findMany({
-      where: { pedidos: { estado: 'entregado' } },
+      where: { pedidos: { estado: 'entregado' }, ...empresaFiltroDetalle },
       select: { proveedor_id: true, subtotal: true, cantidad: true },
     }),
+    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } })
   ]);
 
   const totalEmpresas = empresasDB.length;
@@ -121,9 +133,15 @@ export default async function ReporteEmpresasPage() {
           <div>
             <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Empresas</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          Aquí puedes examinar las métricas de afiliación de nuevas empresas, su distribución y nivel de actividad dentro del marketplace.
+        </p>
           </div>
         </div>
-        <DescargarReporteBtn config={config} />
+        <div className="flex gap-3">
+          <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
+          <DescargarReporteBtn config={config} />
+        </div>
       </div>
 
       {/* KPIs */}

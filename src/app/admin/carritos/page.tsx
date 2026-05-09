@@ -1,12 +1,7 @@
 import prisma from "@/lib/prisma";
+import CarritosClient from "./_components/CarritosClient";
 
 export const dynamic = "force-dynamic";
-
-function formatFecha(date: Date) {
-  return new Intl.DateTimeFormat("es-BO", {
-    day: "2-digit", month: "2-digit", year: "numeric",
-  }).format(date);
-}
 
 export default async function CarritosPage() {
   const carritos = await prisma.carrito.findMany({
@@ -33,6 +28,7 @@ export default async function CarritosPage() {
 
   const items = carritos.map((c) => ({
     id:              c.id,
+    usuario_id:      c.usuario_id,
     usuario:         `${c.usuarios.nombre} ${c.usuarios.apellido ?? ""}`.trim(),
     email:           c.usuarios.email,
     producto:        c.productos.nombre,
@@ -54,6 +50,9 @@ export default async function CarritosPage() {
         <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">
           Carritos activos
         </h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          Aquí puedes visualizar los carritos de compra activos y abandonados por los usuarios, permitiendo tomar decisiones estratégicas de recuperación de ventas.
+        </p>
         <p className="text-sm text-[#7A5260] mt-1">
           Productos en carrito que aún no han sido comprados (abandono de carrito).
         </p>
@@ -89,77 +88,7 @@ export default async function CarritosPage() {
         </div>
       </div>
 
-      {/* Tabla */}
-      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 overflow-x-auto">
-        <div className="px-5 py-4 border-b border-[#8E1B3A]/10">
-          <h2 className="font-serif text-xl font-semibold text-[#5A0F24]">
-            Detalle de carritos
-          </h2>
-        </div>
-        <table className="w-full border-collapse min-w-[900px]">
-          <thead>
-            <tr>
-              {["Usuario", "Producto", "Cant.", "Precio unit.", "Subtotal", "Mensaje", "Empaque", "Agregado"].map(
-                (h) => (
-                  <th
-                    key={h}
-                    className="text-left px-4 py-3 text-xs tracking-widest uppercase text-[#7A5260] font-medium border-b border-[#8E1B3A]/10"
-                  >
-                    {h}
-                  </th>
-                )
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item) => (
-              <tr
-                key={item.id}
-                className="border-b border-[#8E1B3A]/5 last:border-0 hover:bg-[#FAF3EC]/50 transition-colors"
-              >
-                <td className="px-4 py-3">
-                  <p className="text-sm font-medium text-[#2A0E18]">{item.usuario}</p>
-                  <p className="text-xs text-[#7A5260]">{item.email}</p>
-                </td>
-                <td className="px-4 py-3 text-sm text-[#5A0F24] font-semibold max-w-[180px] truncate">
-                  {item.producto}
-                </td>
-                <td className="px-4 py-3 text-sm text-center font-bold text-[#2A0E18]">
-                  {item.cantidad}
-                </td>
-                <td className="px-4 py-3 text-sm text-[#7A5260]">
-                  Bs {item.precio_unitario.toFixed(2)}
-                </td>
-                <td className="px-4 py-3 text-sm font-bold text-[#5A0F24]">
-                  Bs {item.subtotal.toFixed(2)}
-                </td>
-                <td className="px-4 py-3 text-xs text-[#7A5260] max-w-[120px] truncate">
-                  {item.mensaje ?? <span className="text-[#B0B0B0]">—</span>}
-                </td>
-                <td className="px-4 py-3 text-center">
-                  {item.empaque ? (
-                    <span className="inline-block px-2 py-0.5 rounded-full text-xs bg-[#FFF3E0] text-[#E65100]">
-                      Sí
-                    </span>
-                  ) : (
-                    <span className="text-[#B0B0B0] text-xs">No</span>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-xs text-[#7A5260]">
-                  {formatFecha(new Date(item.created_at))}
-                </td>
-              </tr>
-            ))}
-            {items.length === 0 && (
-              <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-sm text-[#7A5260]">
-                  No hay ítems en carritos activos.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <CarritosClient items={items} />
     </div>
   );
 }

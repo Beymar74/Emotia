@@ -3,8 +3,8 @@ type DeltaType = "up" | "down" | "neutral";
 interface MetricCardProps {
   value: string;
   label: string;
-  delta: string;
-  deltaType: DeltaType;
+  delta?: string;
+  deltaType?: DeltaType;
   barFrom: string;
   barTo: string;
 }
@@ -21,9 +21,9 @@ const deltaPrefix: Record<DeltaType, string> = {
   neutral: "",
 };
 
-export default function MetricCard({ value, label, delta, deltaType, barFrom, barTo }: MetricCardProps) {
+export default function MetricCard({ value, label, delta, deltaType = "neutral", barFrom, barTo }: MetricCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-6 relative overflow-hidden">
+    <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-6 relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-[#8E1B3A]/30">
       <div
         className="absolute top-0 left-0 right-0 h-[3px]"
         style={{ background: `linear-gradient(90deg, ${barFrom}, ${barTo})` }}
@@ -32,9 +32,11 @@ export default function MetricCard({ value, label, delta, deltaType, barFrom, ba
         {value}
       </p>
       <p className="text-sm text-[#7A5260] mt-2 mb-4">{label}</p>
-      <span className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full font-medium ${deltaStyles[deltaType]}`}>
-        {deltaPrefix[deltaType]}{delta}
-      </span>
+      {delta && (
+        <span className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full font-medium ${deltaStyles[deltaType]}`}>
+          {deltaPrefix[deltaType]}{delta}
+        </span>
+      )}
     </div>
   );
 }

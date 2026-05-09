@@ -15,6 +15,21 @@ export default function ModalNuevoUsuario({ variante = "boton" }: { variante?: "
     setError("");
 
     const formData = new FormData(e.currentTarget);
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+
+    if (password !== confirmPassword) {
+      setError("Las contraseñas no coinciden.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
+      setIsSubmitting(false);
+      return;
+    }
+
     const result = await crearUsuarioAction(formData);
 
     if (result.error) {
@@ -104,6 +119,18 @@ export default function ModalNuevoUsuario({ variante = "boton" }: { variante?: "
                     <option value="usuario">Usuario Estándar</option>
                     <option value="admin">Administrador</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Fila 4: Contraseña y Confirmar */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider">Contraseña *</label>
+                  <input required name="password" type="password" className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all text-[#2A0E18]" placeholder="••••••••" minLength={6} />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider">Confirmar Contraseña *</label>
+                  <input required name="confirmPassword" type="password" className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all text-[#2A0E18]" placeholder="••••••••" minLength={6} />
                 </div>
               </div>
 

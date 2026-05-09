@@ -2,11 +2,21 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import DescargarReporteBtn from "../_components/DescargarReporteBtn";
 import { GraficoEstrellas, GraficoSatisfaccion } from "./CalidadCharts";
+import { Suspense } from "react";
+import EmpresaFilter from "../../_components/EmpresaFilter";
 
-export default async function ReporteCalidadPage() {
-  const [detallesDB, pedidosDB] = await Promise.all([
+export default async function ReporteCalidadPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sp = await searchParams;
+  const empresaId = typeof sp.empresa === "string" && sp.empresa !== "todas" ? parseInt(sp.empresa) : 0;
+  const empresaFiltroDetalle = empresaId > 0 ? { proveedor_id: empresaId } : {};
+  const empresaFiltroPedido = empresaId > 0 ? { detalle_pedidos: { some: { proveedor_id: empresaId } } } : {};
+  const [detallesDB, pedidosDB, empresasLista] = await Promise.all([
     prisma.detalle_pedidos.findMany({
-      where: { calificacion: { not: null } },
+      where: { calificacion: { not: null }, ...empresaFiltroDetalle },
       select: {
         id: true,
         calificacion: true,
@@ -18,8 +28,10 @@ export default async function ReporteCalidadPage() {
       orderBy: { created_at: "desc" },
     }),
     prisma.pedidos.findMany({
+      where: { ...empresaFiltroPedido },
       select: { id: true, estado: true, created_at: true },
     }),
+    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } })
   ]);
 
   const totalReseñas = detallesDB.length;
@@ -122,9 +134,15 @@ export default async function ReporteCalidadPage() {
           <div>
             <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Calidad</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          Aquí puedes analizar las métricas de calidad del servicio, evaluaciones de productos y el nivel de satisfacción general de los clientes.
+        </p>
           </div>
         </div>
-        <DescargarReporteBtn config={config} />
+        <div className="flex gap-3">
+          <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
+          <DescargarReporteBtn config={config} />
+        </div>
       </div>
 
       {/* KPIs */}

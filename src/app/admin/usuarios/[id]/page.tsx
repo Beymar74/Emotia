@@ -2,9 +2,11 @@ import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Mail, Phone, Calendar, Shield, CreditCard, UserCircle } from "lucide-react";
+import Breadcrumbs from "../../_components/Breadcrumbs";
 
 import { actualizarFotoUsuario } from "../acciones";
 import HeaderPerfilAvatar from "@/components/HeaderPerfilAvatar";
+import ResetPasswordForm from "../_components/ResetPasswordForm";
 
 export default async function DetalleUsuarioPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -32,10 +34,15 @@ export default async function DetalleUsuarioPage({ params }: { params: Promise<{
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
+            <Breadcrumbs crumbs={[
+              { label: "Admin", href: "/admin" },
+              { label: "Usuarios", href: "/admin/usuarios" },
+              { label: `${usuario?.nombre ?? ""} ${usuario?.apellido ?? ""}`.trim() },
+            ]} />
             {/* Header / Navegación */}
             <div className="flex items-center gap-4">
-                <Link 
-                    href="/admin/usuarios" 
+                <Link
+                    href="/admin/usuarios"
                     className="p-2 bg-white border border-[#8E1B3A]/10 rounded-xl text-[#7A5260] hover:text-[#8E1B3A] hover:bg-[#FDFBF9] transition-all shadow-sm"
                 >
                     <ArrowLeft size={20} />
@@ -116,6 +123,14 @@ export default async function DetalleUsuarioPage({ params }: { params: Promise<{
                                 <p className="font-medium">{usuario.google_id ? "Cuenta de Google" : "Registro de Email"}</p>
                             </div>
                         </div>
+
+                        {!usuario.google_id && (
+                            <div className="pt-4 mt-2 border-t border-[#8E1B3A]/10">
+                                <h4 className="text-[10px] text-[#7A5260] uppercase font-bold tracking-wider mb-1">Seguridad</h4>
+                                <p className="text-xs text-[#7A5260] mb-3">La contraseña actual está encriptada y no es visible por razones de seguridad.</p>
+                                <ResetPasswordForm userId={usuario.id} />
+                            </div>
+                        )}
                     </div>
 
                     {/* Columna 2: Actividad y Estado */}

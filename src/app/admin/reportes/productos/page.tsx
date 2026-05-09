@@ -2,10 +2,21 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import DescargarReporteBtn from "../_components/DescargarReporteBtn";
 import { GraficoTopProductos, GraficoEstadoProductos, GraficoCategorias } from "./ProductosCharts";
+import { Suspense } from "react";
+import EmpresaFilter from "../../_components/EmpresaFilter";
 
-export default async function ReporteProductosPage() {
-  const [productosDB, detallesDB] = await Promise.all([
+export default async function ReporteProductosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sp = await searchParams;
+  const empresaId = typeof sp.empresa === "string" && sp.empresa !== "todas" ? parseInt(sp.empresa) : 0;
+  const empresaFiltroProducto = empresaId > 0 ? { proveedor_id: empresaId } : {};
+  const empresaFiltroDetalle = empresaId > 0 ? { proveedor_id: empresaId } : {};
+  const [productosDB, detallesDB, empresasLista] = await Promise.all([
     prisma.productos.findMany({
+      where: { ...empresaFiltroProducto },
       select: {
         id: true,
         nombre: true,
@@ -19,9 +30,10 @@ export default async function ReporteProductosPage() {
       orderBy: { created_at: "desc" },
     }),
     prisma.detalle_pedidos.findMany({
-      where: { pedidos: { estado: "entregado" } },
+      where: { pedidos: { estado: "entregado" }, ...empresaFiltroDetalle },
       select: { producto_id: true, cantidad: true, subtotal: true },
     }),
+    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } })
   ]);
 
   const totalProductos = productosDB.length;
@@ -136,9 +148,15 @@ export default async function ReporteProductosPage() {
           <div>
             <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Productos</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          Aquí puedes ver los análisis de los productos más vendidos, visualizaciones del catálogo y la gestión del stock global.
+        </p>
           </div>
         </div>
-        <DescargarReporteBtn config={config} />
+        <div className="flex gap-3">
+          <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
+          <DescargarReporteBtn config={config} />
+        </div>
       </div>
 
       {/* KPIs */}

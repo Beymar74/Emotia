@@ -154,6 +154,9 @@ export default async function ReportesHubPage() {
       <div>
         <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
         <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">Centro de Reportes</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          En esta sección puedes acceder a todos los reportes detallados y análisis del sistema para tomar decisiones informadas sobre ventas, clientes y calidad.
+        </p>
         <p className="text-sm text-[#7A5260] mt-1">Selecciona un tipo de reporte para ver el análisis detallado.</p>
       </div>
 
@@ -165,7 +168,7 @@ export default async function ReportesHubPage() {
           { label: "Clientes activos", valor: String(totalUsuarios), color: "#BC9968" },
           { label: "Empresas activas", valor: String(totalEmpresas), color: "#AB3A50" },
         ].map((m) => (
-          <div key={m.label} className="bg-white rounded-xl border border-[#8E1B3A]/10 p-4 relative overflow-hidden">
+          <div key={m.label} className="bg-white rounded-xl border border-[#8E1B3A]/10 p-4 relative overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#8E1B3A]/30">
             <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: m.color }} />
             <p className="font-serif text-2xl font-bold text-[#5A0F24]">{m.valor}</p>
             <p className="text-xs text-[#7A5260] mt-1">{m.label}</p>

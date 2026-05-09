@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import FormEditarProducto from "../../_components/FormEditarProducto";
+import Breadcrumbs from "../../../_components/Breadcrumbs";
 
 export default async function EditarProductoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -27,9 +28,15 @@ export default async function EditarProductoPage({ params }: { params: Promise<{
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
+      <Breadcrumbs crumbs={[
+        { label: "Admin", href: "/admin" },
+        { label: "Productos", href: "/admin/productos" },
+        { label: producto?.nombre ?? "Producto" },
+        { label: "Editar" },
+      ]} />
       <div className="flex items-center gap-4">
-        <Link 
-          href="/admin/productos" 
+        <Link
+          href="/admin/productos"
           className="p-2 bg-white border border-[#8E1B3A]/10 rounded-xl text-[#7A5260] hover:text-[#8E1B3A] hover:bg-[#FDFBF9] transition-all shadow-sm"
         >
           <ArrowLeft size={20} />

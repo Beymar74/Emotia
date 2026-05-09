@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { X, Loader2, Edit3, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { toggleEstadoUsuario, editarUsuarioAction } from "../acciones";
+import ResetPasswordForm from "./ResetPasswordForm";
 
 export default function BotonesAccion({ usuario, esAdmin }: { usuario: any, esAdmin: boolean }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -79,8 +80,9 @@ export default function BotonesAccion({ usuario, esAdmin }: { usuario: any, esAd
               </button>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="p-6 space-y-5">
-              <input type="hidden" name="id" value={usuario.id} />
+            <div className="p-6 space-y-5 max-h-[85vh] overflow-y-auto custom-scrollbar">
+              <form id="form-perfil" onSubmit={handleEditSubmit} className="space-y-5">
+                <input type="hidden" name="id" value={usuario.id} />
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -115,16 +117,24 @@ export default function BotonesAccion({ usuario, esAdmin }: { usuario: any, esAd
                   </select>
                 </div>
               </div>
+            </form>
+              {!usuario.google_id && (
+                <div className="pt-2 border-t border-[#8E1B3A]/10">
+                  <h3 className="text-[10px] font-bold text-[#5A0F24] uppercase tracking-wider ml-1 mb-1">Seguridad</h3>
+                  <p className="text-xs text-[#7A5260] ml-1 mb-2">La contraseña actual está oculta por razones de seguridad.</p>
+                  <ResetPasswordForm userId={usuario.id} />
+                </div>
+              )}
 
-              <div className="pt-4 flex gap-3">
+              <div className="pt-2 flex gap-3">
                 <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 py-3 px-4 rounded-xl font-bold text-sm text-[#7A5260] bg-[#F1EFE8] hover:bg-[#E5E3DC] transition-colors">
                   Cancelar
                 </button>
-                <button type="submit" disabled={isSubmitting} className="flex-1 py-3 px-4 rounded-xl font-bold text-sm text-white bg-[#8E1B3A] hover:bg-[#5A0F24] transition-colors shadow-lg shadow-[#8E1B3A]/20 flex justify-center items-center gap-2 disabled:opacity-70">
+                <button type="submit" form="form-perfil" disabled={isSubmitting} className="flex-1 py-3 px-4 rounded-xl font-bold text-sm text-white bg-[#8E1B3A] hover:bg-[#5A0F24] transition-colors shadow-lg shadow-[#8E1B3A]/20 flex justify-center items-center gap-2 disabled:opacity-70">
                   {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : 'Guardar Cambios'}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}

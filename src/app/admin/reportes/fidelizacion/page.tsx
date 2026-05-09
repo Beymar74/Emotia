@@ -1,17 +1,30 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import DescargarReporteBtn from "../_components/DescargarReporteBtn";
+import { Suspense } from "react";
+import EmpresaFilter from "../../_components/EmpresaFilter";
 
-export default async function ReporteFidelizacionPage() {
-  const [pedidosDB, usuariosDB] = await Promise.all([
+export default async function ReporteFidelizacionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sp = await searchParams;
+  const empresaId = typeof sp.empresa === "string" && sp.empresa !== "todas" ? parseInt(sp.empresa) : 0;
+  
+  const empresaFiltroUsuario = empresaId > 0 ? { pedidos: { some: { detalle_pedidos: { some: { proveedor_id: empresaId } } } } } : {};
+  const empresaFiltroPedido = empresaId > 0 ? { detalle_pedidos: { some: { proveedor_id: empresaId } } } : {};
+  const [pedidosDB, usuariosDB, empresasLista] = await Promise.all([
     prisma.pedidos.findMany({
+      where: { ...empresaFiltroPedido },
       select: { id: true, usuario_id: true, total: true, estado: true, created_at: true },
       orderBy: { created_at: 'asc' },
     }),
     prisma.usuarios.findMany({
-      where: { tipo: 'usuario', activo: true },
+      where: { tipo: 'usuario', activo: true, ...empresaFiltroUsuario },
       select: { id: true, nombre: true, email: true, created_at: true },
     }),
+    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } })
   ]);
 
   const formatBs = (n: number) => `Bs ${n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -134,9 +147,15 @@ export default async function ReporteFidelizacionPage() {
           <div>
             <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Fidelización</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          En esta sección puedes revisar el impacto de las campañas de fidelización, el comportamiento de compras recurrentes y la retención de usuarios.
+        </p>
           </div>
         </div>
-        <DescargarReporteBtn config={config} />
+        <div className="flex gap-3">
+          <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
+          <DescargarReporteBtn config={config} />
+        </div>
       </div>
 
       {/* KPIs */}
