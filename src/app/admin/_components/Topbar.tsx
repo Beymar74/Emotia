@@ -31,7 +31,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
           Acceso total
         </span>
         <span className="hidden md:inline text-sm text-[#7A5260] bg-[#F5E6D0] px-4 py-1.5 rounded-full">
-          Abril 2026
+          {new Intl.DateTimeFormat("es-BO", { month: "long", year: "numeric", timeZone: "America/La_Paz" }).format(new Date())}
         </span>
         <button className="relative p-1.5">
           <svg width="22" height="22" viewBox="0 0 18 18" fill="none">

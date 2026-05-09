@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Package, Store, Tag, CheckCircle2, XCircle, Edit } from "lucide-react";
+import Breadcrumbs from "../../_components/Breadcrumbs";
 
 export default async function DetalleProductoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -22,11 +23,16 @@ export default async function DetalleProductoPage({ params }: { params: Promise<
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
+      <Breadcrumbs crumbs={[
+        { label: "Admin", href: "/admin" },
+        { label: "Productos", href: "/admin/productos" },
+        { label: producto?.nombre ?? "Producto" },
+      ]} />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link 
-            href="/admin/productos" 
+          <Link
+            href="/admin/productos"
             className="p-2 bg-white border border-[#8E1B3A]/10 rounded-xl text-[#7A5260] hover:text-[#8E1B3A] hover:bg-[#FDFBF9] transition-all shadow-sm"
           >
             <ArrowLeft size={20} />

@@ -1,32 +1,37 @@
 import prisma from "@/lib/prisma";
+import MetodosPagoClient from "./_components/MetodosPagoClient";
+import Paginacion from "../_components/Paginacion";
+import { Suspense } from "react";
 
-const metodos = [
-  { id: 1, nombre: "Tarjeta de crédito",  descripcion: "Visa, Mastercard, American Express", activo: true,  icono: "💳" },
-  { id: 2, nombre: "Tarjeta de débito",   descripcion: "Visa Débito, Maestro",                activo: true,  icono: "🏦" },
-  { id: 3, nombre: "Transferencia QR",    descripcion: "Pago QR mediante billetera digital",  activo: true,  icono: "📱" },
-  { id: 4, nombre: "Efectivo",            descripcion: "Pago contra entrega",                 activo: false, icono: "💵" },
-];
+export const dynamic = "force-dynamic";
 
-export default async function PagosPage() {
-  // --- 1. CONSULTA A LA BASE DE DATOS ---
-  // Traemos los últimos pedidos que tengan un método de pago registrado
-  const pedidosBD = await prisma.pedidos.findMany({
-    where: { 
-      metodo_pago: { not: null } // Solo nos interesan los que ya tienen método de pago
-    },
-    orderBy: { created_at: 'desc' },
-    take: 10, // Limitamos a las últimas 10 transacciones
-    include: {
-      usuarios: { select: { nombre: true, apellido: true } }
-    }
-  });
+const POR_PAGINA = 25;
 
-  // --- 2. FUNCIONES AUXILIARES ---
-  const formatFecha = (fecha: Date) => {
-    return new Intl.DateTimeFormat('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(fecha);
-  };
+export default async function PagosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sp = await searchParams;
+  const pagina = Math.max(1, parseInt(typeof sp.pagina === "string" ? sp.pagina : "1") || 1);
 
-  // --- 3. MAPEO DE TRANSACCIONES ---
+  const formatFecha = (fecha: Date) =>
+    new Intl.DateTimeFormat("es-BO", {
+      day: "2-digit", month: "2-digit", year: "numeric",
+    }).format(fecha);
+
+  const [metodosBD, totalTxn, pedidosBD] = await Promise.all([
+    prisma.metodos_pago.findMany({ orderBy: { id: "asc" } }),
+    prisma.pedidos.count({ where: { metodo_pago: { not: null } } }),
+    prisma.pedidos.findMany({
+      where: { metodo_pago: { not: null } },
+      orderBy: { created_at: "desc" },
+      skip: (pagina - 1) * POR_PAGINA,
+      take: POR_PAGINA,
+      include: { usuarios: { select: { nombre: true, apellido: true } } },
+    }),
+  ]);
+
   type Transaccion = {
     id: string;
     pedido: string;
@@ -37,118 +42,100 @@ export default async function PagosPage() {
     estado: "aprobado" | "fallido";
   };
 
-  const transacciones: Transaccion[] = pedidosBD.map((p: any) => {
-    const isFallido = p.estado === 'cancelado';
-    const nombreUsuario = `${p.usuarios?.nombre || ""} ${p.usuarios?.apellido || ""}`.trim();
-    
-    // Asignamos un ID de transacción basado en la referencia o generamos uno si no existe
-    const txnId = p.referencia_pago ? p.referencia_pago.slice(0, 10).toUpperCase() : `TXN-00${p.id}`;
+  const transacciones: Transaccion[] = pedidosBD.map((p: any) => ({
+    id:      p.referencia_pago ? p.referencia_pago.slice(0, 10).toUpperCase() : `TXN-${p.id.toString().padStart(4, "0")}`,
+    pedido:  `#${p.id.toString().padStart(4, "0")}`,
+    usuario: `${p.usuarios?.nombre || ""} ${p.usuarios?.apellido || ""}`.trim() || "Desconocido",
+    monto:   `Bs ${Number(p.total).toLocaleString("en-US", { minimumFractionDigits: 0 })}`,
+    metodo:  p.metodo_pago,
+    fecha:   formatFecha(p.created_at),
+    estado:  p.estado === "cancelado" ? "fallido" : "aprobado",
+  }));
 
-    return {
-      id: txnId,
-      pedido: `#${p.id.toString().padStart(4, '0')}`,
-      usuario: nombreUsuario || "Usuario desconocido",
-      monto: `Bs ${Number(p.total).toLocaleString('en-US', { minimumFractionDigits: 0 })}`,
-      metodo: p.metodo_pago,
-      fecha: formatFecha(p.created_at),
-      estado: isFallido ? "fallido" : "aprobado",
-    };
-  });
-
-  const pagosFallidosCount = transacciones.filter(t => t.estado === "fallido").length;
+  const pagosFallidosCount = transacciones.filter((t) => t.estado === "fallido").length;
+  const totalPaginas = Math.max(1, Math.ceil(totalTxn / POR_PAGINA));
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
-        <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Pedidos & Pagos</p>
+        <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Pedidos &amp; Pagos</p>
         <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">Métodos de pago</h1>
         <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-          En esta sección puedes supervisar los métodos de pago, revisar transacciones, verificar comprobantes y gestionar las liquidaciones a las empresas.
+          Habilita o deshabilita los métodos de pago disponibles para los clientes. Solo los métodos activos aparecerán como opción al momento de realizar un pedido.
         </p>
       </div>
 
-      {/* Métodos de pago (Configuración estática/global) */}
+      {/* Métodos de pago */}
       <div>
-        <h2 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Configuración de métodos</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {metodos.map((m) => (
-            <div key={m.id} className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#FAF3EC] flex items-center justify-center text-2xl flex-shrink-0">
-                  {m.icono}
-                </div>
-                <div>
-                  <p className="text-base font-semibold text-[#2A0E18]">{m.nombre}</p>
-                  <p className="text-sm text-[#7A5260] mt-0.5">{m.descripcion}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 self-end sm:self-auto">
-                <span className={`text-xs px-3 py-1 rounded-full font-medium ${m.activo ? "bg-[#EEF8F0] text-[#2D7A47]" : "bg-[#FBF0F0] text-[#A32D2D]"}`}>
-                  {m.activo ? "Activo" : "Inactivo"}
-                </span>
-                <button className={`text-sm px-4 py-2 rounded-lg font-medium transition-opacity hover:opacity-80 ${m.activo ? "bg-[#FDF5E6] text-[#8C5E08]" : "bg-[#EEF8F0] text-[#2D7A47]"}`}>
-                  {m.activo ? "Desactivar" : "Activar"}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <h2 className="font-serif text-xl font-semibold text-[#5A0F24] mb-1">Métodos disponibles</h2>
+        <p className="text-sm text-[#7A5260] mb-4">Activa o desactiva cada método según las operaciones habilitadas en la plataforma.</p>
+        <MetodosPagoClient metodos={metodosBD} />
       </div>
 
-      {/* Transacciones recientes (Datos de BD) */}
-      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 overflow-x-auto">
+      {/* Transacciones paginadas */}
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-serif text-xl font-semibold text-[#5A0F24]">Transacciones recientes</h3>
-          {pagosFallidosCount > 0 && (
-            <span className="text-xs bg-[#FBF0F0] text-[#A32D2D] px-3 py-1 rounded-full font-medium">
-              {pagosFallidosCount} {pagosFallidosCount === 1 ? "pago fallido" : "pagos fallidos"}
+          <h3 className="font-serif text-xl font-semibold text-[#5A0F24]">Historial de transacciones</h3>
+          <div className="flex items-center gap-2">
+            {pagosFallidosCount > 0 && (
+              <span className="text-xs bg-[#FBF0F0] text-[#A32D2D] px-3 py-1 rounded-full font-medium">
+                {pagosFallidosCount} {pagosFallidosCount === 1 ? "fallido" : "fallidos"} esta página
+              </span>
+            )}
+            <span className="text-xs bg-[#8E1B3A]/8 text-[#8E1B3A] px-3 py-1 rounded-full font-medium">
+              {totalTxn} total
             </span>
-          )}
+          </div>
         </div>
-        
+
         {transacciones.length === 0 ? (
-          <p className="text-sm text-[#7A5260] text-center py-6">No hay transacciones registradas.</p>
+          <p className="text-sm text-[#7A5260] text-center py-10">No hay transacciones registradas.</p>
         ) : (
-          <table className="w-full border-collapse min-w-[800px]">
-            <thead>
-              <tr>
-                {["Referencia", "Pedido", "Usuario", "Monto", "Método", "Fecha", "Estado", "Acción"].map((h) => (
-                  <th key={h} className="text-left px-3 py-2 text-xs tracking-widest uppercase text-[#7A5260] font-medium border-b border-[#8E1B3A]/10">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {transacciones.map((t) => (
-                <tr key={t.id} className="border-b border-[#8E1B3A]/5 last:border-0 hover:bg-[#FAF3EC]/50 transition-colors">
-                  <td className="px-3 py-3 text-xs font-mono text-[#7A5260]">{t.id}</td>
-                  <td className="px-3 py-3 text-sm font-bold text-[#5A0F24]">{t.pedido}</td>
-                  <td className="px-3 py-3 text-sm text-[#2A0E18]">{t.usuario}</td>
-                  <td className="px-3 py-3 text-sm font-semibold text-[#5A0F24]">{t.monto}</td>
-                  <td className="px-3 py-3 text-sm text-[#7A5260] capitalize">{t.metodo}</td>
-                  <td className="px-3 py-3 text-sm text-[#7A5260]">{t.fecha}</td>
-                  <td className="px-3 py-3">
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${t.estado === "aprobado" ? "bg-[#EEF8F0] text-[#2D7A47]" : "bg-[#FBF0F0] text-[#A32D2D]"}`}>
-                      {t.estado === "aprobado" ? "Aprobado" : "Fallido"}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3">
-                    {t.estado === "fallido" ? (
-                      <button className="text-xs px-3 py-1.5 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-medium hover:opacity-80">
-                        Resolver
-                      </button>
-                    ) : (
-                      <span className="text-sm text-[#B0B0B0]">—</span>
-                    )}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse min-w-[800px]">
+              <thead>
+                <tr>
+                  {["Referencia", "Pedido", "Usuario", "Monto", "Método", "Fecha", "Estado"].map((h) => (
+                    <th key={h} className="text-left px-3 py-2 text-xs tracking-widest uppercase text-[#7A5260] font-medium border-b border-[#8E1B3A]/10">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {transacciones.map((t) => (
+                  <tr key={t.id + t.pedido} className="border-b border-[#8E1B3A]/5 last:border-0 hover:bg-[#FAF3EC]/50 transition-colors">
+                    <td className="px-3 py-3 text-xs font-mono text-[#7A5260]">{t.id}</td>
+                    <td className="px-3 py-3 text-sm font-bold text-[#5A0F24]">{t.pedido}</td>
+                    <td className="px-3 py-3 text-sm text-[#2A0E18]">{t.usuario}</td>
+                    <td className="px-3 py-3 text-sm font-semibold text-[#5A0F24]">{t.monto}</td>
+                    <td className="px-3 py-3 text-sm text-[#7A5260] capitalize">{t.metodo}</td>
+                    <td className="px-3 py-3 text-sm text-[#7A5260]">{t.fecha}</td>
+                    <td className="px-3 py-3">
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                        t.estado === "aprobado"
+                          ? "bg-[#EEF8F0] text-[#2D7A47]"
+                          : "bg-[#FBF0F0] text-[#A32D2D]"
+                      }`}>
+                        {t.estado === "aprobado" ? "Aprobado" : "Fallido"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
+
+      <Suspense>
+        <Paginacion
+          paginaActual={pagina}
+          totalPaginas={totalPaginas}
+          totalItems={totalTxn}
+          porPagina={POR_PAGINA}
+        />
+      </Suspense>
     </div>
   );
 }

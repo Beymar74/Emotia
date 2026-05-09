@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
 
 // En el esquema no existe tabla de configuración, así que usamos
 // la tabla de usuarios para el admin (cambiar email/contraseña)
@@ -34,22 +35,24 @@ export async function actualizarDestacadosAction(formData: FormData) {
 }
 
 export async function actualizarAdminAction(formData: FormData) {
-  const email = formData.get("email") as string;
-  const nuevaPass = formData.get("password") as string;
-  const confirmar = formData.get("confirmar") as string;
+  const email      = formData.get("email") as string;
+  const nuevaPass  = formData.get("password") as string;
+  const confirmar  = formData.get("confirmar") as string;
 
   if (!email) return { error: "El email es requerido." };
+  if (nuevaPass && nuevaPass.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres." };
   if (nuevaPass && nuevaPass !== confirmar) return { error: "Las contraseñas no coinciden." };
 
   try {
-    // Buscamos al admin actual
     const admin = await prisma.usuarios.findFirst({ where: { tipo: "admin" } });
     if (!admin) return { error: "No se encontró el administrador." };
 
-    await prisma.usuarios.update({
-      where: { id: admin.id },
-      data: { email },
-    });
+    const data: Record<string, string> = { email };
+    if (nuevaPass) {
+      data.password_hash = await bcrypt.hash(nuevaPass, 10);
+    }
+
+    await prisma.usuarios.update({ where: { id: admin.id }, data });
 
     revalidatePath("/admin/configuracion");
     return { success: true };

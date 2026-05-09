@@ -1,56 +1,64 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { proveedores } from "@/generated/prisma/client";
 import ActividadEmpresasClient from "./_components/ActividadEmpresasClient";
+
+export const dynamic = "force-dynamic";
 
 const subPages = [
   { href: "/admin/empresas/actividad", label: "Supervisar actividad", icon: "◷", active: true },
   { href: "/admin/empresas/rendimiento", label: "Rendimiento", icon: "▲" },
 ];
 
-export default async function ActividadEmpresasPage() {
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
+export default async function ActividadEmpresasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sp = await searchParams;
+  const estadoFiltro = typeof sp.estado === "string" ? sp.estado : "";
+  const hoy      = new Date(); hoy.setHours(0, 0, 0, 0);
   const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
 
-  const provActivos = await prisma.proveedores.count({ where: { estado: 'aprobado' } });
+  const where: any = { estado: { in: ["aprobado", "suspendido"] } };
+  if (estadoFiltro === "aprobado" || estadoFiltro === "suspendido") where.estado = estadoFiltro;
 
-  const pedidosCurso = await prisma.pedidos.count({
-    where: { estado: { notIn: ['entregado', 'cancelado'] } }
-  });
+  const [provActivos, pedidosCurso, completadosHoy, canceladosMes, empresasRaw,
+         completadosPorProv, canceladosPorProv] = await Promise.all([
+    prisma.proveedores.count({ where: { estado: "aprobado" } }),
+    prisma.pedidos.count({ where: { estado: { notIn: ["entregado", "cancelado"] } } }),
+    prisma.pedidos.count({ where: { estado: "entregado", updated_at: { gte: hoy } } }),
+    prisma.pedidos.count({ where: { estado: "cancelado", updated_at: { gte: inicioMes } } }),
+    prisma.proveedores.findMany({ where, orderBy: { updated_at: "desc" } }),
+    // Conteos reales por proveedor
+    prisma.detalle_pedidos.groupBy({
+      by: ["proveedor_id"],
+      _count: { id: true },
+      where: { pedidos: { estado: "entregado" } },
+    }),
+    prisma.detalle_pedidos.groupBy({
+      by: ["proveedor_id"],
+      _count: { id: true },
+      where: { pedidos: { estado: "cancelado" } },
+    }),
+  ]);
 
-  const completadosHoy = await prisma.pedidos.count({
-    where: { estado: 'entregado', updated_at: { gte: hoy } }
-  });
+  const completadosMap: Record<number, number> = {};
+  const canceladosMap:  Record<number, number> = {};
+  for (const r of completadosPorProv) completadosMap[r.proveedor_id] = r._count.id;
+  for (const r of canceladosPorProv)  canceladosMap[r.proveedor_id]  = r._count.id;
 
-  const canceladosMes = await prisma.pedidos.count({
-    where: { estado: 'cancelado', updated_at: { gte: inicioMes } }
-  });
-
-  const empresasRaw = await prisma.proveedores.findMany({
-    where: { estado: { in: ['aprobado', 'suspendido'] } },
-    orderBy: { updated_at: 'desc' },
-    take: 10
-  });
-
-  const empresasReales = empresasRaw.map((p: proveedores) => ({
-    ...p,
+  const empresas = empresasRaw.map((p) => ({
+    id:              p.id,
+    nombre_negocio:  p.nombre_negocio,
+    logo_url:        p.logo_url,
+    email:           p.email,
+    estado:          p.estado,
     calificacion_prom: p.calificacion_prom ? Number(p.calificacion_prom) : 0,
-    total_vendido: p.total_vendido ? Number(p.total_vendido) : 0
+    total_vendido:   p.total_vendido ? Number(p.total_vendido) : 0,
+    updated_at:      p.updated_at.toISOString(),
+    pedidosCompletados: completadosMap[p.id] ?? 0,
+    pedidosCancelados:  canceladosMap[p.id]  ?? 0,
   }));
-
-
-
-  const getInitials = (nombre: string) => {
-    if (!nombre) return "EM";
-    return nombre.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-  };
-
-  const formatHora = (fecha: Date) =>
-    new Intl.DateTimeFormat('es-BO', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/La_Paz' }).format(fecha);
-
-  const formatFechaCorta = (fecha: Date) =>
-    new Intl.DateTimeFormat('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/La_Paz' }).format(fecha);
 
   return (
     <div className="space-y-6">
@@ -58,9 +66,9 @@ export default async function ActividadEmpresasPage() {
         <div>
           <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Empresas</p>
           <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Supervisar actividad</h1>
-        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-          Aquí puedes supervisar la actividad reciente de las empresas, revisar sus publicaciones, actualizaciones y el movimiento de sus catálogos.
-        </p>
+          <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+            Aquí puedes supervisar la actividad reciente de las empresas, revisar sus publicaciones, actualizaciones y el movimiento de sus catálogos.
+          </p>
         </div>
         <Link
           href="/admin/empresas/nuevo"
@@ -90,10 +98,10 @@ export default async function ActividadEmpresasPage() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
-          { label: "Empresas activas",    valor: String(provActivos),    color: "#8E1B3A" },
-          { label: "Pedidos en curso",    valor: String(pedidosCurso),   color: "#BC9968" },
-          { label: "Completados hoy",     valor: String(completadosHoy), color: "#2D7A47" },
-          { label: "Cancelados este mes", valor: String(canceladosMes),  color: "#A32D2D" },
+          { label: "Empresas activas",    valor: provActivos,    color: "#8E1B3A" },
+          { label: "Pedidos en curso",    valor: pedidosCurso,   color: "#BC9968" },
+          { label: "Completados hoy",     valor: completadosHoy, color: "#2D7A47" },
+          { label: "Cancelados este mes", valor: canceladosMes,  color: "#A32D2D" },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded-xl border border-[#8E1B3A]/10 p-4 sm:p-5 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: s.color }} />
@@ -105,10 +113,11 @@ export default async function ActividadEmpresasPage() {
 
       <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-3 sm:p-5">
         <h3 className="font-serif text-lg sm:text-xl font-semibold text-[#5A0F24] mb-4">Actividad por empresa</h3>
-        <ActividadEmpresasClient empresasReales={empresasReales} />
+        <ActividadEmpresasClient
+          empresasReales={empresas}
+          estadoFiltroInicial={estadoFiltro}
+        />
       </div>
-
-
     </div>
   );
 }

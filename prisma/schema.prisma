@@ -175,6 +175,16 @@ model proveedores {
   productos         productos[]
 }
 
+model metodos_pago {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @db.VarChar(100)
+  descripcion String?  @db.VarChar(200)
+  icono       String?  @db.VarChar(10)
+  activo      Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @db.Timestamptz(6)
+}
+
 model recomendaciones {
   id                   Int        @id @default(autoincrement())
   usuario_id           Int

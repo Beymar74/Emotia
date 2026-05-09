@@ -2,21 +2,34 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import DescargarReporteBtn from "../_components/DescargarReporteBtn";
 import { GraficoSemanalGlobal, GraficoEmpresasGlobal, GraficoCategoriasGlobal } from "./GlobalCharts";
+import { Suspense } from "react";
+import EmpresaFilter from "../../_components/EmpresaFilter";
 
-export default async function ReporteGlobalPage() {
-  const [pedidosDB, empresasDB, usuariosDB, productosDB, calificacionesDB, detallesDB] = await Promise.all([
-    prisma.pedidos.findMany({ select: { id: true, total: true, estado: true, created_at: true } }),
-    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true, total_vendido: true, estado: true } }),
-    prisma.usuarios.findMany({ where: { tipo: "usuario" }, select: { id: true, activo: true } }),
-    prisma.productos.findMany({ select: { id: true, activo: true } }),
+export default async function ReporteGlobalPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sp = await searchParams;
+  const empresaId = typeof sp.empresa === "string" && sp.empresa !== "todas" ? parseInt(sp.empresa) : 0;
+  
+  const empresaFiltroPedido = empresaId > 0 ? { detalle_pedidos: { some: { proveedor_id: empresaId } } } : {};
+  const empresaFiltroDetalle = empresaId > 0 ? { proveedor_id: empresaId } : {};
+  const empresaFiltroProducto = empresaId > 0 ? { proveedor_id: empresaId } : {};
+  const [pedidosDB, empresasDB, usuariosDB, productosDB, calificacionesDB, detallesDB, empresasLista] = await Promise.all([
+    prisma.pedidos.findMany({ where: { ...empresaFiltroPedido }, select: { id: true, total: true, estado: true, created_at: true } }),
+    prisma.proveedores.findMany({ where: { ...(empresaId > 0 ? { id: empresaId } : {}) }, select: { id: true, nombre_negocio: true, total_vendido: true, estado: true } }),
+    prisma.usuarios.findMany({ where: { tipo: "usuario", ...(empresaId > 0 ? { pedidos: { some: { detalle_pedidos: { some: { proveedor_id: empresaId } } } } } : {}) }, select: { id: true, activo: true } }),
+    prisma.productos.findMany({ where: { ...empresaFiltroProducto }, select: { id: true, activo: true } }),
     prisma.detalle_pedidos.findMany({
-      where: { calificacion: { not: null } },
+      where: { calificacion: { not: null }, ...empresaFiltroDetalle },
       select: { id: true, calificacion: true },
     }),
     prisma.detalle_pedidos.findMany({
-      where: { pedidos: { estado: "entregado" } },
+      where: { pedidos: { estado: "entregado" }, ...empresaFiltroDetalle },
       include: { productos: { include: { categorias: true } } },
     }),
+    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } }),
   ]);
 
   const formatBs = (n: number) =>
@@ -151,7 +164,10 @@ export default async function ReporteGlobalPage() {
         </p>
           </div>
         </div>
-        <DescargarReporteBtn config={config} />
+        <div className="flex gap-3">
+          <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
+          <DescargarReporteBtn config={config} />
+        </div>
       </div>
 
       {/* KPIs */}

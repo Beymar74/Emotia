@@ -2,17 +2,30 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import DescargarReporteBtn from "../_components/DescargarReporteBtn";
 import { GraficoNuevosClientes, GraficoSegmentacionClientes, GraficoTopCompradores } from "./ClientesCharts";
+import { Suspense } from "react";
+import EmpresaFilter from "../../_components/EmpresaFilter";
 
-export default async function ReporteClientesPage() {
-  const [usuariosDB, pedidosDB] = await Promise.all([
+export default async function ReporteClientesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sp = await searchParams;
+  const empresaId = typeof sp.empresa === "string" && sp.empresa !== "todas" ? parseInt(sp.empresa) : 0;
+  
+  const empresaFiltroUsuario = empresaId > 0 ? { pedidos: { some: { detalle_pedidos: { some: { proveedor_id: empresaId } } } } } : {};
+  const empresaFiltroPedido = empresaId > 0 ? { detalle_pedidos: { some: { proveedor_id: empresaId } } } : {};
+  const [usuariosDB, pedidosDB, empresasLista] = await Promise.all([
     prisma.usuarios.findMany({
-      where: { tipo: 'usuario' },
+      where: { tipo: 'usuario', ...empresaFiltroUsuario },
       select: { id: true, nombre: true, email: true, activo: true, created_at: true },
       orderBy: { created_at: 'desc' },
     }),
     prisma.pedidos.findMany({
+      where: { ...empresaFiltroPedido },
       select: { id: true, usuario_id: true, total: true, estado: true, created_at: true },
     }),
+    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } })
   ]);
 
   const totalUsuarios = usuariosDB.length;
@@ -127,7 +140,10 @@ export default async function ReporteClientesPage() {
         </p>
           </div>
         </div>
-        <DescargarReporteBtn config={config} />
+        <div className="flex gap-3">
+          <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
+          <DescargarReporteBtn config={config} />
+        </div>
       </div>
 
       {/* KPIs */}

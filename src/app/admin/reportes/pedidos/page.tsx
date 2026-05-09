@@ -2,12 +2,25 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import DescargarReporteBtn from "../_components/DescargarReporteBtn";
 import { GraficoDonutEstados, GraficoEvolucionPedidos, GraficoValorEstados } from "./PedidosCharts";
+import { Suspense } from "react";
+import EmpresaFilter from "../../_components/EmpresaFilter";
 
-export default async function ReportePedidosPage() {
-  const pedidosDB = await prisma.pedidos.findMany({
-    select: { id: true, total: true, estado: true, created_at: true, updated_at: true },
-    orderBy: { created_at: 'desc' },
-  });
+export default async function ReportePedidosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sp = await searchParams;
+  const empresaId = typeof sp.empresa === "string" && sp.empresa !== "todas" ? parseInt(sp.empresa) : 0;
+  const empresaFiltroPedido = empresaId > 0 ? { detalle_pedidos: { some: { proveedor_id: empresaId } } } : {};
+  const [pedidosDB, empresasLista] = await Promise.all([
+    prisma.pedidos.findMany({
+      where: { ...empresaFiltroPedido },
+      select: { id: true, total: true, estado: true, created_at: true, updated_at: true },
+      orderBy: { created_at: 'desc' },
+    }),
+    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } })
+  ]);
 
   const formatBs = (n: number) => `Bs ${n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
@@ -115,7 +128,10 @@ export default async function ReportePedidosPage() {
         </p>
           </div>
         </div>
-        <DescargarReporteBtn config={config} />
+        <div className="flex gap-3">
+          <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
+          <DescargarReporteBtn config={config} />
+        </div>
       </div>
 
       {/* KPIs */}

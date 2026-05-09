@@ -1,12 +1,12 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 
-export default async function QuickActions() {
+export default async function QuickActions({ empresaId = 0 }: { empresaId?: number }) {
   const [provPendientes, prodInactivos, pedidosPendientes, carritosActivos] = await Promise.all([
-    prisma.proveedores.count({ where: { estado: "pendiente" } }),
-    prisma.productos.count({ where: { activo: false } }),
-    prisma.pedidos.count({ where: { estado: "pendiente" } }),
-    prisma.carrito.count(),
+    prisma.proveedores.count({ where: { estado: "pendiente", ...(empresaId > 0 ? { id: empresaId } : {}) } }),
+    prisma.productos.count({ where: { activo: false, ...(empresaId > 0 ? { proveedor_id: empresaId } : {}) } }),
+    prisma.pedidos.count({ where: { estado: "pendiente", ...(empresaId > 0 ? { detalle_pedidos: { some: { proveedor_id: empresaId } } } : {}) } }),
+    prisma.carrito.count({ where: empresaId > 0 ? { productos: { proveedor_id: empresaId } } : undefined }),
   ]);
 
   const actions = [

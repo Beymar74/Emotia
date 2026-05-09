@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Mail, Phone, Calendar, Shield, CreditCard, UserCircle } from "lucide-react";
+import Breadcrumbs from "../../_components/Breadcrumbs";
 
 import { actualizarFotoUsuario } from "../acciones";
 import HeaderPerfilAvatar from "@/components/HeaderPerfilAvatar";
@@ -33,10 +34,15 @@ export default async function DetalleUsuarioPage({ params }: { params: Promise<{
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
+            <Breadcrumbs crumbs={[
+              { label: "Admin", href: "/admin" },
+              { label: "Usuarios", href: "/admin/usuarios" },
+              { label: `${usuario?.nombre ?? ""} ${usuario?.apellido ?? ""}`.trim() },
+            ]} />
             {/* Header / Navegación */}
             <div className="flex items-center gap-4">
-                <Link 
-                    href="/admin/usuarios" 
+                <Link
+                    href="/admin/usuarios"
                     className="p-2 bg-white border border-[#8E1B3A]/10 rounded-xl text-[#7A5260] hover:text-[#8E1B3A] hover:bg-[#FDFBF9] transition-all shadow-sm"
                 >
                     <ArrowLeft size={20} />
