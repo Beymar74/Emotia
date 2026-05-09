@@ -54,6 +54,9 @@ export default async function CalificacionesPage() {
         <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">
           Calificaciones y reseñas
         </h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          Aquí puedes moderar las reseñas y calificaciones que los clientes dejan sobre los productos, asegurando la calidad y el cumplimiento de las normas de la comunidad.
+        </p>
         <p className="text-sm text-[#7A5260] mt-1">
           reseñas y valoraciones de clientes sobre los productos adquiridos.
         </p>

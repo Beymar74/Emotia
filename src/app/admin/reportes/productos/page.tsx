@@ -136,6 +136,9 @@ export default async function ReporteProductosPage() {
           <div>
             <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Productos</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          Aquí puedes ver los análisis de los productos más vendidos, visualizaciones del catálogo y la gestión del stock global.
+        </p>
           </div>
         </div>
         <DescargarReporteBtn config={config} />

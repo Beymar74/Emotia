@@ -33,6 +33,9 @@ export default async function CategoriasPage() {
         <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">
           Categorías
         </h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          Aquí puedes administrar las categorías del catálogo, crear nuevas clasificaciones y organizar la forma en que los productos se presentan a los usuarios.
+        </p>
         <p className="text-sm text-[#7A5260] mt-1">
           Gestiona las categorías que agrupan los productos del catálogo.
         </p>

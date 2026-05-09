@@ -66,6 +66,9 @@ export default async function RendimientoEmpresasPage() {
         <div>
           <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Empresas</p>
           <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Rendimiento de empresas</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          En esta sección puedes analizar el rendimiento financiero y operativo de las empresas proveedoras, incluyendo ventas, calificaciones y tiempos de respuesta.
+        </p>
         </div>
         <select className="self-start sm:self-auto text-sm border border-[#8E1B3A]/15 rounded-lg px-4 py-2.5 outline-none text-[#7A5260] bg-white cursor-pointer hover:border-[#8E1B3A]/30 transition-colors">
           <option>Abril 2026</option>

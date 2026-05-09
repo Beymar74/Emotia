@@ -34,6 +34,9 @@ export default async function UsuariosPage() {
             Sistemas & Accesos
           </p>
           <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">Gestión de Usuarios</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          En esta sección puedes gestionar a todos los usuarios registrados, revisar sus roles, editar sus datos y controlar su acceso a la plataforma.
+        </p>
           <p className="text-xs text-[#7A5260] mt-1">Control total de cuentas, roles y suscripciones premium.</p>
         </div>
       </div>

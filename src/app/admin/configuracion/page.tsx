@@ -74,6 +74,9 @@ export default function ConfiguracionPage() {
       <div>
         <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes &amp; Sistema</p>
         <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">Configuración</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          Aquí puedes ajustar las variables globales del sistema, parámetros de seguridad y preferencias de la plataforma administrativa.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

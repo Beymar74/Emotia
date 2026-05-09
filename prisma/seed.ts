@@ -14,7 +14,6 @@ import { seedRecomendaciones } from './seeds/recomendaciones'
 import { seedInsignias } from './seeds/insignias'
 import { seedRecordatorios } from './seeds/recordatorios'
 import { seedNotificaciones } from './seeds/notificaciones'
-import { seedAuditLog } from './seeds/audit_log'
 
 const adapter = new PrismaPg(process.env.DATABASE_URL!)
 const prisma = new PrismaClient({ adapter })
@@ -24,7 +23,6 @@ async function main() {
 
     console.log('🧹 Limpiando base de datos...')
     await prisma.$transaction([
-        prisma.audit_log.deleteMany(),
         prisma.notificaciones.deleteMany(),
         prisma.recordatorios.deleteMany(),
         prisma.insignias.deleteMany(),
@@ -75,9 +73,6 @@ async function main() {
 
     await seedNotificaciones(prisma)
     console.log('✅ Notificaciones')
-
-    await seedAuditLog(prisma)
-    console.log('✅ Audit log')
 
     console.log('\n🧹 Limpiando caché de Redis...')
     try {

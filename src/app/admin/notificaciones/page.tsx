@@ -53,6 +53,9 @@ export default async function NotificacionesPage() {
         <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">
           Notificaciones
         </h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          Aquí puedes enviar y gestionar notificaciones push y alertas para los usuarios y empresas, informando sobre novedades o actualizaciones del sistema.
+        </p>
         <p className="text-sm text-[#7A5260] mt-1">
           Envía y gestiona notificaciones a los usuarios de Emotia.
         </p>

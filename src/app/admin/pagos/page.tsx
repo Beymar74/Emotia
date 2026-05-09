@@ -63,6 +63,9 @@ export default async function PagosPage() {
       <div>
         <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Pedidos & Pagos</p>
         <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">Métodos de pago</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          En esta sección puedes supervisar los métodos de pago, revisar transacciones, verificar comprobantes y gestionar las liquidaciones a las empresas.
+        </p>
       </div>
 
       {/* Métodos de pago (Configuración estática/global) */}

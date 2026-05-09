@@ -73,14 +73,6 @@ const navSections = [
     soloAdmin: false,
     items: [
       { href: "/admin/reportes", label: "Centro de reportes", soloAdmin: false },
-      { href: "/admin/reportes/global", label: "Reporte global", soloAdmin: false },
-      { href: "/admin/reportes/ventas", label: "Ventas", soloAdmin: false },
-      { href: "/admin/reportes/clientes", label: "Clientes", soloAdmin: false },
-      { href: "/admin/reportes/pedidos", label: "Pedidos", soloAdmin: false },
-      { href: "/admin/reportes/productos", label: "Productos", soloAdmin: false },
-      { href: "/admin/reportes/empresas", label: "Empresas", soloAdmin: false },
-      { href: "/admin/reportes/fidelizacion", label: "Fidelización", soloAdmin: false },
-      { href: "/admin/reportes/calidad", label: "Calidad", soloAdmin: false },
     ],
   },
   {
@@ -88,7 +80,6 @@ const navSections = [
     icon: IconSettings,
     soloAdmin: true,
     items: [
-      { href: "/admin/auditoria", label: "Log de auditoría", soloAdmin: true },
       { href: "/admin/configuracion", label: "Configuración", soloAdmin: true },
     ],
   },

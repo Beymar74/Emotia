@@ -99,6 +99,9 @@ export default async function PedidosPage() {
           Pedidos &amp; Pagos
         </p>
         <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">Todos los pedidos</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          En esta sección puedes gestionar los pedidos de los clientes, revisar su estado actual, verificar los pagos y coordinar con los proveedores para asegurar entregas exitosas.
+        </p>
       </div>
 
       {/* Client Component con filtros + cancelar + modal */}

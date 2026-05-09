@@ -54,6 +54,9 @@ export default async function RecordatoriosPage() {
         <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">
           Recordatorios
         </h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          En esta sección puedes configurar recordatorios automáticos para fechas importantes, seguimientos de pedidos o renovaciones de suscripciones.
+        </p>
         <p className="text-sm text-[#7A5260] mt-1">
           Supervisión de recordatorios de eventos configurados por los usuarios.
         </p>

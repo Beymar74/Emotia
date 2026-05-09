@@ -59,6 +59,9 @@ export default async function ProductosPage() {
         <div>
           <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Catálogo</p>
           <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">Todos los productos</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          En esta sección puedes gestionar los productos disponibles, revisar su estado, actualizar precios, controlar stock y administrar la información visible para los clientes.
+        </p>
         </div>
       </div>
 

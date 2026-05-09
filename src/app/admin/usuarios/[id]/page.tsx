@@ -5,6 +5,7 @@ import { ArrowLeft, Mail, Phone, Calendar, Shield, CreditCard, UserCircle } from
 
 import { actualizarFotoUsuario } from "../acciones";
 import HeaderPerfilAvatar from "@/components/HeaderPerfilAvatar";
+import ResetPasswordForm from "../_components/ResetPasswordForm";
 
 export default async function DetalleUsuarioPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -116,6 +117,14 @@ export default async function DetalleUsuarioPage({ params }: { params: Promise<{
                                 <p className="font-medium">{usuario.google_id ? "Cuenta de Google" : "Registro de Email"}</p>
                             </div>
                         </div>
+
+                        {!usuario.google_id && (
+                            <div className="pt-4 mt-2 border-t border-[#8E1B3A]/10">
+                                <h4 className="text-[10px] text-[#7A5260] uppercase font-bold tracking-wider mb-1">Seguridad</h4>
+                                <p className="text-xs text-[#7A5260] mb-3">La contraseña actual está encriptada y no es visible por razones de seguridad.</p>
+                                <ResetPasswordForm userId={usuario.id} />
+                            </div>
+                        )}
                     </div>
 
                     {/* Columna 2: Actividad y Estado */}

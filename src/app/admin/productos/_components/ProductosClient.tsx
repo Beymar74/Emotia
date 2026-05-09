@@ -53,6 +53,9 @@ export default function ProductosClient({
   const [modalEliminarOpen, setModalEliminarOpen] = useState(false);
   const [idAEliminar, setIdAEliminar] = useState<number | null>(null);
 
+  // Estado para las acciones en lote
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
   // --- LÓGICA DE FILTRADO ---
   const productosFiltrados = productos.filter((p) => {
     const matchNombre = p.nombre.toLowerCase().includes(filtroNombre.toLowerCase()) || 
@@ -81,6 +84,22 @@ export default function ProductosClient({
       await eliminarProducto(idAEliminar);
       setIdAEliminar(null);
     });
+  };
+
+  const handleToggleAll = () => {
+    if (selectedIds.length === productosFiltrados.length && productosFiltrados.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(productosFiltrados.map(p => p.id));
+    }
+  };
+
+  const handleToggleOne = (id: number) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(selId => selId !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
   };
 
   // Extraer iniciales para el avatar del proveedor
@@ -173,15 +192,32 @@ export default function ProductosClient({
           </div>
         )}
 
-        <div className="px-6 py-4 border-b border-[#8E1B3A]/5 bg-[#FDFBF9]/50 flex justify-between items-center">
+        <div className="px-6 py-4 border-b border-[#8E1B3A]/5 bg-[#FDFBF9]/50 flex justify-between items-center h-[72px]">
           <h3 className="font-serif text-lg font-bold text-[#5A0F24]">Inventario Global</h3>
-          <span className="bg-[#8E1B3A]/10 text-[#8E1B3A] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-tighter">
-            {productosFiltrados.length} Resultados
-          </span>
+          {selectedIds.length > 0 ? (
+            <div className="flex items-center gap-3 animate-fade-in">
+              <span className="text-xs font-bold text-[#8E1B3A] bg-[#8E1B3A]/10 px-3 py-1.5 rounded-full">
+                {selectedIds.length} seleccionado{selectedIds.length !== 1 ? "s" : ""}
+              </span>
+              <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FAF3EC] text-[#8C5E08] font-medium border border-[#8C5E08]/20 hover:bg-[#8C5E08] hover:text-white transition-colors">
+                Activar seleccionados
+              </button>
+            </div>
+          ) : (
+            <span className="bg-[#8E1B3A]/10 text-[#8E1B3A] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-tighter">
+              {productosFiltrados.length} Resultados
+            </span>
+          )}
         </div>
 
         {productosFiltrados.length === 0 ? (
-          <div className="p-8 text-center text-[#7A5260] text-sm">No se encontraron productos con los filtros actuales.</div>
+          <div className="p-16 text-center flex flex-col items-center justify-center space-y-3">
+            <div className="w-16 h-16 bg-[#FAF3EC] rounded-full flex items-center justify-center text-[#BC9968]">
+              <Package size={32} strokeWidth={1.5} />
+            </div>
+            <p className="text-sm font-medium text-[#7A5260]">No se encontraron productos</p>
+            <p className="text-xs text-[#7A5260]/70">No hay productos que coincidan con los filtros de búsqueda actuales.</p>
+          </div>
         ) : (
           <>
             {/* Vista Mobile (Tarjetas) */}
@@ -239,6 +275,14 @@ export default function ProductosClient({
               <table className="w-full text-left border-separate border-spacing-0">
                 <thead>
                   <tr className="bg-[#FDFBF9]/30">
+                    <th className="px-5 py-3 text-[10px] tracking-[2px] uppercase text-[#7A5260] font-bold border-b border-[#8E1B3A]/5 w-10">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 rounded text-[#8E1B3A] focus:ring-[#8E1B3A] border-[#8E1B3A]/30 cursor-pointer accent-[#8E1B3A]"
+                        checked={selectedIds.length > 0 && selectedIds.length === productosFiltrados.length}
+                        onChange={handleToggleAll}
+                      />
+                    </th>
                     {["Producto", "Proveedor", "Categoría", "Precio", "Stock", "Cal.", "Estado", "Acciones"].map((h) => (
                       <th key={h} className="px-5 py-3 text-[10px] tracking-[2px] uppercase text-[#7A5260] font-bold border-b border-[#8E1B3A]/5">
                         {h}
@@ -248,7 +292,15 @@ export default function ProductosClient({
                 </thead>
                 <tbody className="divide-y divide-[#8E1B3A]/5">
                   {productosFiltrados.map((p) => (
-                    <tr key={p.id} className="hover:bg-[#FDFBF9] transition-colors group">
+                    <tr key={p.id} className={`hover:bg-[#FDFBF9] transition-colors group ${selectedIds.includes(p.id) ? 'bg-[#FAF3EC]/60 hover:bg-[#FAF3EC]/80' : ''}`}>
+                      <td className="px-5 py-3">
+                        <input 
+                          type="checkbox" 
+                          className="w-4 h-4 rounded text-[#8E1B3A] focus:ring-[#8E1B3A] border-[#8E1B3A]/30 cursor-pointer accent-[#8E1B3A]"
+                          checked={selectedIds.includes(p.id)}
+                          onChange={() => handleToggleOne(p.id)}
+                        />
+                      </td>
                       <td className="px-5 py-3">
                         <p className="text-sm font-bold text-[#2A0E18] max-w-[200px] truncate" title={p.nombre}>{p.nombre}</p>
                       </td>

@@ -50,11 +50,33 @@ export default function PedidosClient({
   const [filtro, setFiltro] = useState("todos");
   const [pedidoACancelar, setPedidoACancelar] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const filtrados =
     filtro === "todos"
       ? pedidos
       : pedidos.filter((p) => p.estado === filtro);
+
+  const handleFiltroChange = (nuevoFiltro: string) => {
+    setFiltro(nuevoFiltro);
+    setSelectedIds([]);
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.length === filtrados.length && filtrados.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filtrados.map(p => p.idNum));
+    }
+  };
+
+  const toggleOne = (idNum: number) => {
+    if (selectedIds.includes(idNum)) {
+      setSelectedIds(selectedIds.filter(id => id !== idNum));
+    } else {
+      setSelectedIds([...selectedIds, idNum]);
+    }
+  };
 
   const confirmarCancelacion = () => {
     if (pedidoACancelar === null) return;
@@ -89,7 +111,7 @@ export default function PedidosClient({
         ].map((s) => (
           <button
             key={s.key}
-            onClick={() => setFiltro(s.key)}
+            onClick={() => handleFiltroChange(s.key)}
             className={`bg-white p-4 rounded-xl border text-left transition-all ${
               filtro === s.key
                 ? "border-[#8E1B3A]/40 shadow-md"
@@ -109,13 +131,32 @@ export default function PedidosClient({
           <h2 className="font-serif text-lg font-semibold text-[#5A0F24]">
             {filtro === "todos" ? "Todos los pedidos" : `Pedidos: ${ESTADO_LABEL[filtro] ?? filtro}`}
           </h2>
-          <span className="text-xs text-[#7A5260]">
-            {filtrados.length} resultado{filtrados.length !== 1 ? "s" : ""}
-          </span>
+          {selectedIds.length > 0 ? (
+            <div className="flex items-center gap-3 animate-fade-in">
+              <span className="text-xs font-bold text-[#8E1B3A] bg-[#8E1B3A]/10 px-3 py-1 rounded-full">
+                {selectedIds.length} seleccionado{selectedIds.length !== 1 ? "s" : ""}
+              </span>
+              <button className="text-xs px-3 py-1.5 rounded-lg bg-[#FAF3EC] text-[#8C5E08] font-medium border border-[#8C5E08]/20 hover:bg-[#8C5E08] hover:text-white transition-colors">
+                Marcar como completados
+              </button>
+            </div>
+          ) : (
+            <span className="text-xs text-[#7A5260]">
+              {filtrados.length} resultado{filtrados.length !== 1 ? "s" : ""}
+            </span>
+          )}
         </div>
         <table className="w-full border-collapse min-w-[800px]">
           <thead>
             <tr>
+              <th className="px-4 py-3 text-left border-b border-[#8E1B3A]/10 w-10">
+                <input 
+                  type="checkbox" 
+                  className="w-4 h-4 rounded text-[#8E1B3A] focus:ring-[#8E1B3A] border-[#8E1B3A]/30 cursor-pointer accent-[#8E1B3A]"
+                  checked={selectedIds.length > 0 && selectedIds.length === filtrados.length}
+                  onChange={toggleAll}
+                />
+              </th>
               {["ID", "Cliente", "Proveedor", "Producto", "Monto", "Fecha", "Estado", "Acciones"].map((h) => (
                 <th
                   key={h}
@@ -130,8 +171,18 @@ export default function PedidosClient({
             {filtrados.map((p) => (
               <tr
                 key={p.id}
-                className="border-b border-[#8E1B3A]/5 last:border-0 hover:bg-[#FAF3EC]/50 transition-colors"
+                className={`border-b border-[#8E1B3A]/5 last:border-0 hover:bg-[#FAF3EC]/50 transition-colors ${
+                  selectedIds.includes(p.idNum) ? "bg-[#FAF3EC]/60" : ""
+                }`}
               >
+                <td className="px-4 py-3">
+                  <input 
+                    type="checkbox" 
+                    className="w-4 h-4 rounded text-[#8E1B3A] focus:ring-[#8E1B3A] border-[#8E1B3A]/30 cursor-pointer accent-[#8E1B3A]"
+                    checked={selectedIds.includes(p.idNum)}
+                    onChange={() => toggleOne(p.idNum)}
+                  />
+                </td>
                 <td className="px-4 py-3">
                   <Link
                     href={`/admin/pedidos/${p.idNum}`}
@@ -177,8 +228,18 @@ export default function PedidosClient({
             ))}
             {filtrados.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-sm text-[#7A5260]">
-                  No hay pedidos con ese filtro.
+                <td colSpan={9} className="px-4 py-16 text-center">
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    <div className="w-16 h-16 bg-[#FAF3EC] rounded-full flex items-center justify-center text-[#BC9968]">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M3.27 6.96L12 12.01l8.73-5.05" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 22.08V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <p className="text-sm font-medium text-[#7A5260]">No se encontraron pedidos</p>
+                    <p className="text-xs text-[#7A5260]/70">No hay pedidos que coincidan con el estado seleccionado.</p>
+                  </div>
                 </td>
               </tr>
             )}

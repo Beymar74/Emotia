@@ -39,10 +39,7 @@ export default async function ActividadEmpresasPage() {
     total_vendido: p.total_vendido ? Number(p.total_vendido) : 0
   }));
 
-  const logActividadDB = await prisma.audit_log.findMany({
-    take: 6,
-    orderBy: { created_at: 'desc' }
-  });
+
 
   const getInitials = (nombre: string) => {
     if (!nombre) return "EM";
@@ -61,6 +58,9 @@ export default async function ActividadEmpresasPage() {
         <div>
           <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Empresas</p>
           <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Supervisar actividad</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          Aquí puedes supervisar la actividad reciente de las empresas, revisar sus publicaciones, actualizaciones y el movimiento de sus catálogos.
+        </p>
         </div>
         <Link
           href="/admin/empresas/nuevo"
@@ -108,32 +108,7 @@ export default async function ActividadEmpresasPage() {
         <ActividadEmpresasClient empresasReales={empresasReales} />
       </div>
 
-      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-3 sm:p-5">
-        <h3 className="font-serif text-lg sm:text-xl font-semibold text-[#5A0F24] mb-4">Log de actividad reciente</h3>
 
-        {logActividadDB.length === 0 ? (
-          <p className="text-sm text-[#7A5260] py-4 text-center">No hay registros de auditoría recientes.</p>
-        ) : (
-          <div className="divide-y divide-[#8E1B3A]/6">
-            {logActividadDB.map((l: any) => (
-              <div key={l.id} className="flex items-start gap-3 sm:gap-4 py-3 first:pt-0 last:pb-0">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-0.5">
-                  {getInitials(l.actor_tipo || "SA")}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-[#2A0E18]">
-                    <span className="font-medium">{l.actor_tipo ?? "Sistema"}</span>
-                    {l.actor_id ? ` #${l.actor_id}` : ""} — {l.accion}
-                  </p>
-                  <p className="text-xs text-[#7A5260] mt-0.5">
-                    {formatFechaCorta(l.created_at)} · {formatHora(l.created_at)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

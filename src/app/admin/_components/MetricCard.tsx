@@ -23,7 +23,7 @@ const deltaPrefix: Record<DeltaType, string> = {
 
 export default function MetricCard({ value, label, delta, deltaType, barFrom, barTo }: MetricCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-6 relative overflow-hidden">
+    <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-6 relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-[#8E1B3A]/30">
       <div
         className="absolute top-0 left-0 right-0 h-[3px]"
         style={{ background: `linear-gradient(90deg, ${barFrom}, ${barTo})` }}

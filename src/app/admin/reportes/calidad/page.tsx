@@ -122,6 +122,9 @@ export default async function ReporteCalidadPage() {
           <div>
             <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Calidad</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          Aquí puedes analizar las métricas de calidad del servicio, evaluaciones de productos y el nivel de satisfacción general de los clientes.
+        </p>
           </div>
         </div>
         <DescargarReporteBtn config={config} />

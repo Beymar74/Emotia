@@ -121,6 +121,9 @@ export default async function ReporteEmpresasPage() {
           <div>
             <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Empresas</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          Aquí puedes examinar las métricas de afiliación de nuevas empresas, su distribución y nivel de actividad dentro del marketplace.
+        </p>
           </div>
         </div>
         <DescargarReporteBtn config={config} />

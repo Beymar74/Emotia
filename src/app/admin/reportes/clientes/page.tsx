@@ -122,6 +122,9 @@ export default async function ReporteClientesPage() {
           <div>
             <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Clientes</h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          En esta sección puedes evaluar el crecimiento de la base de usuarios, demografía y el comportamiento de consumo de tus clientes.
+        </p>
           </div>
         </div>
         <DescargarReporteBtn config={config} />

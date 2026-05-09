@@ -54,6 +54,9 @@ export default async function CarritosPage() {
         <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">
           Carritos activos
         </h1>
+        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
+          Aquí puedes visualizar los carritos de compra activos y abandonados por los usuarios, permitiendo tomar decisiones estratégicas de recuperación de ventas.
+        </p>
         <p className="text-sm text-[#7A5260] mt-1">
           Productos en carrito que aún no han sido comprados (abandono de carrito).
         </p>
