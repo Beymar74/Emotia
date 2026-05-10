@@ -147,6 +147,27 @@
   color: #ffffff;
 }
 
+.cartButtonHighlight {
+  animation: cartPulse 0.68s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes cartPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 10px 22px rgba(92, 58, 46, 0.07);
+  }
+
+  45% {
+    transform: scale(1.14);
+    box-shadow: 0 0 0 10px rgba(224, 74, 100, 0.14), 0 18px 32px rgba(198, 40, 79, 0.28);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 10px 22px rgba(92, 58, 46, 0.07);
+  }
+}
+
 .badge {
   position: absolute;
   top: -0.2rem;

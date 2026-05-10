@@ -474,6 +474,125 @@
   padding: 1.25rem;
 }
 
+.personalizationLead {
+  margin: 0 0 1rem;
+  color: #8a6f62;
+  line-height: 1.7;
+  font-size: 0.96rem;
+}
+
+.personalizeButton {
+  width: 100%;
+  min-height: 56px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #5c3a2e, #8e3651);
+  color: #ffffff;
+  font-size: 0.96rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  box-shadow: 0 14px 28px rgba(92, 58, 46, 0.18);
+}
+
+.personalizationPreviewBox {
+  margin: 1rem 0 1.3rem;
+  border-radius: 28px;
+  border: 1px solid rgba(230, 136, 92, 0.16);
+  background: rgba(255, 255, 255, 0.82);
+  padding: 1rem;
+}
+
+.personalizationPreviewHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.95rem;
+}
+
+.personalizationPreviewEyebrow {
+  margin: 0 0 0.25rem;
+  color: #c6284f;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.personalizationPreviewTitle {
+  margin: 0;
+  color: #5c3a2e;
+  font-size: 1.08rem;
+  line-height: 1.3;
+}
+
+.personalizationPreviewState {
+  flex-shrink: 0;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  background: #fff3f7;
+  color: #8e3651;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.personalizationShowcase {
+  display: grid;
+  grid-template-columns: minmax(220px, 250px) minmax(220px, 360px);
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.productShowcaseCard {
+  border-radius: 24px;
+  border: 1px solid rgba(230, 136, 92, 0.14);
+  background: linear-gradient(180deg, #ffffff 0%, #fffaf6 100%);
+  padding: 1rem;
+  box-shadow: 0 14px 28px rgba(92, 58, 46, 0.06);
+}
+
+.productShowcaseImageWrap {
+  border-radius: 20px;
+  overflow: hidden;
+  background: #ffffff;
+  min-height: 250px;
+}
+
+.productShowcaseImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 250px;
+  object-fit: contain;
+}
+
+.showcaseCardPreview {
+  width: 100%;
+  max-width: 320px;
+  min-height: auto;
+  aspect-ratio: 1.42 / 1;
+  justify-self: start;
+}
+
+.showcaseCardMessage {
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.personalizationEmptyState {
+  border-radius: 22px;
+  border: 1px dashed rgba(198, 40, 79, 0.24);
+  background: linear-gradient(180deg, rgba(255, 243, 247, 0.95) 0%, rgba(255, 250, 246, 0.95) 100%);
+  padding: 1.2rem;
+  color: #8a6f62;
+  text-align: center;
+  line-height: 1.65;
+}
+
 .sectionHeader {
   display: flex;
   align-items: center;
@@ -521,8 +640,27 @@
   box-shadow: 0 14px 28px rgba(198, 40, 79, 0.12);
 }
 
+.templateMeta {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.16rem;
+  text-align: left;
+}
+
+.templateMeta strong {
+  color: #5c3a2e;
+  font-size: 0.9rem;
+}
+
+.templateMeta span {
+  color: #8a6f62;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .templatePreview {
-  min-height: 152px;
+  min-height: 0;
+  aspect-ratio: 1.48 / 1;
   border-radius: 18px;
   border: 1.5px solid;
   padding: 0.7rem;
@@ -573,6 +711,24 @@
   text-align: center;
 }
 
+.templatePreviewContent {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
+  width: 100%;
+  padding: 0.8rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.templatePreviewMessage {
+  font-size: 0.74rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  text-wrap: balance;
+}
+
 .textArea {
   width: 100%;
   min-height: 130px;
@@ -618,11 +774,11 @@
 
 .livePreview {
   position: relative;
-  min-height: 240px;
+  min-height: 0;
+  aspect-ratio: 1.42 / 1;
   border-radius: 28px;
   border: 1.5px solid;
   overflow: hidden;
-  margin-bottom: 1.4rem;
   background-color: #ffffff;
   background-size: 100% 100%;
   background-position: center;
@@ -649,7 +805,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 190px;
+  min-height: 100%;
+  height: 100%;
   text-align: center;
 }
 
@@ -659,11 +816,25 @@
 
 .previewContent p {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.12rem;
   line-height: 1.45;
   white-space: pre-wrap;
   text-wrap: balance;
   text-align: center;
+}
+
+.commentsSummary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.commentsScore {
+  color: #5c3a2e;
+  font-size: 0.94rem;
+  font-weight: 800;
 }
 
 .btnBolsa {
@@ -677,6 +848,227 @@
   font-weight: 800;
   cursor: pointer;
   box-shadow: 0 16px 28px rgba(198, 40, 79, 0.22);
+}
+
+.flyingCartChip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1200;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(230, 136, 92, 0.2);
+  box-shadow: 0 18px 34px rgba(92, 58, 46, 0.18);
+  overflow: hidden;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transform: translate3d(var(--cart-start-x), var(--cart-start-y), 0) scale(1);
+  animation: flyToCart 0.82s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.flyingCartThumb {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #fff8f3 0%, #ffffff 100%);
+}
+
+.flyingCartThumbImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.flyingCartIconWrap {
+  position: absolute;
+  right: 0.18rem;
+  bottom: 0.18rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #c6284f, #e04a64);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(198, 40, 79, 0.24);
+}
+
+@keyframes flyToCart {
+  0% {
+    transform: translate3d(var(--cart-start-x), var(--cart-start-y), 0) scale(1) rotate(0deg);
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate3d(var(--cart-end-x), var(--cart-end-y), 0) scale(0.34) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(92, 58, 46, 0.46);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modalCard {
+  width: min(100%, 980px);
+  max-height: min(90vh, 920px);
+  overflow: hidden;
+  border-radius: 34px;
+  background: linear-gradient(180deg, #fffdfb 0%, #fff6f2 100%);
+  box-shadow: 0 28px 60px rgba(92, 58, 46, 0.24);
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.35rem 1.35rem 1rem;
+  border-bottom: 1px solid rgba(230, 136, 92, 0.14);
+}
+
+.modalEyebrow {
+  margin: 0 0 0.3rem;
+  color: #c6284f;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.modalTitle {
+  margin: 0;
+  color: #5c3a2e;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  line-height: 1.05;
+}
+
+.modalDescription {
+  margin: 0.55rem 0 0;
+  color: #8a6f62;
+  line-height: 1.6;
+  max-width: 60ch;
+}
+
+.modalCloseButton {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #8e3651;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(92, 58, 46, 0.1);
+}
+
+.modalBody {
+  padding: 1.15rem 1.35rem 1rem;
+  overflow-y: auto;
+}
+
+.modalContentGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.8fr);
+  gap: 1.15rem;
+  align-items: start;
+}
+
+.modalFormColumn {
+  min-width: 0;
+}
+
+.modalPreviewColumn {
+  min-width: 0;
+  position: sticky;
+  top: 0;
+}
+
+.modalPreviewPanel {
+  border-radius: 28px;
+  border: 1px solid rgba(230, 136, 92, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 247, 243, 0.98) 100%);
+  padding: 1rem;
+  box-shadow: 0 16px 28px rgba(92, 58, 46, 0.08);
+}
+
+.modalPreviewEyebrow {
+  margin: 0 0 0.25rem;
+  color: #c6284f;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.modalPreviewTitle {
+  margin: 0;
+  color: #5c3a2e;
+  font-size: 1.18rem;
+  line-height: 1.2;
+}
+
+.modalPreviewText {
+  margin: 0.45rem 0 0.9rem;
+  color: #8a6f62;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.modalLivePreview {
+  width: 100%;
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  padding: 1rem 1.35rem 1.35rem;
+  border-top: 1px solid rgba(230, 136, 92, 0.14);
+}
+
+.modalSecondaryButton,
+.modalPrimaryButton {
+  min-height: 52px;
+  border-radius: 999px;
+  padding: 0 1.2rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.modalSecondaryButton {
+  border: 1px solid rgba(230, 136, 92, 0.22);
+  background: #ffffff;
+  color: #5c3a2e;
+}
+
+.modalPrimaryButton {
+  border: none;
+  background: linear-gradient(135deg, #c6284f, #e04a64);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(198, 40, 79, 0.2);
 }
 
 @media (max-width: 1120px) {
@@ -700,6 +1092,18 @@
 
   .commentsLayout {
     grid-template-columns: 1fr;
+  }
+
+  .personalizationShowcase {
+    grid-template-columns: 1fr;
+  }
+
+  .modalContentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modalPreviewColumn {
+    position: static;
   }
 }
 
@@ -741,6 +1145,10 @@
     gap: 0.3rem;
   }
 
+  .personalizationPreviewHeader {
+    flex-direction: column;
+  }
+
   .brandHeaderRow {
     align-items: flex-start;
   }
@@ -752,6 +1160,39 @@
 
   .previewContent p {
     font-size: 1.08rem;
+  }
+
+  .modalOverlay {
+    padding: 0.75rem;
+    align-items: flex-end;
+  }
+
+  .modalCard {
+    max-height: calc(100vh - 1.5rem);
+    border-radius: 28px;
+  }
+
+  .modalHeader,
+  .modalBody,
+  .modalFooter {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .modalFooter {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .modalSecondaryButton,
+  .modalPrimaryButton {
+    width: 100%;
+  }
+
+  .modalLivePreview,
+  .showcaseCardPreview,
+  .livePreview {
+    aspect-ratio: 1.32 / 1;
   }
 }
 
@@ -832,7 +1273,7 @@
   }
 
   .templatePreview {
-    min-height: 132px;
+    aspect-ratio: 1.38 / 1;
   }
 
   .templatePreview p {
@@ -840,8 +1281,15 @@
     font-size: 0.8rem;
   }
 
+  .templateMeta strong {
+    font-size: 0.86rem;
+  }
+
+  .templateMeta span {
+    font-size: 0.74rem;
+  }
+
   .livePreview {
-    min-height: 210px;
     border-radius: 22px;
   }
 
@@ -861,6 +1309,27 @@
   .fontButton {
     width: 100%;
     justify-content: center;
+  }
+
+  .personalizationPreviewBox {
+    padding: 0.9rem;
+  }
+
+  .productShowcaseImageWrap,
+  .productShowcaseImage {
+    min-height: 210px;
+  }
+
+  .showcaseCardMessage {
+    font-size: 0.9rem;
+  }
+
+  .showcaseCardPreview {
+    max-width: 100%;
+  }
+
+  .modalPreviewPanel {
+    padding: 0.9rem;
   }
 
   .btnBolsa,

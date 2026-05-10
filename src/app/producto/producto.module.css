@@ -8,11 +8,11 @@
 
 .layout {
   width: 100%;
-  max-width: 1560px;
+  max-width: 1640px;
   margin: 0 auto;
   padding: 1.25rem 1.35rem 2rem 1.35rem;
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-columns: 390px minmax(0, 1fr);
   gap: 1.5rem;
 }
 
@@ -95,6 +95,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.42rem;
+  align-items: flex-start;
 }
 
 .chip {

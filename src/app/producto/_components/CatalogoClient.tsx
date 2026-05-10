@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ShoppingCart, SlidersHorizontal, Sparkles } from "lucide-react";
 import Header from "../components/Header";
@@ -49,6 +49,7 @@ export default function CatalogoClient({
   const [maxPrecio, setMaxPrecio] = useState(precioMaximoInicial);
   const [orden, setOrden] = useState("destacados");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const shouldScrollToResultsRef = useRef(false);
 
   const sliderMin = 25;
   const sliderMax = Math.max(precioMaximoInicial, sliderMin);
@@ -133,6 +134,8 @@ export default function CatalogoClient({
   const handleSectionViewAll = (section: ProductSection) => {
     if (!section.action) return;
 
+    shouldScrollToResultsRef.current = true;
+
     setQuery("");
     setSeccion("Todas");
     setCategoria("Todas");
@@ -161,7 +164,19 @@ export default function CatalogoClient({
     categoria !== "Todas" ||
     ocasion !== "Todas" ||
     marca !== "Todas" ||
-    maxPrecio !== precioMaximoInicial;
+    maxPrecio !== precioMaximoInicial ||
+    orden !== "destacados";
+
+  useEffect(() => {
+    if (!hasActiveFilters || !shouldScrollToResultsRef.current) return;
+
+    const resultsSection = document.getElementById("catalog-results");
+    if (resultsSection) {
+      resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    shouldScrollToResultsRef.current = false;
+  }, [hasActiveFilters, productosFiltrados.length]);
 
   const productSections = useMemo<ProductSection[]>(() => {
     if (productosFiltrados.length === 0) return [];
@@ -409,7 +424,11 @@ export default function CatalogoClient({
           ) : (
             <div className={styles.catalogSections}>
               {productSections.map((section) => (
-                <section key={section.id} className={styles.catalogSection}>
+                <section
+                  key={section.id}
+                  id={section.id === "resultados" ? "catalog-results" : undefined}
+                  className={styles.catalogSection}
+                >
                   <div
                     className={`${styles.sectionShell} ${
                       section.tone === "garnet"
