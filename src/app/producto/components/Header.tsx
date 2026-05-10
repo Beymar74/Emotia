@@ -85,6 +85,7 @@ export default function Header({
   searchPlaceholder = "Buscar regalos, flores, detalles...",
   onSearchChange,
 }: HeaderProps) {
+  const [isCartHighlighted, setIsCartHighlighted] = useState(false);
   const router = useRouter();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
@@ -203,6 +204,31 @@ export default function Header({
     window.addEventListener("focus", refreshOverview);
     return () => window.removeEventListener("focus", refreshOverview);
   }, [isLoggedIn, loadAccountOverview]);
+
+  useEffect(() => {
+    let timeoutId: number | undefined;
+
+    const handleCartHighlight = () => {
+      setIsCartHighlighted(true);
+
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+
+      timeoutId = window.setTimeout(() => {
+        setIsCartHighlighted(false);
+      }, 700);
+    };
+
+    window.addEventListener("emotia-cart-highlight", handleCartHighlight);
+
+    return () => {
+      window.removeEventListener("emotia-cart-highlight", handleCartHighlight);
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, []);
 
   const highlightedOrder = useMemo(() => {
     if (!accountOverview?.orders.length) return null;
@@ -503,8 +529,9 @@ export default function Header({
             </div>
 
             <button
-              className={`${styles.actionButton} ${styles.cartButton}`}
+              className={`${styles.actionButton} ${styles.cartButton} ${isCartHighlighted ? styles.cartButtonHighlight : ""}`}
               aria-label="Carrito"
+              data-cart-target="catalog-cart-button"
               onClick={() => {
                 setIsAccountOpen(false);
                 setIsNotificationsOpen(false);

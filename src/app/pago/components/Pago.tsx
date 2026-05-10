@@ -43,6 +43,7 @@ export default function Pago() {
   const [cuponMsg, setCuponMsg] = useState<{ok:boolean;text:string}|null>(null);
   const [loading,  setLoading]  = useState(false);
   const [success,  setSuccess]  = useState(false);
+  const [codigoPedido] = useState(() => `#EMO-${Math.floor(Math.random()*90000+10000)}`);
 
   // tarjeta
   const [card, setCard] = useState({ numero:"", nombre:"", expiry:"", cvv:"" });
@@ -98,7 +99,7 @@ export default function Pago() {
             ¡Pedido <em style={{ fontStyle:"italic" }}>confirmado</em>!
           </h2>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:".95rem", lineHeight:1.8, color:"#5C3A1E", marginBottom:".75rem" }}>
-            Tu pedido <strong style={{ color:"#9B2335" }}>#EMO-{Math.floor(Math.random()*90000+10000)}</strong> fue procesado exitosamente.
+            Tu pedido <strong style={{ color:"#9B2335" }}>{codigoPedido}</strong> fue procesado exitosamente.
           </p>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:".9rem", lineHeight:1.75, color:"rgba(92,58,30,.65)", marginBottom:"2.5rem" }}>
             Recibirás una confirmación por correo y podrás seguir el estado de tu entrega desde tu cuenta.

@@ -176,7 +176,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Tu carrito esta vacio." }, { status: 400 });
     }
 
-    if (!zonaEntrega || !metodoPago || direccion.length < 7 || !destinatario || !telefono) {
+    const telefonoValido = /^\d{8}$/.test(telefono);
+
+    if (!zonaEntrega || !metodoPago || direccion.length < 7 || !destinatario || !telefonoValido) {
       return NextResponse.json({ error: "Completa los datos de entrega y pago." }, { status: 400 });
     }
 
@@ -294,7 +296,7 @@ export async function POST(req: Request) {
           usuario_id: usuario.id,
           tipo: "pedido",
           titulo: "Pedido registrado",
-          mensaje: `Recibimos tu pedido EM-${String(pedido.id).padStart(4, "0")} y la marca lo revisara pronto.`,
+          mensaje: `Recibimos tu pedido y la empresa lo revisara pronto.`,
           leida: false,
         },
       });

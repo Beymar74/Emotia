@@ -3,7 +3,7 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ChevronRight, Mail, MapPin, Phone, Send, Star } from "lucide-react";
+import { ArrowLeft, ChevronRight, Mail, MapPin, Phone, Send, ShoppingCart, Sparkles, Star, X } from "lucide-react";
 import Header from "../components/Header";
 import AuthModal from "../components/AuthModal";
 import { useCart } from "../components/cart/useCart";
@@ -25,52 +25,84 @@ type CardTemplate = {
   frame: string;
   designUrl: string;
   messageColor: string;
-  mood: string;
-  badge: string;
   ornament: "flowers" | "hearts" | "sparkles";
   sourceLabel: string;
   sourceUrl: string;
 };
 
+type PersonalizationSelection = {
+  selectedCard: string;
+  selectedFont: string;
+  message: string;
+};
+
+type ProductDetailClientProps = {
+  producto: DetailProduct;
+  comentariosIniciales: ProductComment[];
+};
+
+type FlyingCartAnimation = {
+  id: number;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  imageUrl?: string;
+};
+
+type CardPreviewProps = {
+  tarjeta: CardTemplate;
+  fuente: FontOption;
+  message: string;
+  className: string;
+  messageClassName?: string;
+  contentClassName?: string;
+};
+
+type PersonalizationModalProps = {
+  isOpen: boolean;
+  initialSelection: PersonalizationSelection;
+  onClose: () => void;
+  onApply: (selection: PersonalizationSelection) => void;
+};
+
+const DEFAULT_MESSAGE = "Para ti, con mucho cariño y un detalle pensado especialmente para este momento.";
+const EMPTY_MESSAGE = "Tu mensaje aparecerá aquí cuando personalices la tarjeta.";
+const CART_HIGHLIGHT_EVENT = "emotia-cart-highlight";
+
 const tarjetas: CardTemplate[] = [
   {
     id: "t1",
-    name: "Jardin Botanico",
+    name: "Elegante",
     accent: "#A53E6C",
     accentSoft: "#FFF3F7",
     frame: "#D46A92",
     designUrl: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777322450/emotia3_bmutfx.png",
     messageColor: "#000000",
-    mood: "Floral y delicada",
-    badge: "Floral",
     ornament: "flowers",
-    sourceLabel: "Ver diseno",
+    sourceLabel: "Ver diseño",
     sourceUrl: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777322450/emotia3_bmutfx.png",
   },
   {
     id: "t2",
-    name: "Herencia Clasica",
+    name: "Clásico",
     accent: "#5F4636",
     accentSoft: "#FFF8F0",
     frame: "#C8A47C",
     designUrl: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777323057/emotia2_cpkpzc.png",
     messageColor: "#000000",
-    mood: "Sobria y elegante",
-    badge: "Clasica",
     ornament: "hearts",
     sourceLabel: "Ver diseño",
     sourceUrl: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777323057/emotia2_cpkpzc.png",
   },
   {
     id: "t3",
-    name: "Confetti Pop",
+    name: "Infantil",
     accent: "#D94A6A",
     accentSoft: "#FFF6F8",
     frame: "#FFB34D",
     designUrl: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777323056/emotia1_wxoby0.png",
     messageColor: "#000000",
-    mood: "Festiva y brillante",
-    badge: "Fiesta",
     ornament: "sparkles",
     sourceLabel: "Ver diseño",
     sourceUrl: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777323056/emotia1_wxoby0.png",
@@ -83,10 +115,169 @@ const fuentes: FontOption[] = [
   { id: "cursive", label: "Manuscrita", family: "'Brush Script MT', 'Segoe Script', cursive" },
 ];
 
-type ProductDetailClientProps = {
-  producto: DetailProduct;
-  comentariosIniciales: ProductComment[];
-};
+function getTemplatePreviewClassName(ornament: CardTemplate["ornament"]) {
+  return styles[`templatePreview${ornament.charAt(0).toUpperCase()}${ornament.slice(1)}`];
+}
+
+function CardPreview({ tarjeta, fuente, message, className, messageClassName, contentClassName }: CardPreviewProps) {
+  const displayMessage = message.trim() || EMPTY_MESSAGE;
+
+  return (
+    <div
+      className={`${className} ${getTemplatePreviewClassName(tarjeta.ornament)}`}
+      style={{
+        borderColor: tarjeta.frame,
+        backgroundImage: `url(${tarjeta.designUrl})`,
+        backgroundColor: tarjeta.accentSoft,
+      }}
+    >
+      <div className={contentClassName || styles.previewContent}>
+        <p className={messageClassName} style={{ color: tarjeta.messageColor, fontFamily: fuente.family }}>
+          {displayMessage}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function PersonalizationModal({ isOpen, initialSelection, onClose, onApply }: PersonalizationModalProps) {
+  const [draftSelectedCard, setDraftSelectedCard] = useState(initialSelection.selectedCard);
+  const [draftSelectedFont, setDraftSelectedFont] = useState(initialSelection.selectedFont);
+  const [draftMessage, setDraftMessage] = useState(initialSelection.message);
+
+  const tarjetaActiva = useMemo(
+    () => tarjetas.find((tarjeta) => tarjeta.id === draftSelectedCard) || tarjetas[0],
+    [draftSelectedCard]
+  );
+  const fuenteActiva = useMemo(
+    () => fuentes.find((fuente) => fuente.id === draftSelectedFont) || fuentes[0],
+    [draftSelectedFont]
+  );
+
+  if (!isOpen) return null;
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="personalizacion-producto">
+      <div className={styles.modalCard} onClick={(event) => event.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <div>
+            <p className={styles.modalEyebrow}>Personalización</p>
+            <h2 id="personalizacion-producto" className={styles.modalTitle}>
+              Personaliza este producto
+            </h2>
+            <p className={styles.modalDescription}>Elige la tarjeta, escribe tu mensaje y revisa cómo se verá antes de guardarlo.</p>
+          </div>
+
+          <button type="button" className={styles.modalCloseButton} onClick={onClose} aria-label="Cerrar personalización">
+            <X size={18} strokeWidth={2.2} />
+          </button>
+        </div>
+
+        <div className={styles.modalBody}>
+          <div className={styles.modalContentGrid}>
+            <div className={styles.modalFormColumn}>
+              <div className={styles.sectionHeader}>
+                <h3>1. Elige una tarjeta</h3>
+              </div>
+
+              <div className={styles.cardGrid}>
+                {tarjetas.map((tarjeta) => {
+                  const isActive = draftSelectedCard === tarjeta.id;
+                  const cardFont = fuentes.find((fuente) => fuente.id === draftSelectedFont) || fuentes[0];
+
+                  return (
+                    <button
+                      key={tarjeta.id}
+                      type="button"
+                      onClick={() => setDraftSelectedCard(tarjeta.id)}
+                      className={`${styles.templateButton} ${isActive ? styles.templateButtonActive : ""}`}
+                    >
+                      <CardPreview
+                        tarjeta={tarjeta}
+                        fuente={cardFont}
+                        message={draftMessage}
+                        className={styles.templatePreview}
+                        contentClassName={styles.templatePreviewContent}
+                        messageClassName={styles.templatePreviewMessage}
+                      />
+                      <div className={styles.templateMeta}>
+                        <strong>{tarjeta.name}</strong>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className={styles.sectionHeader}>
+                <h3>2. Escribe tu mensaje</h3>
+                <span>Hasta donde quieras emocionar</span>
+              </div>
+
+              <textarea
+                value={draftMessage}
+                onChange={(event) => setDraftMessage(event.target.value)}
+                className={styles.textArea}
+                placeholder="Escribe aquí el mensaje para la tarjeta..."
+              />
+
+              <div className={styles.sectionHeader}>
+                <h3>3. Elige el estilo de letra</h3>
+                <span>{fuenteActiva.label}</span>
+              </div>
+
+              <div className={styles.fontSelector}>
+                {fuentes.map((fuente) => (
+                  <button
+                    key={fuente.id}
+                    type="button"
+                    onClick={() => setDraftSelectedFont(fuente.id)}
+                    className={`${styles.fontButton} ${draftSelectedFont === fuente.id ? styles.fontButtonActive : ""}`}
+                    style={{ fontFamily: fuente.family }}
+                  >
+                    {fuente.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <aside className={styles.modalPreviewColumn}>
+              <div className={styles.modalPreviewPanel}>
+                <p className={styles.modalPreviewEyebrow}>Vista previa</p>
+                <h3 className={styles.modalPreviewTitle}>Así quedará tu tarjeta</h3>
+
+                <CardPreview
+                  tarjeta={tarjetaActiva}
+                  fuente={fuenteActiva}
+                  message={draftMessage}
+                  className={`${styles.livePreview} ${styles.modalLivePreview}`}
+                />
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <div className={styles.modalFooter}>
+          <button type="button" className={styles.modalSecondaryButton} onClick={onClose}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className={styles.modalPrimaryButton}
+            onClick={() =>
+              onApply({
+                selectedCard: draftSelectedCard,
+                selectedFont: draftSelectedFont,
+                message: draftMessage,
+              })
+            }
+          >
+            Guardar personalización
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ProductDetailClient({ producto, comentariosIniciales }: ProductDetailClientProps) {
   const { addItem } = useCart();
@@ -94,22 +285,23 @@ export default function ProductDetailClient({ producto, comentariosIniciales }: 
 
   const [selectedCard, setSelectedCard] = useState("t1");
   const [selectedFont, setSelectedFont] = useState("playfair");
-  const [message, setMessage] = useState("Para ti, con mucho cariño y un detalle pensado especialmente para este momento.");
+  const [message, setMessage] = useState(DEFAULT_MESSAGE);
+  const [isPersonalizationOpen, setIsPersonalizationOpen] = useState(false);
+  const [hasSavedPersonalization, setHasSavedPersonalization] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [commentRating, setCommentRating] = useState(5);
   const [comments, setComments] = useState<ProductComment[]>(comentariosIniciales);
+  const [flyingAnimations, setFlyingAnimations] = useState<FlyingCartAnimation[]>([]);
 
   const commentStorageKey = useMemo(
     () => `emotia-product-comment-${producto.id}-${user?.email ?? "guest"}`,
     [producto.id, user?.email]
   );
-
   const tarjetaActiva = useMemo(
     () => tarjetas.find((tarjeta) => tarjeta.id === selectedCard) || tarjetas[0],
     [selectedCard]
   );
-
   const fuenteActiva = useMemo(
     () => fuentes.find((fuente) => fuente.id === selectedFont) || fuentes[0],
     [selectedFont]
@@ -134,6 +326,13 @@ export default function ProductDetailClient({ producto, comentariosIniciales }: 
     return commentsWithStored.some((comment) => comment.id === commentStorageKey);
   }, [commentStorageKey, commentsWithStored, user?.email]);
 
+  const averageCommentRating = useMemo(() => {
+    if (commentsWithStored.length === 0) return producto.rating;
+
+    const total = commentsWithStored.reduce((sum, comment) => sum + comment.rating, 0);
+    return Number((total / commentsWithStored.length).toFixed(1));
+  }, [commentsWithStored, producto.rating]);
+
   const requireSession = () => {
     if (!isLoggedIn) {
       setIsAuthOpen(true);
@@ -157,6 +356,55 @@ export default function ProductDetailClient({ producto, comentariosIniciales }: 
     window.localStorage.setItem(commentStorageKey, JSON.stringify(nextComment));
     setComments((prev) => [nextComment, ...prev]);
     setCommentText("");
+  };
+
+  const handleApplyPersonalization = (selection: PersonalizationSelection) => {
+    setSelectedCard(selection.selectedCard);
+    setSelectedFont(selection.selectedFont);
+    setMessage(selection.message);
+    setHasSavedPersonalization(true);
+    setIsPersonalizationOpen(false);
+  };
+
+  const triggerAddToCartAnimation = (button: HTMLButtonElement) => {
+    if (typeof window === "undefined") return;
+
+    const cartTarget = document.querySelector('[data-cart-target="catalog-cart-button"]') as HTMLElement | null;
+    if (!cartTarget) return;
+
+    const sourceRect = button.getBoundingClientRect();
+    const targetRect = cartTarget.getBoundingClientRect();
+    const animationId = Date.now() + Math.floor(Math.random() * 1000);
+
+    setFlyingAnimations((prev) => [
+      ...prev,
+      {
+        id: animationId,
+        startX: sourceRect.left + sourceRect.width / 2 - 28,
+        startY: sourceRect.top + sourceRect.height / 2 - 28,
+        endX: targetRect.left + targetRect.width / 2 - 28,
+        endY: targetRect.top + targetRect.height / 2 - 28,
+        imageUrl: producto.gallery[0]?.imageUrl,
+      },
+    ]);
+
+    window.setTimeout(() => {
+      setFlyingAnimations((prev) => prev.filter((item) => item.id !== animationId));
+      window.dispatchEvent(new CustomEvent(CART_HIGHLIGHT_EVENT));
+    }, 900);
+  };
+
+  const handleAddToCart = (button: HTMLButtonElement) => {
+    addItem({
+      id: producto.id,
+      name: producto.name,
+      brand: producto.brand,
+      price: producto.price,
+      imageUrl: producto.gallery[0]?.imageUrl,
+      subtitle: hasSavedPersonalization ? `${tarjetaActiva.name} / ${fuenteActiva.label}` : producto.subtitle,
+    });
+
+    triggerAddToCartAnimation(button);
   };
 
   return (
@@ -243,88 +491,56 @@ export default function ProductDetailClient({ producto, comentariosIniciales }: 
 
           <div className={styles.customCardPanel}>
             <div className={styles.sectionHeader}>
-              <h3>1. Elige un diseño</h3>
-              <span>Incluido</span>
+              <h3>Personalización</h3>
+              <span>Tarjeta incluida</span>
             </div>
 
-            <div className={styles.cardGrid}>
-              {tarjetas.map((tarjeta) => (
-                <button
-                  key={tarjeta.id}
-                  type="button"
-                  onClick={() => setSelectedCard(tarjeta.id)}
-                  className={`${styles.templateButton} ${selectedCard === tarjeta.id ? styles.templateButtonActive : ""}`}
-                >
-                  <div
-                    className={`${styles.templatePreview} ${styles[`templatePreview${tarjeta.ornament.charAt(0).toUpperCase()}${tarjeta.ornament.slice(1)}`]}`}
-                    style={{
-                      borderColor: tarjeta.frame,
-                      fontFamily: fuenteActiva.family,
-                      backgroundImage: `url(${tarjeta.designUrl})`,
-                    }}
-                  >
-                    <p style={{ color: tarjeta.messageColor }}>{message || "Tu mensaje aparecera aqui"}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <p className={styles.personalizationLead}>
+              Abre la personalización para elegir la tarjeta, escribir tu mensaje y ver cómo acompañará al producto.
+            </p>
 
-            <div className={styles.sectionHeader}>
-              <h3>2. Escribe tu mensaje</h3>
-            </div>
+            <button type="button" className={styles.personalizeButton} onClick={() => setIsPersonalizationOpen(true)}>
+              <Sparkles size={18} strokeWidth={2.1} />
+              Personaliza este producto
+            </button>
 
-            <textarea
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              className={styles.textArea}
-              placeholder="Escribe aqui el mensaje para la tarjeta..."
-            />
-
-            <div className={styles.sectionHeader}>
-              <h3>3. Elige el estilo de letra</h3>
-            </div>
-
-            <div className={styles.fontSelector}>
-              {fuentes.map((fuente) => (
-                <button
-                  key={fuente.id}
-                  type="button"
-                  onClick={() => setSelectedFont(fuente.id)}
-                  className={`${styles.fontButton} ${selectedFont === fuente.id ? styles.fontButtonActive : ""}`}
-                  style={{ fontFamily: fuente.family }}
-                >
-                  {fuente.label}
-                </button>
-              ))}
-            </div>
-
-            <div
-              className={`${styles.livePreview} ${styles[`templatePreview${tarjetaActiva.ornament.charAt(0).toUpperCase()}${tarjetaActiva.ornament.slice(1)}`]}`}
-              style={{
-                borderColor: tarjetaActiva.frame,
-                backgroundImage: `url(${tarjetaActiva.designUrl})`,
-                backgroundColor: tarjetaActiva.accentSoft,
-              }}
-            >
-              <div className={styles.previewContent}>
-                <p style={{ color: tarjetaActiva.messageColor, fontFamily: fuenteActiva.family }}>
-                  {message || "Tu mensaje aparecera aqui en cuanto empieces a escribir."}
-                </p>
+            <div className={styles.personalizationPreviewBox}>
+              <div className={styles.personalizationPreviewHeader}>
+                <div>
+                  <p className={styles.personalizationPreviewEyebrow}>Vista previa</p>
+                  <h4 className={styles.personalizationPreviewTitle}>Así se verá tu tarjeta junto al producto</h4>
+                </div>
+                <span className={styles.personalizationPreviewState}>
+                  {hasSavedPersonalization ? "Personalización guardada" : "Pendiente de personalizar"}
+                </span>
               </div>
+
+              {hasSavedPersonalization ? (
+                <div className={styles.personalizationShowcase}>
+                  <div className={styles.productShowcaseCard}>
+                    <div className={styles.productShowcaseImageWrap}>
+                      <img src={producto.gallery[0]?.imageUrl} alt={producto.name} className={styles.productShowcaseImage} />
+                    </div>
+                  </div>
+
+                  <CardPreview
+                    tarjeta={tarjetaActiva}
+                    fuente={fuenteActiva}
+                    message={message}
+                    className={`${styles.livePreview} ${styles.showcaseCardPreview}`}
+                    messageClassName={styles.showcaseCardMessage}
+                  />
+                </div>
+              ) : (
+                <div className={styles.personalizationEmptyState}>
+                  Tu vista previa aparecerá aquí cuando guardes la personalización de la tarjeta.
+                </div>
+              )}
             </div>
 
             <button
               className={styles.btnBolsa}
-              onClick={() =>
-                addItem({
-                  id: producto.id,
-                  name: producto.name,
-                  brand: producto.brand,
-                  price: producto.price,
-                  imageUrl: producto.gallery[0]?.imageUrl,
-                  subtitle: `${tarjetaActiva.name} / ${fuenteActiva.label}`,
-                })
-              }
+              onClick={(event) => handleAddToCart(event.currentTarget)}
             >
               Añadir a la bolsa
             </button>
@@ -335,17 +551,31 @@ export default function ProductDetailClient({ producto, comentariosIniciales }: 
       <section className={styles.commentsSection}>
         <div className={styles.commentsHeader}>
           <div>
-            <p className={styles.commentsEyebrow}>Opiniones</p>
-            <h2 className={styles.commentsTitle}>Comentarios del producto</h2>
+            <p className={styles.commentsEyebrow}>Opiniones del producto</p>
+            <h2 className={styles.commentsTitle}>Calificación y reseñas</h2>
           </div>
-          <span className={styles.commentsCount}>{commentsWithStored.length} reseñas</span>
+
+          <div className={styles.commentsSummary}>
+            <div className={styles.commentStars}>
+              {[...Array(5)].map((_, index) => (
+                <Star
+                  key={index}
+                  size={15}
+                  fill={averageCommentRating >= index + 1 ? "#E6885C" : "transparent"}
+                  color="#E6885C"
+                  strokeWidth={1.8}
+                />
+              ))}
+            </div>
+            <span className={styles.commentsScore}>{averageCommentRating.toFixed(1)} de 5</span>
+            <span className={styles.commentsCount}>{commentsWithStored.length} reseñas</span>
+          </div>
         </div>
 
         <div className={styles.commentsLayout}>
           <div className={styles.commentComposer}>
             <div className={styles.sectionHeader}>
-              <h3>Comparte tu experiencia</h3>
-              <span>{isLoggedIn ? "" : "Solo usuarios registrados"}</span>
+              <h3>Deja tu calificación y reseña</h3>
             </div>
 
             <div className={styles.commentRatingRow}>
@@ -377,13 +607,13 @@ export default function ProductDetailClient({ producto, comentariosIniciales }: 
                 if (!isLoggedIn) setIsAuthOpen(true);
               }}
               className={styles.commentArea}
-              placeholder={isLoggedIn ? "Escribe tu comentario sobre el producto..." : "Inicia sesion para comentar"}
+              placeholder={isLoggedIn ? "Cuéntanos qué te pareció este producto..." : "Inicia sesión para dejar tu reseña"}
               disabled={!isLoggedIn || hasUserComment}
             />
 
             <button type="button" className={styles.commentButton} onClick={handleCommentSubmit} disabled={!isLoggedIn || hasUserComment}>
               <Send size={16} strokeWidth={2} />
-              {hasUserComment ? "Ya comentaste este producto" : "Publicar comentario"}
+              {hasUserComment ? "Ya dejaste tu reseña" : "Publicar reseña"}
             </button>
           </div>
 
@@ -412,6 +642,38 @@ export default function ProductDetailClient({ producto, comentariosIniciales }: 
           </div>
         </div>
       </section>
+
+      {isPersonalizationOpen ? (
+        <PersonalizationModal
+          isOpen={isPersonalizationOpen}
+          initialSelection={{ selectedCard, selectedFont, message }}
+          onClose={() => setIsPersonalizationOpen(false)}
+          onApply={handleApplyPersonalization}
+        />
+      ) : null}
+
+      {flyingAnimations.map((animation) => (
+        <div
+          key={animation.id}
+          className={styles.flyingCartChip}
+          style={
+            {
+              "--cart-start-x": `${animation.startX}px`,
+              "--cart-start-y": `${animation.startY}px`,
+              "--cart-end-x": `${animation.endX}px`,
+              "--cart-end-y": `${animation.endY}px`,
+            } as React.CSSProperties
+          }
+          aria-hidden="true"
+        >
+          <div className={styles.flyingCartThumb}>
+            {animation.imageUrl ? <img src={animation.imageUrl} alt="" className={styles.flyingCartThumbImage} /> : null}
+          </div>
+          <div className={styles.flyingCartIconWrap}>
+            <ShoppingCart size={15} strokeWidth={2.2} />
+          </div>
+        </div>
+      ))}
 
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} initialView="login" />
     </div>
