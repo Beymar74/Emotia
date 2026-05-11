@@ -33,7 +33,6 @@ model categorias {
   activo      Boolean     @default(true)
   created_at  DateTime    @default(now()) @db.Timestamptz(6)
   productos   productos[]
-  proveedores proveedores[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -158,7 +157,7 @@ model proveedores {
   descripcion         String?
   logo_url            String?
 
-  categorias          categorias[] // many-to-many relation
+  categorias          String[]
   redes_sociales      Json?
 
   email               String            @unique @db.VarChar(150)
