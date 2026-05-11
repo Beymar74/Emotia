@@ -9,7 +9,7 @@ export default function PerfilNegocioPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
-
+  const [errorMsg, setErrorMsg] = useState("");
   // Estado inicial vacío hasta que Prisma responda
   const [businessData, setBusinessData] = useState<any>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -26,14 +26,43 @@ export default function PerfilNegocioPage() {
   }, []);
 
   // Manejo de la subida local de la imagen (preview visual)
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setLogoPreview(url);
-      // setBusinessData({...businessData, logoFile: file}); // Para enviar al backend luego
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+
+  if (!file) return;
+
+  const previewUrl = URL.createObjectURL(file);
+  setLogoPreview(previewUrl);
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await fetch("/api/business/proveedores/upload-logo", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      setLogoPreview(businessData?.logo || null);
+      setErrorMsg(result.error || "No se pudo subir el logo.");
+      return;
     }
-  };
+
+    setLogoPreview(result.url);
+
+    setBusinessData((prev: any) => ({
+      ...prev,
+      logo: result.url,
+    }));
+  } catch (error) {
+    console.error("Error subiendo logo:", error);
+    setLogoPreview(businessData?.logo || null);
+    setErrorMsg("Ocurrió un error al subir el logo.");
+  }
+};
 
   // 2. Al darle a "Guardar Cambios"
   const handleSave = async (e: React.FormEvent) => {
@@ -50,6 +79,9 @@ export default function PerfilNegocioPage() {
     if (resultado.success) {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
+    }
+    else {
+      setErrorMsg(resultado.error || "No se pudieron guardar los cambios.");
     }
   };
 
@@ -70,7 +102,11 @@ export default function PerfilNegocioPage() {
           <p className="text-[#B0B0B0] mt-1 font-medium">Esta información será visible para tus clientes en la plataforma Emotia.</p>
         </div>
       </div>
-
+      {errorMsg && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl font-bold text-sm">
+          {errorMsg}
+        </div>
+      )}
       <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Usamos el componente modular de la izquierda */}

@@ -63,51 +63,12 @@ export default function FooterB2B() {
 
   return (
     <>
-      <footer className="relative font-sans mt-24">
+      <footer className="relative font-sans">
         
         {/* ========================================== */}
         {/* TARJETA DE RECURSOS */}
         {/* ========================================== */}
-        <div className="px-6 md:px-12 pb-24 max-w-[1320px] mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="rounded-[32px] p-8 md:p-12 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden relative"
-            style={{ 
-              background: `linear-gradient(90deg, ${P.bordoNegro} 0%, ${P.bordoOscuro} 45%, ${P.dorado} 150%)`,
-              border: `2px solid ${P.dorado}80`
-            }}
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 blur-3xl rounded-full pointer-events-none"></div>
-
-            <div className="relative z-10 max-w-xl text-center md:text-left">
-              <h3 className="text-2xl md:text-3xl font-black text-white mb-3" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-                Recibe recursos para tu negocio
-              </h3>
-              <p className="text-base font-medium" style={{ color: P.beige }}>
-                Suscríbete a nuestro boletín para productores y recibe tendencias de regalos corporativos, estrategias de ventas y novedades exclusivas de Emotia.
-              </p>
-            </div>
-
-            <div className="relative z-10 w-full md:w-auto flex-shrink-0 flex flex-col sm:flex-row gap-3">
-              <input 
-                type="email" 
-                placeholder="Tu correo electrónico" 
-                className="px-6 py-4 rounded-full outline-none font-medium w-full sm:w-64"
-                style={{ background: "rgba(255,255,255,0.1)", border: `1px solid ${P.dorado}50`, color: P.blanco }}
-              />
-              <button 
-                className="px-8 py-4 rounded-full font-bold flex items-center justify-center gap-2 transition-transform hover:scale-105"
-                style={{ background: P.beige, color: P.bordoNegro, boxShadow: `0 10px 20px rgba(0,0,0,0.2)` }}
-              >
-                Suscribirme <ArrowRight size={18} />
-              </button>
-            </div>
-          </motion.div>
-        </div>
-
+        
         {/* ========================================== */}
         {/* CUERPO DEL FOOTER */}
         {/* ========================================== */}
@@ -124,11 +85,16 @@ export default function FooterB2B() {
             
             {/* LOGO E INFO */}
             <div className="md:col-span-4 space-y-6">
-              <img 
-                src="/logo/logo-business-expandido.png" 
-                alt="Emotia Logo" 
-                className="h-12 object-contain" 
-                style={{ filter: "brightness(0) invert(1)" }} 
+              <motion.img
+                src="/logo/logoextendido.png"
+                alt="Emotia Logo"
+                onClick={() => router.push("/")}
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                className="h-12 object-contain cursor-pointer select-none"
+                style={{
+                  filter: "brightness(0) invert(1)",
+                }}
               />
               <p className="text-sm leading-relaxed max-w-sm" style={{ color: P.beige, opacity: 0.8 }}>
                 La primera plataforma inteligente de regalos en Bolivia. Sorprende a los que más quieres con detalles únicos, empaque premium y entrega garantizada en La Paz.
@@ -143,25 +109,53 @@ export default function FooterB2B() {
               </div>
             </div>
 
-            {/* NAVEGACIÓN (Anclas de Contenido) */}
-            <div className="md:col-span-2 space-y-6">
-              <h4 className="text-sm font-black uppercase tracking-widest" style={{ color: P.dorado }}>Contenido</h4>
-              <ul className="space-y-4">
-                {enlacesContenido.map((enlace) => (
-                  <li key={enlace.label}>
-                    <motion.button 
-                      whileHover={{ x: 8 }} 
-                      transition={{ type: "spring", stiffness: 300 }}
-                      onClick={(e) => scrollToSection(e, enlace.href)}
-                      className="text-sm font-medium transition-colors hover:text-white flex items-center gap-2"
-                      style={{ color: P.beige, opacity: 0.7 }}
-                    >
-                      {enlace.label}
-                    </motion.button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+{/* NAVEGACIÓN (Anclas de Contenido) */}
+<div className="md:col-span-2 space-y-6">
+  <h4
+    className="text-sm font-black uppercase tracking-widest"
+    style={{ color: P.dorado }}
+  >
+    Contenido
+  </h4>
+
+  <ul className="space-y-4">
+    
+    {/* EMOTIA BUSINESS */}
+    <li>
+      <motion.button
+        whileHover={{ x: 8 }}
+        transition={{ type: "spring", stiffness: 300 }}
+        onClick={() =>
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          })
+        }
+        className="text-sm transition-colors hover:text-white flex items-center gap-2 font-bold"
+        style={{
+          color: P.beige,
+          opacity: 0.9,
+        }}
+      >
+        Emotia Business
+      </motion.button>
+    </li>
+
+    {enlacesContenido.map((enlace) => (
+      <li key={enlace.label}>
+        <motion.button
+          whileHover={{ x: 8 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          onClick={(e) => scrollToSection(e, enlace.href)}
+          className="text-sm font-medium transition-colors hover:text-white flex items-center gap-2"
+          style={{ color: P.beige, opacity: 0.7 }}
+        >
+          {enlace.label}
+        </motion.button>
+      </li>
+    ))}
+  </ul>
+</div>
 
             {/* LEGALES */}
             <div className="md:col-span-3 space-y-6">
@@ -218,7 +212,7 @@ export default function FooterB2B() {
           {/* Copyright y Créditos */}
           <div className="max-w-[1320px] mx-auto mt-8 flex flex-col md:flex-row justify-between items-center gap-4 px-4">
             <p className="text-xs font-medium" style={{ color: P.beige, opacity: 0.5 }}>
-              © 2026 Emotia Technologies Bolivia S.R.L. Todos los derechos reservados.
+              © 2026 Emotia Technologies Bolivia S.R.L.
             </p>
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", color: "rgba(245, 230, 208, 0.5)", display: "flex", alignItems: "center", gap: 6 }}>
               Diseñado con <Heart size={14} color={P.carmesi} fill={P.carmesi} /> en La Paz, Bolivia

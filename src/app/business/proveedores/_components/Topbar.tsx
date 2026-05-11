@@ -3,13 +3,13 @@
 import { Bell } from "lucide-react";
 import { useState } from "react";
 
-import { DatosNegocio } from "../layout";
+import { DatosNegocio } from "../(panel)/layout";
 
 interface TopbarProps {
   onMenuToggle?: () => void;
   datosNegocio?: DatosNegocio | null; // <--- Agregamos esto
 }
-export default function Topbar({ onMenuToggle }: TopbarProps) {
+export default function Topbar({ onMenuToggle, datosNegocio }: TopbarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
 
   return (
@@ -43,7 +43,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
         
         {/* Píldora 1: Nivel de acceso (Adaptado para business) */}
         <span className="hidden sm:inline text-xs bg-[#5A0F24]/10 text-[#5A0F24] px-4 py-1.5 rounded-full font-bold tracking-wide">
-          Socio Premium
+          {datosNegocio?.estado === "pendiente" ? "Cuenta pendiente" : "Socio activo"}
         </span>
         
         {/* Píldora 2: Fecha actual (Adaptado para business) */}
@@ -63,7 +63,6 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
           </svg>
           <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-[#8E1B3A] rounded-full border-2 border-white" />
         </button>
-
       </div>
     </header>
   );

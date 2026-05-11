@@ -1,81 +1,110 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { 
   Clock, Package, CheckCircle, Truck, 
   MessageSquare, MapPin, ChevronRight,
   AlertTriangle, Eye, X, FileText, ImageIcon
 } from "lucide-react";
+import {
+  obtenerPedidosProveedor,
+  avanzarEstadoPedidoProveedor,
+} from "./actions";
 
 interface Pedido {
-  id: string;
+  id: number;
+  pedidoId: number;
+  codigo: string;
   cliente: string;
   producto: string;
   imagen: string; // <-- Nuevo campo para la imagen
   personalizacion: string | null;
   direccion: string;
-  total: string;
-  estado: "Pendiente" | "En preparación" | "Listo" | "Entregado";
+  total: number;
+  estado: "pendiente" | "en_preparacion" | "listo" | "entregado";
   fecha: string;
 }
 
 export default function PedidosPage() {
   // Datos simulados con las imágenes de Unsplash coherentes con el Catálogo
-  const [pedidos, setPedidos] = useState<Pedido[]>([
-    { 
-      id: "PED-1042", cliente: "Evelyn Burgoa", producto: "Caja Sorpresa Premium", 
-      imagen: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=150&h=150&fit=crop&q=80",
-      personalizacion: "Mensaje: 'Feliz Aniversario mi amor. Te amo.'", direccion: "Av. Arce #2520, Sopocachi", total: "150", estado: "Pendiente", fecha: "Hoy, 10:30 AM" 
-    },
-    { 
-      id: "PED-1043", cliente: "Carlos Zenteno", producto: "Set de Chocolates", 
-      imagen: "https://images.unsplash.com/photo-1548907040-4baa42d10919?w=150&h=150&fit=crop&q=80",
-      personalizacion: null, direccion: "Calle 21 de Calacoto", total: "85", estado: "Pendiente", fecha: "Hoy, 11:15 AM" 
-    },
-    { 
-      id: "PED-1041", cliente: "Beymar Mamani", producto: "Arreglo Floral + Peluche", 
-      imagen: "https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=150&h=150&fit=crop&q=80",
-      personalizacion: "Empaque extra rojo", direccion: "Ciudad Satélite, Plan 56", total: "220", estado: "En preparación", fecha: "Ayer, 16:45 PM" 
-    },
-    { 
-      id: "PED-1040", cliente: "Mauricio Menacho", producto: "Taza Personalizada Mágica", 
-      imagen: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=150&h=150&fit=crop&q=80",
-      personalizacion: "Foto impresa de gatito", direccion: "Obrajes, Calle 14", total: "45", estado: "Listo", fecha: "Ayer, 09:20 AM" 
-    },
-    { 
-      id: "PED-1039", cliente: "Lucía Pérez", producto: "Desayuno Sorpresa", 
-      imagen: "https://images.unsplash.com/photo-1513885535616-e41c4dc9e846?w=150&h=150&fit=crop&q=80",
-      personalizacion: "Sin fresas, alergia.", direccion: "Miraflores, Av. Busch", total: "180", estado: "Entregado", fecha: "11 Abr 2026" 
-    },
-  ]);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const cargarPedidos = async () => {
+    setIsLoading(true);
+    const data = await obtenerPedidosProveedor();
+    setPedidos(data as Pedido[]);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    cargarPedidos();
+  }, []);
 
   const [pedidoAConfirmar, setPedidoAConfirmar] = useState<Pedido | null>(null);
   const [pedidoDetalle, setPedidoDetalle] = useState<Pedido | null>(null);
 
   const columnas = [
-    { titulo: "Nuevos / Pendientes", estado: "Pendiente", color: "border-red-200", bg: "bg-red-50", icon: <Clock size={18} className="text-red-600" />, btnText: "Preparar Pedido" },
-    { titulo: "En Preparación", estado: "En preparación", color: "border-orange-200", bg: "bg-orange-50", icon: <Package size={18} className="text-orange-600" />, btnText: "Marcar Listo" },
-    { titulo: "Listos para Envío", estado: "Listo", color: "border-blue-200", bg: "bg-blue-50", icon: <Truck size={18} className="text-blue-600" />, btnText: "Marcar Entregado" },
-    { titulo: "Completados", estado: "Entregado", color: "border-green-200", bg: "bg-gray-100", icon: <CheckCircle size={18} className="text-[#1A1A1A]" />, btnText: "" }
-  ];
+  {
+    titulo: "Nuevos / Pendientes",
+    estado: "pendiente",
+    color: "border-red-200",
+    bg: "bg-red-50",
+    icon: <Clock size={18} className="text-red-600" />,
+    btnText: "Preparar Pedido",
+  },
+  {
+    titulo: "En Preparación",
+    estado: "en_preparacion",
+    color: "border-orange-200",
+    bg: "bg-orange-50",
+    icon: <Package size={18} className="text-orange-600" />,
+    btnText: "Marcar Listo",
+  },
+  {
+    titulo: "Listos para Envío",
+    estado: "listo",
+    color: "border-blue-200",
+    bg: "bg-blue-50",
+    icon: <Truck size={18} className="text-blue-600" />,
+    btnText: "Marcar Entregado",
+  },
+  {
+    titulo: "Completados",
+    estado: "entregado",
+    color: "border-green-200",
+    bg: "bg-gray-100",
+    icon: <CheckCircle size={18} className="text-[#1A1A1A]" />,
+    btnText: "",
+  },
+] as const;
 
   const solicitarAvance = (pedido: Pedido) => setPedidoAConfirmar(pedido);
 
-  const confirmarAvance = () => {
+  const confirmarAvance = async () => {
     if (!pedidoAConfirmar) return;
-    const estados = ["Pendiente", "En preparación", "Listo", "Entregado"];
-    const indexActual = estados.indexOf(pedidoAConfirmar.estado);
-    if (indexActual < estados.length - 1) {
-      const nuevoEstado = estados[indexActual + 1] as Pedido["estado"];
-      setPedidos(pedidos.map(p => p.id === pedidoAConfirmar.id ? { ...p, estado: nuevoEstado } : p));
+
+    const resultado = await avanzarEstadoPedidoProveedor(pedidoAConfirmar.id);
+
+    if (!resultado.success) {
+      alert(resultado.message || "No se pudo avanzar el pedido.");
+      setPedidoAConfirmar(null);
+      return;
     }
+
+    await cargarPedidos();
     setPedidoAConfirmar(null);
   };
 
   const getSiguienteEstado = (estadoActual: string) => {
-    const estados = ["Pendiente", "En preparación", "Listo", "Entregado"];
-    return estados[estados.indexOf(estadoActual) + 1];
+  const labels: Record<string, string> = {
+    pendiente: "En preparación",
+    en_preparacion: "Listo",
+    listo: "Entregado",
   };
+
+  return labels[estadoActual] || "Completado";
+};
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1600px] mx-auto pb-12">
@@ -109,14 +138,14 @@ export default function PedidosPage() {
                   </div>
                 ) : (
                   pedidosColumna.map((pedido) => (
-                    <div key={pedido.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow group flex flex-col relative overflow-hidden">
+                    <div key={pedido.codigo} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow group flex flex-col relative overflow-hidden">
                       
                       {/* Borde superior decorativo dorado sutil */}
                       <div className="absolute top-0 left-0 right-0 h-1 bg-[#BC9968]/20 group-hover:bg-[#BC9968] transition-colors" />
 
                       <div className="flex justify-between items-start mb-3 mt-1">
                         <span className="text-xs font-black text-[#8E1B3A] bg-[#F5E6D0] px-2 py-1 rounded-md tracking-wider">
-                          {pedido.id}
+                          {pedido.codigo}
                         </span>
                         <div className="flex gap-2">
                           <button 
@@ -163,7 +192,7 @@ export default function PedidosPage() {
                           Bs. {pedido.total}
                         </div>
                         
-                        {pedido.estado !== "Entregado" && (
+                        {pedido.estado !== "entregado" && (
                           <button 
                             onClick={() => solicitarAvance(pedido)}
                             className="flex items-center gap-1 text-xs font-bold text-white bg-[#BC9968] hover:bg-[#9A7A48] px-3 py-1.5 rounded-lg transition-colors active:scale-95 shadow-sm"
@@ -226,7 +255,7 @@ export default function PedidosPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-extrabold text-[#3D0A1A]">Detalle del Pedido</h2>
-                  <p className="text-xs text-gray-500 font-bold">{pedidoDetalle.id}</p>
+                  <p className="text-xs text-gray-500 font-bold">{pedidoDetalle.codigo}</p>
                 </div>
               </div>
               <button onClick={() => setPedidoDetalle(null)} className="p-2 text-gray-400 hover:text-gray-700 rounded-full"><X size={20} /></button>
