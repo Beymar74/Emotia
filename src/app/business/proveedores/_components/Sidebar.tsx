@@ -10,6 +10,7 @@ export interface DatosNegocio {
   nombre: string;
   iniciales: string;
   estado: string;
+  logo?: string | null;
 }
 
 const navSections = [
@@ -67,7 +68,7 @@ export default function Sidebar({ mobileOpen, onClose, datosNegocio }: SidebarPr
 
       {/* Header / Logo */}
       <div className="h-20 flex items-center justify-center border-b-4 border-[#8E1B3A] bg-[#F5E6D0] shrink-0 overflow-hidden px-4 hover:bg-white transition-colors">
-        <Link href="/business/proveedores/home" onClick={onClose} className="flex items-center justify-center w-full">
+        <Link href="/business" onClick={onClose} className="flex items-center justify-center w-full">
           <img 
             src="/logo/logo-business-expandido.png" 
             alt="Emotia Business" 
@@ -153,8 +154,16 @@ export default function Sidebar({ mobileOpen, onClose, datosNegocio }: SidebarPr
       {/* Footer del Sidebar (Perfil y Logout) */}
       <div className="px-4 py-4 border-t border-[#BC9968]/20 space-y-3 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-[#5A0F24] border border-[#BC9968] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-            {datosNegocio?.iniciales || "..."}
+          <div className="w-9 h-9 rounded-full bg-[#5A0F24] border border-[#BC9968] flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden">
+            {datosNegocio?.logo ? (
+              <img
+                src={datosNegocio.logo}
+                alt={datosNegocio.nombre}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              datosNegocio?.iniciales || "..."
+            )}
           </div>
           <div>
             <p className="text-sm text-white font-bold leading-tight">
@@ -167,7 +176,7 @@ export default function Sidebar({ mobileOpen, onClose, datosNegocio }: SidebarPr
         </div>
 
         <Link
-          href="/business/proveedores/login"
+          href="/business/proveedores/logout"
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm text-[#B0B0B0] hover:text-white hover:bg-[#5A0F24] transition-all duration-150 border border-transparent hover:border-[#BC9968]/30"
         >
           <LogOut size={16} />
