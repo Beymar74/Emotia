@@ -31,7 +31,6 @@ export async function proxy(request: NextRequest) {
     }
 
     const metadata = user.clientMetadata as { role?: string } | null;
-
     const role = metadata?.role;
 
     if (role !== "admin" && role !== "operador") {
@@ -54,23 +53,29 @@ export async function proxy(request: NextRequest) {
 
   const session = request.cookies.get("emotia_b2b_session");
 
-  const rutasProtegidasProveedor = [
-    "/business/proveedores/home",
+  const rutaProveedor =
+    pathname.startsWith("/business/proveedores");
+
+  const rutasPublicasProveedor = [
+    "/business/proveedores/login",
+    "/business/proveedores/registro",
+    "/business/proveedores/logout",
   ];
 
-  const rutaProveedorProtegida =
-    rutasProtegidasProveedor.some((ruta) =>
+  const esRutaPublicaProveedor =
+    rutasPublicasProveedor.some((ruta) =>
       pathname.startsWith(ruta)
     );
 
-  // Si intenta entrar al panel sin login
+  const rutaProveedorProtegida =
+    rutaProveedor && !esRutaPublicaProveedor;
+
   if (rutaProveedorProtegida && !session) {
     return NextResponse.redirect(
       new URL("/business/proveedores/login", request.url)
     );
   }
 
-  // Si ya tiene sesión y quiere volver al login
   if (
     session &&
     pathname.startsWith("/business/proveedores/login")
