@@ -42,11 +42,17 @@ const navSections = [
 interface SidebarProps {
   mobileOpen?: boolean;
   onClose?: () => void;
-  datosNegocio?: DatosNegocio | null; // ¡Aquí está definido!
+  datosNegocio?: DatosNegocio | null;
+  desktopVisible?: boolean;
 }
 
 // ¡Fíjate que aquí recibimos 'datosNegocio'!
-export default function Sidebar({ mobileOpen, onClose, datosNegocio }: SidebarProps) {
+export default function Sidebar({
+  mobileOpen,
+  onClose,
+  datosNegocio,
+  desktopVisible = true,
+}: SidebarProps) {
   const pathname = usePathname();
 
   const defaultOpen = navSections.reduce<Record<string, boolean>>((acc, section) => {
@@ -188,9 +194,11 @@ export default function Sidebar({ mobileOpen, onClose, datosNegocio }: SidebarPr
 
   return (
     <>
-      <div className="hidden lg:block h-screen">
-        {sidebarContent}
-      </div>
+      {desktopVisible && (
+        <div className="hidden lg:block h-screen">
+          {sidebarContent}
+        </div>
+      )}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
