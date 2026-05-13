@@ -21,6 +21,7 @@ model carrito {
   updated_at       DateTime  @default(now()) @db.Timestamptz(6)
   productos        productos @relation(fields: [producto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   usuarios         usuarios  @relation(fields: [usuario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  personalizacion  personalizaciones?
 
   @@unique([usuario_id, producto_id])
   @@index([usuario_id], map: "idx_carrito_usuario")
@@ -52,6 +53,7 @@ model detalle_pedidos {
   pedidos          pedidos     @relation(fields: [pedido_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   productos        productos   @relation(fields: [producto_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   proveedores      proveedores @relation(fields: [proveedor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  personalizacion  personalizaciones?
 
   @@index([pedido_id], map: "idx_detalle_pedido")
 }
@@ -259,4 +261,19 @@ model usuarios {
   pedidos         pedidos[]
   recomendaciones recomendaciones[]
   recordatorios   recordatorios[]
+}
+
+model personalizaciones {
+  id                Int              @id @default(autoincrement())
+  carrito_id        Int?             @unique
+  detalle_pedido_id Int?             @unique
+  tipo_tarjeta      String           @db.VarChar(50)
+  mensaje           String           @db.Text
+  created_at        DateTime         @default(now()) @db.Timestamptz(6)
+
+  carrito           carrito?         @relation(fields: [carrito_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  detalle_pedidos   detalle_pedidos? @relation(fields: [detalle_pedido_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([carrito_id])
+  @@index([detalle_pedido_id])
 }
