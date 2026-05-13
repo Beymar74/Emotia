@@ -5,6 +5,13 @@ export type CatalogProduct = {
   categoria: string;
   seccion: string;
   ocasion: string;
+  ocasiones: string[];
+  personalidades: string[];
+  generoDestinatario: string;
+  edadMin: number | null;
+  edadMax: number | null;
+  permiteMensaje: boolean;
+  permiteEmpaque: boolean;
   precio: number;
   rating: number;
   ventas: number;
@@ -13,7 +20,6 @@ export type CatalogProduct = {
   imageUrl?: string;
   descripcion: string;
 };
-
 export type DetailGalleryItem = {
   id: string;
   title: string;
@@ -70,7 +76,9 @@ type ProductBaseRecord = {
   stock: number;
   imagen_url: string | null;
   ocasiones: string[];
+  personalidades: string[];
   genero_destinatario: string | null;
+  edad_min: number | null;
   edad_max: number | null;
   permite_mensaje: boolean;
   permite_empaque: boolean;
@@ -279,6 +287,13 @@ export function mapCatalogProduct(product: ProductBaseRecord): CatalogProduct {
     categoria,
     seccion: deriveSection(product),
     ocasion,
+    ocasiones: product.ocasiones || [],
+    personalidades: product.personalidades || [],
+    generoDestinatario: product.genero_destinatario || "cualquiera",
+    edadMin: product.edad_min,
+    edadMax: product.edad_max,
+    permiteMensaje: product.permite_mensaje,
+    permiteEmpaque: product.permite_empaque,
     precio: toNumber(product.precio_venta),
     rating,
     ventas: product.detalle_pedidos.length,

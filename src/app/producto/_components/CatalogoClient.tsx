@@ -7,7 +7,7 @@ import Header from "../components/Header";
 import { useCart } from "../components/cart/useCart";
 import type { CatalogProduct } from "../product-data";
 import styles from "../producto.module.css";
-
+import SmartCatalogBanner from "./ai/SmartCatalogBanner";
 type ProductSectionAction =
   | { kind: "orden"; value: "ventas" | "rating" | "precio-asc" }
   | { kind: "precio"; value: number }
@@ -399,9 +399,17 @@ export default function CatalogoClient({
             <div>
               <h1 className={styles.heroTitle}>Catálogo</h1>
             </div>
+
             <div className={styles.toolbarRight}>
-              <span className={styles.resultsCount}>{productosFiltrados.length} productos</span>
-              <select className={styles.sortDropdown} value={orden} onChange={(event) => setOrden(event.target.value)}>
+              <span className={styles.resultsCount}>
+                {productosFiltrados.length} productos
+              </span>
+
+              <select
+                className={styles.sortDropdown}
+                value={orden}
+                onChange={(event) => setOrden(event.target.value)}
+              >
                 <option value="destacados">Ordenar: destacados</option>
                 <option value="ventas">Ordenar: mas comprados</option>
                 <option value="precio-asc">Precio: menor a mayor</option>
@@ -412,12 +420,20 @@ export default function CatalogoClient({
             </div>
           </div>
 
+          <SmartCatalogBanner productos={productos} />
+
           {productosFiltrados.length === 0 ? (
             <div className={styles.emptyState}>
               <Sparkles size={24} strokeWidth={2} />
               <h3>No encontramos productos con esos filtros</h3>
-              <p>Prueba otra marca, sube el presupuesto o limpia los filtros para ver mas opciones.</p>
-              <button type="button" className={styles.btnApply} onClick={limpiarFiltros}>
+              <p>
+                Prueba otra marca, sube el presupuesto o limpia los filtros para ver mas opciones.
+              </p>
+              <button
+                type="button"
+                className={styles.btnApply}
+                onClick={limpiarFiltros}
+              >
                 Ver todo el catalogo
               </button>
             </div>
