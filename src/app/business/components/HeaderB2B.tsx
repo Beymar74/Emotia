@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { ArrowRight, Menu, X, User as UserIcon, Settings, LogOut, ChevronDown } from "lucide-react";
 import { obtenerSesionBusinessHeader } from "../actions";
+import { useUser, useStackApp } from "@stackframe/stack";
 
 const P = {
   bordoNegro: "#3D0A1A",
@@ -16,8 +17,11 @@ const P = {
 
 export default function HeaderB2B() {
   const router = useRouter();
+  const stackUser = useUser();
+  const stackApp = useStackApp();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [proveedorSesion, setProveedorSesion] = useState<null | {
   id: number;
   nombre: string;
@@ -169,6 +173,80 @@ const scrollToSection = (
         Ir al Panel
       </button>
     </>
+  ) : stackUser ? (
+    <div className="relative">
+      <button
+        onClick={() => setIsAccountOpen(!isAccountOpen)}
+        className="flex items-center gap-2 px-4 py-2 rounded-full transition-all hover:scale-105"
+        style={{
+          backgroundColor: scrolled ? `${P.beige}70` : "rgba(255,255,255,0.6)",
+          border: `1px solid ${P.dorado}40`,
+        }}
+      >
+        <div className="w-8 h-8 rounded-full overflow-hidden border flex items-center justify-center text-xs font-black text-white"
+          style={{ background: P.bordoOscuro, borderColor: `${P.dorado}80` }}
+        >
+          {stackUser.profileImageUrl ? (
+            <img src={stackUser.profileImageUrl} alt={stackUser.displayName || ""} className="w-full h-full object-cover" />
+          ) : (
+            <UserIcon size={16} />
+          )}
+        </div>
+        <div className="text-left leading-tight hidden lg:block">
+          <p className="text-xs font-black max-w-[100px] truncate" style={{ color: P.bordoNegro }}>
+            {stackUser.displayName || stackUser.primaryEmail?.split('@')[0]}
+          </p>
+          <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: P.dorado }}>
+            {(stackUser.clientMetadata as any)?.role === 'admin' ? 'Administrador' : 'Cliente'}
+          </p>
+        </div>
+        <ChevronDown size={14} style={{ color: P.dorado, opacity: 0.7 }} />
+      </button>
+
+      {/* Dropdown de Stack */}
+      <AnimatePresence>
+        {isAccountOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-[#F5E6D0] overflow-hidden z-[110]"
+          >
+            <div className="p-4 border-b border-[#F5E6D0] bg-[#FAF6F0]">
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1" style={{ color: P.bordoNegro }}>Sesión Activa</p>
+              <p className="text-sm font-bold truncate" style={{ color: P.bordoNegro }}>{stackUser.displayName || 'Usuario'}</p>
+              <p className="text-xs opacity-70 truncate" style={{ color: P.bordoNegro }}>{stackUser.primaryEmail}</p>
+            </div>
+
+            <div className="p-2">
+              {(stackUser.clientMetadata as any)?.role === 'admin' && (
+                <div className="mb-2">
+                  <p className="px-3 py-1 text-[9px] font-black uppercase tracking-widest opacity-40" style={{ color: P.bordoNegro }}>Administración</p>
+                  <button 
+                    onClick={() => { setIsAccountOpen(false); router.push("/admin"); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all hover:bg-[#F5E6D0]/30"
+                    style={{ color: P.bordoNegro }}
+                  >
+                    <Settings size={16} className="opacity-70" />
+                    Panel de Control
+                  </button>
+                </div>
+              )}
+
+              <div className="mt-2 pt-2 border-t border-[#F5E6D0]">
+                <button 
+                  onClick={() => stackApp.signOut()}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-red-600 transition-all hover:bg-red-50"
+                >
+                  <LogOut size={16} />
+                  Cerrar Sesión
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   ) : (
     <>
       <button
@@ -191,7 +269,8 @@ const scrollToSection = (
         Unirse como Productor
       </button>
     </>
-  )}
+  )
+}
 </div>
         {/* MOBILE MENU BUTTON */}
         <button className="md:hidden z-50 p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -217,7 +296,45 @@ const scrollToSection = (
               </a>
             ))}
             <hr className="w-20 border-t-2" style={{ borderColor: P.beige }} />
-            <button className="text-xl font-bold" style={{ color: P.dorado }}>Iniciar Sesión</button>
+            {proveedorSesion ? (
+              <button 
+                className="text-xl font-bold" style={{ color: P.bordoNegro }}
+                onClick={() => router.push("/business/proveedores/home")}
+              >
+                Panel de Productor
+              </button>
+            ) : stackUser ? (
+              <div className="flex flex-col items-center gap-6">
+                <div className="text-center">
+                  <p className="text-sm font-bold opacity-60" style={{ color: P.bordoNegro }}>{stackUser.primaryEmail}</p>
+                  <p className="text-xs font-black uppercase tracking-widest mt-1" style={{ color: P.dorado }}>
+                    {(stackUser.clientMetadata as any)?.role === 'admin' ? 'Administrador' : 'Cliente'}
+                  </p>
+                </div>
+                {(stackUser.clientMetadata as any)?.role === 'admin' && (
+                  <button 
+                    className="px-8 py-3 rounded-full font-bold text-white shadow-lg"
+                    style={{ background: P.bordoNegro }}
+                    onClick={() => router.push("/admin")}
+                  >
+                    Panel Admin
+                  </button>
+                )}
+                <button 
+                  className="text-red-600 font-bold"
+                  onClick={() => stackApp.signOut()}
+                >
+                  Cerrar Sesión
+                </button>
+              </div>
+            ) : (
+              <button 
+                className="text-xl font-bold" style={{ color: P.dorado }}
+                onClick={() => router.push("/business/proveedores")}
+              >
+                Iniciar Sesión
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

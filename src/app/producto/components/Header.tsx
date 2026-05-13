@@ -19,6 +19,7 @@ import {
   PackageSearch,
   Plus,
   Search,
+  Settings,
   ShoppingCart,
   Trash2,
   Truck,
@@ -29,6 +30,7 @@ import styles from "./Header.module.css";
 import { useCart } from "./cart/useCart";
 import AuthModal from "./AuthModal";
 import { useSession } from "./auth/useSession";
+import { useUser } from "@stackframe/stack";
 import {
   formatLongDate,
   formatOrderCode,
@@ -103,6 +105,7 @@ export default function Header({
   const mobileNotificationsPanelRef = useRef<HTMLDivElement | null>(null);
   const { items, count, subtotal, removeItem, updateQuantity } = useCart();
   const { user, isLoggedIn, isLoggingOut, logout } = useSession();
+  const stackUser = useUser();
 
   const loadAccountOverview = useCallback(async () => {
     if (!isLoggedIn) {
@@ -337,10 +340,62 @@ export default function Header({
   const accountMenuContent = isLoggedIn && user ? (
     <>
       <div className={styles.accountInfo}>
-        <span className={styles.accountInfoLabel}>Sesion activa</span>
-        <strong>{accountOverview?.profile?.shortName || user.name}</strong>
-        <span>{accountOverview?.profile?.email || user.email}</span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+          <div>
+            <span className={styles.accountInfoLabel}>Sesion activa</span>
+            <strong style={{ display: "block" }}>{accountOverview?.profile?.shortName || user.name}</strong>
+            <span style={{ fontSize: "0.8rem", color: "#8a6f62" }}>{accountOverview?.profile?.email || user.email}</span>
+          </div>
+          {(() => {
+            const role = (stackUser?.clientMetadata as any)?.role;
+            const isAdmin = role === 'admin' || stackUser?.primaryEmail?.includes('admin@');
+            if (isAdmin) {
+              return (
+                <span style={{ fontSize: "0.6rem", fontWeight: 900, backgroundColor: "#BC9968", color: "#fff", padding: "2px 6px", borderRadius: 6, letterSpacing: "0.05em" }}>ADMIN</span>
+              );
+            }
+            return null;
+          })()}
+        </div>
       </div>
+
+      {(() => {
+        const role = (stackUser?.clientMetadata as any)?.role;
+        const isAdmin = role === 'admin' || stackUser?.primaryEmail?.includes('admin@');
+        
+        if (isAdmin) {
+          return (
+            <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(230, 136, 92, 0.12)" }}>
+              <div style={{ fontSize: "0.7rem", color: "#9a8a82", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.6rem" }}>Administración</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                <button
+                  className={`${styles.accountMenuButton} ${styles.accountMenuButtonSoft}`}
+                  style={{ justifyContent: "flex-start", padding: "0 1rem", minHeight: "2.5rem", fontSize: "0.85rem" }}
+                  onClick={() => {
+                    setIsAccountOpen(false);
+                    router.push("/admin");
+                  }}
+                >
+                  <Settings size={14} />
+                  Panel de Control
+                </button>
+                <button
+                  className={`${styles.accountMenuButton} ${styles.accountMenuButtonSoft}`}
+                  style={{ justifyContent: "flex-start", padding: "0 1rem", minHeight: "2.5rem", fontSize: "0.85rem" }}
+                  onClick={() => {
+                    setIsAccountOpen(false);
+                    router.push("/admin/usuarios");
+                  }}
+                >
+                  <User2 size={14} />
+                  Gestión de Usuarios
+                </button>
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
 
       <div className={styles.accountSection}>
         <div className={styles.accountSectionHeader}>
