@@ -9,6 +9,9 @@ export default async function CatalogoPage() {
   const productosDB = await prisma.productos.findMany({
     where: {
       activo: true,
+      stock: {
+        gt: 0,
+      },
     },
     include: {
       categorias: {

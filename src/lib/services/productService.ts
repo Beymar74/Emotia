@@ -4,7 +4,12 @@ export async function getFeaturedProducts() {
   try {
     const dbProducts = await prisma.productos.findMany({
       take: 12,
-      where: { activo: true },
+      where: {
+        activo: true,
+        stock: {
+          gt: 0,
+        },
+      },
       include: {
         categorias: true,
         proveedores: {

@@ -38,6 +38,9 @@ export default async function MarcaPage({ params }: PageProps) {
       productos: {
         where: {
           activo: true,
+          stock: {
+            gt: 0,
+          },
         },
         include: {
           categorias: {
