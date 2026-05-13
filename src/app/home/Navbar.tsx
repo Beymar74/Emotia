@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogIn, Menu, X, Sparkles, LogOut, User as UserIcon } from "lucide-react";
+import { LogIn, Menu, X, Sparkles, LogOut, User as UserIcon, ShoppingBag, Settings, HelpCircle, Gift, ChevronDown } from "lucide-react";
 import { useUser, useStackApp } from "@stackframe/stack";
 
 // NUEVA PALETA DE COLORES
@@ -24,6 +24,7 @@ export default function Navbar({ onOpenLogin, onOpenRegister, darkBackground = f
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -98,16 +99,155 @@ export default function Navbar({ onOpenLogin, onOpenRegister, darkBackground = f
             </motion.button>
 
             {user ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "8px", paddingLeft: "16px", borderLeft: `1px solid ${darkBackground && !scrolled ? 'rgba(255,255,255,0.2)' : P.beige}`, transition: "border-color 0.3s ease" }}>
-                <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", color: textColor, transition: "color 0.3s ease" }}>
-                  Hola, {user.primaryEmail?.split('@')[0] || 'Usuario'}
-                </span>
-                <motion.button onClick={() => router.push("/dashboard")} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }} style={{ backgroundColor: P.blanco, border: `1px solid ${P.beige}`, borderRadius: 12, width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: P.granate, boxShadow: "0 2px 8px rgba(0,0,0,0.02)" } as any}>
-                  <UserIcon size={16} strokeWidth={2} />
-                </motion.button>
-                <motion.button onClick={handleLogout} whileHover={{ scale: 1.08, backgroundColor: "#fee2e2" }} whileTap={{ scale: 0.93 }} className="bg-transparent" style={{ border: `1px solid transparent`, borderRadius: 12, width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#ef4444" } as any}>
-                  <LogOut size={16} strokeWidth={2} />
-                </motion.button>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "8px", paddingLeft: "16px", borderLeft: `1px solid ${darkBackground && !scrolled ? 'rgba(255,255,255,0.2)' : P.beige}`, transition: "border-color 0.3s ease", position: "relative" }}>
+                {/* CHECK DE ROL ADMIN */}
+                {(() => {
+                  const role = (user.clientMetadata as any)?.role;
+                  const isAdmin = role === 'admin' || user.primaryEmail?.includes('admin@');
+                  
+                  return (
+                    <>
+                      <span className="nav-desktop" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", color: textColor, transition: "color 0.3s ease" }}>
+                        Hola, {user.primaryEmail?.split('@')[0] || 'Usuario'}
+                      </span>
+                      
+                      {/* BOTÓN DE PERFIL QUE ACTIVA EL DROPDOWN */}
+                      <div style={{ position: "relative" }}>
+                        <motion.button 
+                          onClick={() => setProfileMenuOpen(!profileMenuOpen)} 
+                          whileHover={{ scale: 1.05, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} 
+                          whileTap={{ scale: 0.95 }} 
+                          style={{ 
+                            backgroundColor: P.blanco, 
+                            border: `1px solid ${profileMenuOpen ? P.granate : (isAdmin ? P.dorado : P.beige)}`, 
+                            borderRadius: 14, 
+                            width: 42, 
+                            height: 42, 
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "center", 
+                            cursor: "pointer", 
+                            color: isAdmin ? P.dorado : P.granate,
+                            transition: "all 0.3s ease",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.02)" 
+                          } as any}
+                        >
+                          <UserIcon size={18} strokeWidth={2.5} />
+                          <ChevronDown size={12} style={{ marginLeft: 2, opacity: 0.5 }} />
+                        </motion.button>
+
+                        <AnimatePresence>
+                          {profileMenuOpen && (
+                            <>
+                              {/* Overlay invisible para cerrar el menú al hacer clic fuera */}
+                              <div 
+                                style={{ position: "fixed", inset: 0, zIndex: -1 }} 
+                                onClick={() => setProfileMenuOpen(false)} 
+                              />
+                              
+                              <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                                style={{
+                                  position: "absolute",
+                                  top: "calc(100% + 12px)",
+                                  right: 0,
+                                  width: 280,
+                                  backgroundColor: P.blanco,
+                                  borderRadius: 20,
+                                  boxShadow: "0 10px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05)",
+                                  padding: "8px",
+                                  zIndex: 200,
+                                  overflow: "hidden"
+                                }}
+                              >
+                                {/* Header del Dropdown */}
+                                <div style={{ padding: "16px 16px 12px", borderBottom: `1px solid ${P.beige}50` }}>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+                                    <div>
+                                      <div style={{ fontSize: "0.75rem", color: P.gris, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Mi Cuenta</div>
+                                      <div style={{ fontSize: "0.95rem", fontWeight: 700, color: P.chocolate, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>
+                                        {user.primaryEmail}
+                                      </div>
+                                    </div>
+                                    {isAdmin && (
+                                      <span style={{ fontSize: "0.65rem", fontWeight: 900, backgroundColor: P.dorado, color: P.blanco, padding: "2px 6px", borderRadius: 6, letterSpacing: "0.05em" }}>ADMIN</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Opciones del Menú */}
+                                <div style={{ padding: "8px 0" }}>
+                                  {/* SECCIÓN ADMIN */}
+                                  {isAdmin && (
+                                    <div style={{ marginBottom: 8, paddingBottom: 8, borderBottom: `1px solid ${P.beige}30` }}>
+                                      <div style={{ fontSize: "0.7rem", color: P.gris, fontWeight: 700, padding: "0 16px 8px", textTransform: "uppercase" }}>Administración</div>
+                                      {[
+                                        { label: "Panel de Control", icon: Settings, path: "/admin", color: P.granate },
+                                        { label: "Gestión de Usuarios", icon: UserIcon, path: "/admin/usuarios", color: P.granate },
+                                      ].map((item) => (
+                                        <button
+                                          key={item.label}
+                                          onClick={() => { setProfileMenuOpen(false); router.push(item.path); }}
+                                          style={{
+                                            width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", backgroundColor: "transparent", border: "none", borderRadius: 12, cursor: "pointer", color: item.color, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", textAlign: "left", transition: "all 0.2s ease"
+                                          } as any}
+                                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${P.granate}10`}
+                                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                                        >
+                                          <item.icon size={18} strokeWidth={2.5} />
+                                          {item.label}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* SECCIÓN USUARIO */}
+                                  <div style={{ fontSize: "0.7rem", color: P.gris, fontWeight: 700, padding: isAdmin ? "8px 16px 8px" : "0 16px 8px", textTransform: "uppercase" }}>Personal</div>
+                                  {[
+                                    { label: "Mis Pedidos", icon: ShoppingBag, path: "/mis-pedidos" },
+                                    { label: "Mis Regalos", icon: Gift, path: "/regalos" },
+                                    { label: "Configuración", icon: Settings, path: "/auth/account" },
+                                  ].map((item) => (
+                                    <button
+                                      key={item.label}
+                                      onClick={() => { setProfileMenuOpen(false); router.push(item.path); }}
+                                      style={{
+                                        width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", backgroundColor: "transparent", border: "none", borderRadius: 12, cursor: "pointer", color: P.chocolate, fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: "0.9rem", textAlign: "left", transition: "all 0.2s ease"
+                                      } as any}
+                                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = `${P.beige}40`; e.currentTarget.style.color = P.granate; }}
+                                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = P.chocolate; }}
+                                    >
+                                      <item.icon size={18} strokeWidth={2} />
+                                      {item.label}
+                                    </button>
+                                  ))}
+                                </div>
+
+                                {/* Footer del Dropdown - Logout */}
+                                <div style={{ borderTop: `1px solid ${P.beige}50`, padding: "8px 0 0" }}>
+                                  <button
+                                    onClick={handleLogout}
+                                    style={{
+                                      width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", backgroundColor: "transparent", border: "none", borderRadius: 12, cursor: "pointer", color: "#ef4444", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", transition: "all 0.2s ease"
+                                    } as any}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#fee2e2"}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                                  >
+                                    <LogOut size={18} strokeWidth={2} />
+                                    Cerrar Sesión
+                                  </button>
+                                </div>
+                              </motion.div>
+                            </>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             ) : (
               <>
@@ -147,15 +287,28 @@ export default function Navbar({ onOpenLogin, onOpenRegister, darkBackground = f
 
               {user ? (
                 <div style={{ marginTop: "auto" }}>
-                  <div style={{ background: `${P.beige}50`, borderRadius: 16, padding: "16px", display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, display: "flex", alignItems: "center", justifyContent: "center", color: P.blanco }}><UserIcon size={20} /></div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.8rem", color: P.gris }}>Bienvenido,</div>
-                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "1rem", fontWeight: 700, color: P.chocolate }}>{user.primaryEmail?.split('@')[0] || 'Usuario'}</div>
-                    </div>
-                    <motion.button onClick={handleLogout} whileTap={{ scale: 0.9 }} className="bg-transparent" style={{ border: "none", color: "#ef4444", cursor: "pointer", padding: 8 } as any}><LogOut size={20} /></motion.button>
-                  </div>
-                  <motion.button initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }} onClick={() => { setMobileOpen(false); router.push("/dashboard"); }} style={{ width: "100%", backgroundImage: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", borderRadius: 16, padding: "16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 8px 24px ${P.granate}30` }}><UserIcon size={18} strokeWidth={1.5} /> Ir a mi Perfil</motion.button>
+                  {(() => {
+                    const isAdmin = (user.clientMetadata as any)?.role === 'admin' || user.primaryEmail?.includes('admin@');
+                    return (
+                      <>
+                        <div style={{ background: `${P.beige}50`, borderRadius: 16, padding: "16px", display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                          <div style={{ width: 40, height: 40, borderRadius: "50%", background: isAdmin ? `linear-gradient(135deg, ${P.dorado}, #E5C28F)` : `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, display: "flex", alignItems: "center", justifyContent: "center", color: P.blanco }}><UserIcon size={20} /></div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.8rem", color: P.gris }}>{isAdmin ? 'Administrador' : 'Bienvenido,'}</div>
+                            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "1rem", fontWeight: 700, color: P.chocolate }}>{user.primaryEmail?.split('@')[0] || 'Usuario'}</div>
+                          </div>
+                          <motion.button onClick={handleLogout} whileTap={{ scale: 0.9 }} className="bg-transparent" style={{ border: "none", color: "#ef4444", cursor: "pointer", padding: 8 } as any}><LogOut size={20} /></motion.button>
+                        </div>
+                        
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                          {isAdmin && (
+                            <motion.button initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }} onClick={() => { setMobileOpen(false); router.push("/admin"); }} style={{ width: "100%", backgroundImage: `linear-gradient(135deg, ${P.dorado}, #E5C28F)`, color: P.blanco, border: "none", borderRadius: 16, padding: "14px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 8px 20px ${P.dorado}20` }}><Settings size={18} strokeWidth={2} /> Panel Admin</motion.button>
+                          )}
+                          <motion.button initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }} onClick={() => { setMobileOpen(false); router.push("/mis-pedidos"); }} style={{ width: "100%", backgroundImage: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", borderRadius: 16, padding: isAdmin ? "14px" : "16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 8px 24px ${P.granate}30` }}><ShoppingBag size={18} strokeWidth={1.5} /> {isAdmin ? 'Ver Pedidos' : 'Mis Pedidos'}</motion.button>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               ) : (
                 <>

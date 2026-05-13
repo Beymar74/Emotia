@@ -62,6 +62,7 @@ Stack: Next.js 15 (App Router) + Prisma + PostgreSQL + TailwindCSS. Paleta: vino
 - ✅ Sidebar actualizado con todas las secciones nuevas + icono IconBell
 - ✅ Asistente IA eliminado del sidebar (pendiente de implementar)
 - ✅ Sistema de gamificación (insignias) eliminado de la UI
+- ✅ Navbar: Botón de perfil actualizado a Menú Dropdown con accesos rápidos (Pedidos, Configuración).
 
 ### Configuración de Cloudinary (Conversación anterior)
 - ✅ Fix: Instalación de dependencia `cloudinary` en el contenedor de Docker para resolver error "Module not found: Can't resolve 'cloudinary'".

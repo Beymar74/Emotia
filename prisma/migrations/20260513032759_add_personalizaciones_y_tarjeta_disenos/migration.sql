@@ -11,10 +11,10 @@ ALTER TABLE "proveedor_sesiones" ALTER COLUMN "expires_at" SET DATA TYPE TIMESTA
 ALTER TABLE "proveedores" ALTER COLUMN "categorias" DROP DEFAULT;
 
 -- DropTable
-DROP TABLE "audit_log";
+DROP TABLE IF EXISTS "audit_log";
 
 -- CreateTable
-CREATE TABLE "personalizaciones" (
+CREATE TABLE IF NOT EXISTS "personalizaciones" (
     "id" SERIAL NOT NULL,
     "carrito_id" INTEGER,
     "detalle_pedido_id" INTEGER,
@@ -26,7 +26,7 @@ CREATE TABLE "personalizaciones" (
 );
 
 -- CreateTable
-CREATE TABLE "tarjeta_disenos" (
+CREATE TABLE IF NOT EXISTS "tarjeta_disenos" (
     "id" SERIAL NOT NULL,
     "nombre" VARCHAR(50) NOT NULL,
     "design_url" TEXT NOT NULL,
@@ -42,22 +42,24 @@ CREATE TABLE "tarjeta_disenos" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "personalizaciones_carrito_id_key" ON "personalizaciones"("carrito_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "personalizaciones_carrito_id_key" ON "personalizaciones"("carrito_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "personalizaciones_detalle_pedido_id_key" ON "personalizaciones"("detalle_pedido_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "personalizaciones_detalle_pedido_id_key" ON "personalizaciones"("detalle_pedido_id");
 
 -- CreateIndex
-CREATE INDEX "personalizaciones_carrito_id_idx" ON "personalizaciones"("carrito_id");
+CREATE INDEX IF NOT EXISTS "personalizaciones_carrito_id_idx" ON "personalizaciones"("carrito_id");
 
 -- CreateIndex
-CREATE INDEX "personalizaciones_detalle_pedido_id_idx" ON "personalizaciones"("detalle_pedido_id");
+CREATE INDEX IF NOT EXISTS "personalizaciones_detalle_pedido_id_idx" ON "personalizaciones"("detalle_pedido_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "tarjeta_disenos_nombre_key" ON "tarjeta_disenos"("nombre");
+CREATE UNIQUE INDEX IF NOT EXISTS "tarjeta_disenos_nombre_key" ON "tarjeta_disenos"("nombre");
 
 -- AddForeignKey
+ALTER TABLE "personalizaciones" DROP CONSTRAINT IF EXISTS "personalizaciones_carrito_id_fkey";
 ALTER TABLE "personalizaciones" ADD CONSTRAINT "personalizaciones_carrito_id_fkey" FOREIGN KEY ("carrito_id") REFERENCES "carrito"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
+ALTER TABLE "personalizaciones" DROP CONSTRAINT IF EXISTS "personalizaciones_detalle_pedido_id_fkey";
 ALTER TABLE "personalizaciones" ADD CONSTRAINT "personalizaciones_detalle_pedido_id_fkey" FOREIGN KEY ("detalle_pedido_id") REFERENCES "detalle_pedidos"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
