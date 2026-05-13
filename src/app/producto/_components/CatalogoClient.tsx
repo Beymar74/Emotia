@@ -8,6 +8,7 @@ import { useCart } from "../components/cart/useCart";
 import type { CatalogProduct } from "../product-data";
 import styles from "../producto.module.css";
 import SmartCatalogBanner from "./ai/SmartCatalogBanner";
+import GiftChatbot from "./ai/GiftChatbot";
 type ProductSectionAction =
   | { kind: "orden"; value: "ventas" | "rating" | "precio-asc" }
   | { kind: "precio"; value: number }
@@ -531,6 +532,8 @@ export default function CatalogoClient({
           )}
         </main>
       </div>
+
+      <GiftChatbot productos={productos} />
     </div>
   );
 }
