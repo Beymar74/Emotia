@@ -1,20 +1,24 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { PrismaClient } from "@/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 
-export async function validarLogin(
-  formData: FormData
-) {
+export async function validarLogin(formData: FormData) {
   try {
+    const adapter = new PrismaPg({
+      connectionString: process.env.DATABASE_URL!,
+    });
+
+    const db = new PrismaClient({ adapter });
+
     // =========================
     // OBTENER DATOS
     // =========================
 
-    const email = String(
-      formData.get("email") || ""
-    )
+    const email = String(formData.get("email") || "")
       .trim()
       .toLowerCase();
 
@@ -79,21 +83,9 @@ export async function validarLogin(
       };
     }
 
-//    if (proveedor.estado === "pendiente") {
-//      return {
-//        error:
-//          "Tu cuenta aún está en revisión.",
-//      };
-//    }
-
-    // =========================
-    // CREAR TOKEN DE SESIÓN
-    // =========================
-
     const token = crypto.randomUUID();
 
     const expiresAt = new Date();
-
     expiresAt.setDate(
       expiresAt.getDate() + 7
     );
@@ -102,7 +94,15 @@ export async function validarLogin(
     // GUARDAR SESIÓN EN DB
     // =========================
 
-    await prisma.proveedor_sesiones.create({
+    const sesionesModel =
+      (db as any)["proveedor_sesiones"];
+
+    console.log(
+      "delegate:",
+      sesionesModel
+    );
+
+    await sesionesModel.create({
       data: {
         proveedor_id: proveedor.id,
         token,
@@ -128,10 +128,6 @@ export async function validarLogin(
         maxAge: 60 * 60 * 24 * 7,
       }
     );
-
-    // =========================
-    // LOGIN EXITOSO
-    // =========================
 
     return {
       success: true,

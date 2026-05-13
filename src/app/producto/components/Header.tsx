@@ -44,6 +44,8 @@ type OverviewNotification = {
   mensaje: string | null;
   leida: boolean;
   createdAt: string;
+  // Sugerencia futura: Podrían añadir "referenciaId" a su BD para saber exactamente qué pedido abrir
+  referenciaId?: number;
 };
 
 type AccountOverview = {
@@ -273,8 +275,65 @@ export default function Header({
     setIsNotificationsOpen(false);
   };
 
+  // 👇 NUEVA FUNCIÓN MÁGICA: Manejar clics en notificaciones 👇
+  const handleNotificationClick = async (notification: OverviewNotification) => {
+    console.log("🚨 1. Clic detectado en la notificación ID:", notification.id);
+
+    // 1. Si es de un pedido, intentamos abrir el modal de rastreo
+    if (notification.tipo === "pedido") {
+      if (highlightedOrder) {
+        openOrderDetail(highlightedOrder);
+      }
+    }
+
+    // 2. Si ya estaba leída, no hacemos nada más
+    if (notification.leida) {
+      console.log("🚨 2. La notificación ya estaba leída. Abortando fetch.");
+      return;
+    }
+
+    console.log("🚨 3. Ejecutando actualización visual (optimista)...");
+    setAccountOverview((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        unreadNotifications: Math.max(0, prev.unreadNotifications - 1),
+        notifications: prev.notifications.map((n) =>
+          n.id === notification.id ? { ...n, leida: true } : n
+        ),
+      };
+    });
+
+    console.log(`🚨 4. Disparando FETCH a: /api/notificaciones/${notification.id}/leer`);
+    try {
+      const response = await fetch(`/api/notificaciones/${notification.id}/leer`, {
+        method: "PATCH",
+      });
+      console.log("🚨 5. Respuesta recibida del backend. Status HTTP:", response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("🚨 Detalle del error del backend:", errorData);
+      }
+
+      await loadAccountOverview();
+
+      setAccountOverview((prev) =>
+        prev
+          ? {
+            ...prev,
+            unreadNotifications: Math.max(0, prev.unreadNotifications - 1),
+          }
+          : prev
+      );
+    } catch (error) {
+      console.error("🚨 6. ERROR FATAL al intentar hacer el fetch:", error);
+    }
+  };
+
   const unreadCount = accountOverview?.unreadNotifications ?? 0;
   const activeCount = accountOverview?.summary?.activeOrders ?? 0;
+
   const accountMenuContent = isLoggedIn && user ? (
     <>
       <div className={styles.accountInfo}>
@@ -416,9 +475,9 @@ export default function Header({
             return (
               <article
                 key={notification.id}
-                className={`${styles.notificationCard} ${
-                  !notification.leida ? styles.notificationCardUnread : ""
-                }`}
+                onClick={() => handleNotificationClick(notification)} // 👇 Conectamos el Click aquí
+                className={`${styles.notificationCard} ${!notification.leida ? styles.notificationCardUnread : ""
+                  } cursor-pointer transition-colors hover:bg-gray-50`} // Añadimos cursor pointer para UX
               >
                 <div className={styles.notificationIcon}>
                   <NotificationIcon size={16} strokeWidth={2} />
@@ -545,6 +604,7 @@ export default function Header({
         </div>
       </header>
 
+      {/* MODALES MÓVILES Y CARRITO SE MANTIENEN IGUAL... */}
       {isAccountOpen ? <button className={styles.mobilePanelOverlay} aria-label="Cerrar panel de cuenta" onClick={() => setIsAccountOpen(false)} /> : null}
       <aside
         ref={mobileAccountPanelRef}
@@ -742,9 +802,8 @@ export default function Header({
               <div className={styles.trackingSteps}>
                 <div className={styles.trackingStep}>
                   <div
-                    className={`${styles.trackingStepIcon} ${
-                      getOrderStatusMeta(selectedOrder.estado).step >= 1 ? styles.trackingStepDone : ""
-                    }`}
+                    className={`${styles.trackingStepIcon} ${getOrderStatusMeta(selectedOrder.estado).step >= 1 ? styles.trackingStepDone : ""
+                      }`}
                   >
                     <Clock3 size={16} strokeWidth={2} />
                   </div>
@@ -756,9 +815,8 @@ export default function Header({
 
                 <div className={styles.trackingStep}>
                   <div
-                    className={`${styles.trackingStepIcon} ${
-                      getOrderStatusMeta(selectedOrder.estado).step >= 2 ? styles.trackingStepDone : ""
-                    }`}
+                    className={`${styles.trackingStepIcon} ${getOrderStatusMeta(selectedOrder.estado).step >= 2 ? styles.trackingStepDone : ""
+                      }`}
                   >
                     <Truck size={16} strokeWidth={2} />
                   </div>
@@ -770,9 +828,8 @@ export default function Header({
 
                 <div className={styles.trackingStep}>
                   <div
-                    className={`${styles.trackingStepIcon} ${
-                      getOrderStatusMeta(selectedOrder.estado).step >= 3 ? styles.trackingStepDone : ""
-                    }`}
+                    className={`${styles.trackingStepIcon} ${getOrderStatusMeta(selectedOrder.estado).step >= 3 ? styles.trackingStepDone : ""
+                      }`}
                   >
                     <CheckCircle2 size={16} strokeWidth={2} />
                   </div>
