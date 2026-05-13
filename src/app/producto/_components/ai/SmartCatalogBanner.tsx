@@ -32,6 +32,9 @@ export default function SmartCatalogBanner({ productos }: SmartCatalogBannerProp
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [addedProductName, setAddedProductName] = useState<string | null>(null);
+  const [freeText, setFreeText] = useState("");
+  const [isInterpreting, setIsInterpreting] = useState(false);
+  const [aiError, setAiError] = useState("");
   const resultados = useMemo(() => {
     if (!hasSearched) return [];
     return recommendGifts(productos, form, 6);
@@ -46,10 +49,55 @@ export default function SmartCatalogBanner({ productos }: SmartCatalogBannerProp
     setIsSearching(false);
   }, 650);
 };
+const interpretarConIA = async () => {
+  const prompt = freeText.trim();
+
+  if (prompt.length < 4) {
+    setAiError("Escribe una idea un poco más completa.");
+    return;
+  }
+
+  try {
+    setIsInterpreting(true);
+    setAiError("");
+
+    const response = await fetch("/api/producto/recomendaciones", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prompt }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      setAiError(result.error || "No se pudo interpretar tu idea.");
+      return;
+    }
+
+    setForm(result.intent);
+    setHasSearched(false);
+    setIsSearching(true);
+
+    window.setTimeout(() => {
+      setHasSearched(true);
+      setIsSearching(false);
+    }, 650);
+  } catch (error) {
+    console.error("Error interpretando con IA:", error);
+    setAiError("Ocurrió un error al interpretar tu idea.");
+  } finally {
+    setIsInterpreting(false);
+  }
+};
   const limpiar = () => {
   setForm(INITIAL_FORM);
+  setFreeText("");
   setHasSearched(false);
   setIsSearching(false);
+  setIsInterpreting(false);
+  setAiError("");
 };
 
   const agregarAlCarrito = (producto: CatalogProduct) => {
@@ -129,6 +177,28 @@ const abrirCarrito = () => {
             )}
             <div className={styles.smartGrid}>
               <div className={styles.smartForm}>
+              <div className={styles.smartAiBox}>
+                <label>
+                  <span>Describe tu regalo ideal</span>
+                  <textarea
+                    value={freeText}
+                    onChange={(event) => setFreeText(event.target.value)}
+                    placeholder="Ej: Quiero un regalo para mi mamá, elegante, por menos de 250 Bs"
+                    rows={4}
+                  />
+                </label>
+
+                {aiError ? <p className={styles.smartAiError}>{aiError}</p> : null}
+
+                <button
+                  type="button"
+                  className={styles.smartAiButton}
+                  onClick={interpretarConIA}
+                  disabled={isInterpreting}
+                >
+                  {isInterpreting ? "Interpretando..." : "Interpretar con IA"}
+                </button>
+              </div>
                 <label>
                   <span>¿Para quién es?</span>
                   <input
