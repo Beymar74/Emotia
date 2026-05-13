@@ -21,6 +21,9 @@ export default async function DetalleProducto({ params }: PageProps) {
     where: {
       id: productId,
       activo: true,
+      stock: {
+        gt: 0,
+      },
     },
     include: {
       categorias: {
