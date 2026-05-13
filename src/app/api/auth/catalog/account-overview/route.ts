@@ -8,6 +8,8 @@ function buildShortDisplayName(nombres: string | null | undefined, apellidos: st
   return [primerNombre, primerApellido].filter(Boolean).join(" ");
 }
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const currentUser = await stackServerApp.getUser({ or: "return-null" });
