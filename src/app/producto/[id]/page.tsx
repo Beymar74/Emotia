@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import ProductDetailClient from "./ProductDetailClient";
+import FooterCatalogo from "../_components/FooterCatalogo";
 import { mapDetailProduct, mapProductComments } from "../product-data";
 
 export const dynamic = "force-dynamic";
@@ -77,5 +78,10 @@ export default async function DetalleProducto({ params }: PageProps) {
   const producto = mapDetailProduct(productoDB);
   const comentariosIniciales = mapProductComments(productoDB);
 
-  return <ProductDetailClient producto={producto} comentariosIniciales={comentariosIniciales} />;
+  return (
+    <>
+      <ProductDetailClient producto={producto} comentariosIniciales={comentariosIniciales} />
+      <FooterCatalogo />
+    </>
+  );
 }
