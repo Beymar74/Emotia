@@ -41,6 +41,14 @@ const navSections = [
     ],
   },
   {
+    label: "Personalización",
+    icon: IconBrush,
+    soloAdmin: false,
+    items: [
+      { href: "/admin/personalizacion", label: "Diseños de tarjeta", soloAdmin: false },
+    ],
+  },
+  {
     label: "Pedidos & Pagos",
     icon: IconBox,
     soloAdmin: false,
@@ -350,6 +358,15 @@ function IconSettings({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 14 14" fill="none">
       <circle cx="7" cy="7" r="2" stroke="currentColor" strokeWidth="1.2" />
       <path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.6 2.6l1.1 1.1M10.3 10.3l1.1 1.1M11.4 2.6l-1.1 1.1M3.7 10.3l-1.1 1.1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconBrush({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 11l-6 6v3h9l3-3" />
+      <path d="M22 2v0a3.63 3.63 0 0 0-5.14 0L7 11.86a2 2 0 0 0-.58 1.41V16h2.73a2 2 0 0 0 1.41-.58L20.4 5.56A3.63 3.63 0 0 0 22 3v-1Z" />
     </svg>
   );
 }

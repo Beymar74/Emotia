@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, ChevronRight, Mail, MapPin, Phone, Send, ShoppingCart, Sparkles, Star, X } from "lucide-react";
 import Header from "../components/Header";
@@ -10,6 +10,7 @@ import { useCart } from "../components/cart/useCart";
 import { useSession } from "../components/auth/useSession";
 import type { DetailProduct, ProductComment } from "../product-data";
 import styles from "./detalle.module.css";
+import { getTarjetasActivas } from "./actions";
 
 type FontOption = {
   id: string;
@@ -25,9 +26,19 @@ type CardTemplate = {
   frame: string;
   designUrl: string;
   messageColor: string;
-  ornament: "flowers" | "hearts" | "sparkles";
   sourceLabel: string;
   sourceUrl: string;
+};
+
+type TarjetaDB = {
+  id: number;
+  nombre: string;
+  design_url: string;
+  color_acento: string;
+  color_suave: string;
+  color_marco: string;
+  color_mensaje: string;
+  ornamento: string;
 };
 
 type PersonalizationSelection = {
@@ -39,6 +50,7 @@ type PersonalizationSelection = {
 type ProductDetailClientProps = {
   producto: DetailProduct;
   comentariosIniciales: ProductComment[];
+  tarjetasDB: TarjetaDB[];
 };
 
 type FlyingCartAnimation = {
@@ -62,6 +74,7 @@ type CardPreviewProps = {
 type PersonalizationModalProps = {
   isOpen: boolean;
   initialSelection: PersonalizationSelection;
+  tarjetas: CardTemplate[];
   onClose: () => void;
   onApply: (selection: PersonalizationSelection) => void;
 };
@@ -70,53 +83,25 @@ const DEFAULT_MESSAGE = "Para ti, con mucho cariño y un detalle pensado especia
 const EMPTY_MESSAGE = "Tu mensaje aparecerá aquí cuando personalices la tarjeta.";
 const CART_HIGHLIGHT_EVENT = "emotia-cart-highlight";
 
-const tarjetas: CardTemplate[] = [
-  {
-    id: "t1",
-    name: "Elegante",
-    accent: "#A53E6C",
-    accentSoft: "#FFF3F7",
-    frame: "#D46A92",
-    designUrl: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777322450/emotia3_bmutfx.png",
-    messageColor: "#000000",
-    ornament: "flowers",
-    sourceLabel: "Ver diseño",
-    sourceUrl: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777322450/emotia3_bmutfx.png",
-  },
-  {
-    id: "t2",
-    name: "Clásico",
-    accent: "#5F4636",
-    accentSoft: "#FFF8F0",
-    frame: "#C8A47C",
-    designUrl: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777323057/emotia2_cpkpzc.png",
-    messageColor: "#000000",
-    ornament: "hearts",
-    sourceLabel: "Ver diseño",
-    sourceUrl: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777323057/emotia2_cpkpzc.png",
-  },
-  {
-    id: "t3",
-    name: "Infantil",
-    accent: "#D94A6A",
-    accentSoft: "#FFF6F8",
-    frame: "#FFB34D",
-    designUrl: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777323056/emotia1_wxoby0.png",
-    messageColor: "#000000",
-    ornament: "sparkles",
-    sourceLabel: "Ver diseño",
-    sourceUrl: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777323056/emotia1_wxoby0.png",
-  },
-];
-
 const fuentes: FontOption[] = [
   { id: "playfair", label: "Elegante", family: "'Georgia', 'Times New Roman', serif" },
   { id: "dmSans", label: "Moderna", family: "'Inter', 'Arial', sans-serif" },
   { id: "cursive", label: "Manuscrita", family: "'Brush Script MT', 'Segoe Script', cursive" },
 ];
 
-function getTemplatePreviewClassName(ornament: CardTemplate["ornament"]) {
-  return styles[`templatePreview${ornament.charAt(0).toUpperCase()}${ornament.slice(1)}`];
+/** Mapea un registro de tarjeta_disenos de la BD al formato CardTemplate del componente. */
+function mapTarjetaDB(t: TarjetaDB): CardTemplate {
+  return {
+    id: `t${t.id}`,
+    name: t.nombre,
+    accent: t.color_acento,
+    accentSoft: t.color_suave,
+    frame: t.color_marco,
+    designUrl: t.design_url,
+    messageColor: t.color_mensaje,
+    sourceLabel: "Ver diseño",
+    sourceUrl: t.design_url,
+  };
 }
 
 function CardPreview({ tarjeta, fuente, message, className, messageClassName, contentClassName }: CardPreviewProps) {
@@ -124,7 +109,7 @@ function CardPreview({ tarjeta, fuente, message, className, messageClassName, co
 
   return (
     <div
-      className={`${className} ${getTemplatePreviewClassName(tarjeta.ornament)}`}
+      className={className}
       style={{
         borderColor: tarjeta.frame,
         backgroundImage: `url(${tarjeta.designUrl})`,
@@ -140,19 +125,25 @@ function CardPreview({ tarjeta, fuente, message, className, messageClassName, co
   );
 }
 
-function PersonalizationModal({ isOpen, initialSelection, onClose, onApply }: PersonalizationModalProps) {
+function PersonalizationModal({ isOpen, initialSelection, tarjetas, onClose, onApply }: PersonalizationModalProps) {
   const [draftSelectedCard, setDraftSelectedCard] = useState(initialSelection.selectedCard);
   const [draftSelectedFont, setDraftSelectedFont] = useState(initialSelection.selectedFont);
   const [draftMessage, setDraftMessage] = useState(initialSelection.message);
 
   const tarjetaActiva = useMemo(
     () => tarjetas.find((tarjeta) => tarjeta.id === draftSelectedCard) || tarjetas[0],
-    [draftSelectedCard]
+    [draftSelectedCard, tarjetas]
   );
   const fuenteActiva = useMemo(
     () => fuentes.find((fuente) => fuente.id === draftSelectedFont) || fuentes[0],
     [draftSelectedFont]
   );
+
+  useEffect(() => {
+    if (tarjetas.length > 0 && !tarjetas.find((t) => t.id === draftSelectedCard)) {
+      setDraftSelectedCard(tarjetas[0].id);
+    }
+  }, [tarjetas, draftSelectedCard]);
 
   if (!isOpen) return null;
 
@@ -279,11 +270,16 @@ function PersonalizationModal({ isOpen, initialSelection, onClose, onApply }: Pe
   );
 }
 
-export default function ProductDetailClient({ producto, comentariosIniciales }: ProductDetailClientProps) {
+export default function ProductDetailClient({ producto, comentariosIniciales, tarjetasDB }: ProductDetailClientProps) {
   const { addItem } = useCart();
   const { user, isLoggedIn } = useSession();
 
-  const [selectedCard, setSelectedCard] = useState("t1");
+  const [liveTarjetasDB, setLiveTarjetasDB] = useState<TarjetaDB[]>(tarjetasDB);
+
+  // Mapear los diseños de tarjeta que vienen de la BD
+  const tarjetas = useMemo(() => liveTarjetasDB.map(mapTarjetaDB), [liveTarjetasDB]);
+
+  const [selectedCard, setSelectedCard] = useState(() => tarjetas[0]?.id ?? "t1");
   const [selectedFont, setSelectedFont] = useState("playfair");
   const [message, setMessage] = useState(DEFAULT_MESSAGE);
   const [isPersonalizationOpen, setIsPersonalizationOpen] = useState(false);
@@ -294,13 +290,32 @@ export default function ProductDetailClient({ producto, comentariosIniciales }: 
   const [comments, setComments] = useState<ProductComment[]>(comentariosIniciales);
   const [flyingAnimations, setFlyingAnimations] = useState<FlyingCartAnimation[]>([]);
 
+  useEffect(() => {
+    if (!isPersonalizationOpen) return;
+    const interval = setInterval(async () => {
+      try {
+        const activeCards = await getTarjetasActivas();
+        setLiveTarjetasDB(activeCards);
+      } catch (error) {
+        console.error("Error al obtener tarjetas activas:", error);
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [isPersonalizationOpen]);
+
+  useEffect(() => {
+    if (tarjetas.length > 0 && !tarjetas.find((t) => t.id === selectedCard)) {
+      setSelectedCard(tarjetas[0].id);
+    }
+  }, [tarjetas, selectedCard]);
+
   const commentStorageKey = useMemo(
     () => `emotia-product-comment-${producto.id}-${user?.email ?? "guest"}`,
     [producto.id, user?.email]
   );
   const tarjetaActiva = useMemo(
     () => tarjetas.find((tarjeta) => tarjeta.id === selectedCard) || tarjetas[0],
-    [selectedCard]
+    [selectedCard, tarjetas]
   );
   const fuenteActiva = useMemo(
     () => fuentes.find((fuente) => fuente.id === selectedFont) || fuentes[0],
@@ -647,6 +662,7 @@ export default function ProductDetailClient({ producto, comentariosIniciales }: 
         <PersonalizationModal
           isOpen={isPersonalizationOpen}
           initialSelection={{ selectedCard, selectedFont, message }}
+          tarjetas={tarjetas}
           onClose={() => setIsPersonalizationOpen(false)}
           onApply={handleApplyPersonalization}
         />
