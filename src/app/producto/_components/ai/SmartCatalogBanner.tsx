@@ -30,32 +30,53 @@ export default function SmartCatalogBanner({ productos }: SmartCatalogBannerProp
   const [isOpen, setIsOpen] = useState(false);
   const [form, setForm] = useState<GiftRecommendationInput>(INITIAL_FORM);
   const [hasSearched, setHasSearched] = useState(false);
-
+  const [isSearching, setIsSearching] = useState(false);
+  const [addedProductName, setAddedProductName] = useState<string | null>(null);
   const resultados = useMemo(() => {
     if (!hasSearched) return [];
     return recommendGifts(productos, form, 6);
   }, [form, hasSearched, productos]);
 
   const buscarRecomendaciones = () => {
-    setHasSearched(true);
-  };
+  setIsSearching(true);
+  setHasSearched(false);
 
+  window.setTimeout(() => {
+    setHasSearched(true);
+    setIsSearching(false);
+  }, 650);
+};
   const limpiar = () => {
-    setForm(INITIAL_FORM);
-    setHasSearched(false);
-  };
+  setForm(INITIAL_FORM);
+  setHasSearched(false);
+  setIsSearching(false);
+};
 
   const agregarAlCarrito = (producto: CatalogProduct) => {
-    addItem({
-      id: producto.id,
-      name: producto.nombre,
-      brand: producto.marca,
-      price: producto.precio,
-      imageUrl: producto.imageUrl,
-      subtitle: `${producto.categoria} / ${producto.ocasion}`,
-    });
-  };
+  addItem({
+    id: producto.id,
+    name: producto.nombre,
+    brand: producto.marca,
+    price: producto.precio,
+    imageUrl: producto.imageUrl,
+    subtitle: `${producto.categoria} / ${producto.ocasion}`,
+  });
 
+  setAddedProductName(producto.nombre);
+
+  window.dispatchEvent(new CustomEvent("emotia-cart-highlight"));
+
+  window.setTimeout(() => {
+    setAddedProductName(null);
+  }, 2600);
+};
+const abrirCarrito = () => {
+  setIsOpen(false);
+
+  window.setTimeout(() => {
+    window.dispatchEvent(new CustomEvent("emotia-cart-open"));
+  }, 120);
+};
   return (
     <section className={styles.smartBanner}>
       <div className={styles.smartBannerContent}>
@@ -94,7 +115,18 @@ export default function SmartCatalogBanner({ productos }: SmartCatalogBannerProp
                 <X size={18} />
               </button>
             </div>
+            {addedProductName && (
+            <div className={styles.smartAddedNotice}>
+                <div>
+                <strong>Agregado al carrito</strong>
+                <span>{addedProductName}</span>
+                </div>
 
+                <button type="button" onClick={abrirCarrito}>
+                Ver carrito
+                </button>
+            </div>
+            )}
             <div className={styles.smartGrid}>
               <div className={styles.smartForm}>
                 <label>
@@ -210,8 +242,13 @@ export default function SmartCatalogBanner({ productos }: SmartCatalogBannerProp
               </div>
 
               <div className={styles.smartResults}>
-                {!hasSearched ? (
-                  <div className={styles.smartEmpty}>
+                {isSearching ? (
+                    <div className={styles.smartEmpty}>
+                    <div className={styles.smartLoader} />
+                    <p>Analizando el catálogo y buscando las mejores opciones...</p>
+                    </div>
+                ) : !hasSearched ? (
+                    <div className={styles.smartEmpty}>
                     <Sparkles size={34} />
                     <p>
                       Completa los datos y te mostraremos recomendaciones reales del catálogo.
