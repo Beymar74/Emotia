@@ -78,9 +78,19 @@ export default async function DetalleProducto({ params }: PageProps) {
   const producto = mapDetailProduct(productoDB);
   const comentariosIniciales = mapProductComments(productoDB);
 
+  // Obtener diseños de tarjeta desde la BD
+  const tarjetasDB = await prisma.tarjeta_disenos.findMany({
+    where: { activo: true },
+    orderBy: { id: "asc" },
+  });
+
   return (
     <>
-      <ProductDetailClient producto={producto} comentariosIniciales={comentariosIniciales} />
+      <ProductDetailClient
+        producto={producto}
+        comentariosIniciales={comentariosIniciales}
+        tarjetasDB={tarjetasDB}
+      />
       <FooterCatalogo />
     </>
   );

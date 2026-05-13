@@ -277,3 +277,16 @@ model personalizaciones {
   @@index([carrito_id])
   @@index([detalle_pedido_id])
 }
+
+model tarjeta_disenos {
+  id            Int      @id @default(autoincrement())
+  nombre        String   @unique @db.VarChar(50)
+  design_url    String
+  color_acento  String   @db.VarChar(20)
+  color_suave   String   @db.VarChar(20)
+  color_marco   String   @db.VarChar(20)
+  color_mensaje String   @db.VarChar(20)
+  ornamento     String   @default("none") @db.VarChar(20)
+  activo        Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+}

@@ -14,6 +14,7 @@ import { seedRecomendaciones } from './seeds/recomendaciones'
 import { seedInsignias } from './seeds/insignias'
 import { seedRecordatorios } from './seeds/recordatorios'
 import { seedNotificaciones } from './seeds/notificaciones'
+import { seedPersonalizacion } from './seeds/personalizacion'
 
 const adapter = new PrismaPg(process.env.DATABASE_URL!)
 const prisma = new PrismaClient({ adapter })
@@ -23,6 +24,8 @@ async function main() {
 
     console.log('🧹 Limpiando base de datos...')
     await prisma.$transaction([
+        prisma.personalizaciones.deleteMany(),
+        prisma.tarjeta_disenos.deleteMany(),
         prisma.notificaciones.deleteMany(),
         prisma.recordatorios.deleteMany(),
         prisma.insignias.deleteMany(),
@@ -61,6 +64,9 @@ async function main() {
 
     await seedCarrito(prisma)
     console.log('✅ Carrito')
+
+    await seedPersonalizacion(prisma)
+    console.log('✅ Personalizaciones')
 
     await seedRecomendaciones(prisma)
     console.log('✅ Recomendaciones')
