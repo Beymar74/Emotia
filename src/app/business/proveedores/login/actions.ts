@@ -2,18 +2,11 @@
 
 import prisma from "@/lib/prisma";
 import { PrismaClient } from "@/generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 
 export async function validarLogin(formData: FormData) {
   try {
-    const adapter = new PrismaPg({
-      connectionString: process.env.DATABASE_URL!,
-    });
-
-    const db = new PrismaClient({ adapter });
-
     // =========================
     // OBTENER DATOS
     // =========================
@@ -95,7 +88,7 @@ export async function validarLogin(formData: FormData) {
     // =========================
 
     const sesionesModel =
-      (db as any)["proveedor_sesiones"];
+      (prisma as any)["proveedor_sesiones"];
 
     console.log(
       "delegate:",
