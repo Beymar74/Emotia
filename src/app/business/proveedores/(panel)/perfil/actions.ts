@@ -4,16 +4,55 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { requireProveedor } from "@/lib/auth-proveedor";
 
+type RedSocialRegistro = {
+  plataforma: string;
+  url: string;
+};
+
+function normalizarRedesSociales(valor: unknown): RedSocialRegistro[] {
+  if (!Array.isArray(valor)) return [];
+
+  return valor
+    .map((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) {
+        return null;
+      }
+
+      const red = item as Record<string, unknown>;
+
+      return {
+        plataforma:
+          typeof red.plataforma === "string" ? red.plataforma : "",
+        url: typeof red.url === "string" ? red.url : "",
+      };
+    })
+    .filter((red): red is RedSocialRegistro => red !== null);
+}
+
 export async function obtenerPerfilProveedor() {
   try {
     const proveedorSesion = await requireProveedor();
 
-    const proveedor = await prisma.proveedores.findUnique({
-      where: {
-        id: proveedorSesion.id,
-      },
-    });
+    const [proveedor, categoriasDisponibles] = await Promise.all([
+  prisma.proveedores.findUnique({
+    where: {
+      id: proveedorSesion.id,
+    },
+  }),
 
+  prisma.categorias.findMany({
+    where: {
+      activo: true,
+    },
+    select: {
+      id: true,
+      nombre: true,
+    },
+    orderBy: {
+      nombre: "asc",
+    },
+  }),
+]);
     if (!proveedor) return null;
 
     return {
@@ -21,14 +60,17 @@ export async function obtenerPerfilProveedor() {
       nombre: proveedor.nombre_negocio,
       descripcion: proveedor.descripcion || "",
       categorias: proveedor.categorias || [],
-      redesSociales: proveedor.redes_sociales || [],
+      categoriasDisponibles,
+      redesSociales: normalizarRedesSociales(proveedor.redes_sociales),
       telefono: proveedor.telefono || "",
       email: proveedor.email,
       direccion: proveedor.direccion || "",
       logo: proveedor.logo_url || null,
       estado: proveedor.estado,
       ventas: proveedor.total_vendido ? Number(proveedor.total_vendido) : 0,
-      rating: proveedor.calificacion_prom ? Number(proveedor.calificacion_prom) : 0,
+      rating: proveedor.calificacion_prom
+        ? Number(proveedor.calificacion_prom)
+        : 0,
     };
   } catch (error) {
     console.error("Error al obtener perfil:", error);
@@ -36,7 +78,17 @@ export async function obtenerPerfilProveedor() {
   }
 }
 
-export async function actualizarPerfilProveedor(idProveedor: number, datos: any) {
+export async function actualizarPerfilProveedor(
+  idProveedor: number,
+  datos: {
+    nombre: string;
+    descripcion: string;
+    telefono: string;
+    direccion: string;
+    categorias: string[];
+    redesSociales: RedSocialRegistro[];
+  }
+) {
   try {
     const proveedorSesion = await requireProveedor();
 
@@ -60,7 +112,6 @@ export async function actualizarPerfilProveedor(idProveedor: number, datos: any)
         redes_sociales: datos.redesSociales || [],
       },
     });
-
     revalidatePath("/business/proveedores/perfil");
 
     return { success: true };

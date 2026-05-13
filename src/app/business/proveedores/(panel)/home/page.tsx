@@ -31,10 +31,10 @@ export default function BusinessWelcome() {
         <div className="relative z-10">
           {/* Título con Letra Carta Aplicada */}
           <h1 className="text-5xl md:text-6xl mb-4 fuente-carta tracking-wide drop-shadow-md">
-            ¡Hola, Artesanías La Paz!
+            ¡Hola, bienvenido a Emotia Business!
           </h1>
           <p className="text-lg md:text-xl text-[#F5E6D0] max-w-2xl font-light leading-relaxed">
-            Bienvenido al panel premium de proveedores de Emotia. Estamos listos para ayudarte a llevar regalos inolvidables a más personas. ¿Qué te gustaría hacer hoy?
+            Bienvenido al panel de proveedores de Emotia Business. Gestiona tu catálogo, pedidos y perfil para impulsar tu negocio dentro de nuestra plataforma. ¿Qué te gustaría hacer hoy?
           </p>
         </div>
       </div>
@@ -42,7 +42,7 @@ export default function BusinessWelcome() {
       {/* Título de Sección con formato Admin */}
       <section>
         <h2 className="text-[10px] tracking-[2.5px] uppercase text-[#BC9968] font-bold mb-5">
-          Accesos rápidos de tu tienda
+          Accesos rápidos
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 xl:gap-6">
@@ -64,8 +64,10 @@ export default function BusinessWelcome() {
             <div className="h-12 w-12 rounded-xl bg-[#5A0F24]/5 text-[#8E1B3A] flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
               <PackagePlus size={24} />
             </div>
-            <h3 className="text-lg font-bold text-[#3D0A1A] mb-2">Añadir Productos</h3>
-            <p className="text-gray-500 text-sm mb-6 line-clamp-2">Actualiza tu catálogo y añade nuevas opciones de personalización.</p>
+            <h3 className="text-lg font-bold text-[#3D0A1A] mb-2">
+              Gestionar Catálogo
+            </h3>
+            <p className="text-gray-500 text-sm mb-6 line-clamp-2"> Administra tus productos, precios, stock y opciones de personalización.</p>
             <div className="flex items-center text-[#BC9968] font-semibold text-sm">
               Ir al catálogo <ArrowRight size={16} className="ml-2 group-hover:translate-x-2 transition-transform" />
             </div>

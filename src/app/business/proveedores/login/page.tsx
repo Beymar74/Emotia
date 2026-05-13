@@ -65,8 +65,12 @@ export default function LoginProductorPage() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-white rounded-[32px] p-8 md:p-10 shadow-2xl shadow-gray-200/60 border border-gray-100">
             
             <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-[#F5E6D0] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-                <Store size={32} style={{ color: P.bordoNegro }} />
+              <div className="flex justify-center mb-6">
+                <img
+                  src="/logo/logo-business-expandido.png"
+                  alt="Emotia Business"
+                  className="h-20 object-contain"
+                />
               </div>
               <h1 className="text-3xl font-black mb-2" style={{ color: P.bordoNegro }}>Portal de Socios</h1>
               <p className="text-sm font-medium" style={{ color: P.choco }}>Ingresa a tu panel de gestión corporativa.</p>

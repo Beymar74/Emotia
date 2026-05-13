@@ -18,10 +18,60 @@ const P = {
 };
 
 const HISTORIAS_CRECIMIENTO = [
-  { id: 1, proveedor: "Artesanías La Paz", titulo: "Socio Premium", growth: "250% Ventas", img: "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=300&auto=format&fit=crop", quote: "Emotia transformó mi taller en un negocio digital de alto nivel. La gestión es increíblemente sencilla." },
-  { id: 2, proveedor: "Joyas Tiahuanaco", titulo: "Diseño Ejecutivo", growth: "3x Pedidos", img: "https://images.unsplash.com/photo-1574634534894-89d7576c8259?q=80&w=300&auto=format&fit=crop", quote: "La logística y el empaque premium de Emotia nos abrieron las puertas a clientes corporativos inalcanzables antes." },
-  { id: 3, proveedor: "Florería Sopocachi", titulo: "Elegancia Natural", growth: "+1500 Entregas", img: "https://images.unsplash.com/photo-1563241527-3004b7be0ffd?q=80&w=300&auto=format&fit=crop", quote: "Nuestro rating subió dramáticamente gracias a la facilidad que el Kanban nos da para gestionar los arreglos." },
-  { id: 4, proveedor: "Chocolates Gourmet", titulo: "Delicia Boliviana", growth: "+500 Cajas/Mes", img: "https://images.unsplash.com/photo-1548907040-4baa42d10919?q=80&w=300&auto=format&fit=crop", quote: "El Dashboard nos ayudó a entender qué sabores son los más deseados y optimizar nuestro stock." },
+  {
+    id: 1,
+    proveedor: "Miss Flores",
+    titulo: "Proveedor destacado",
+    growth: "⭐ 4.9 rating",
+    img: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777321840/missflores_g7y4tn.webp",
+    quote:
+      "Especialistas en arreglos florales y detalles para momentos memorables dentro de Emotia.",
+  },
+  {
+    id: 2,
+    proveedor: "Miniso Bolivia",
+    titulo: "Marca aliada",
+    growth: "Bs 45,800 vendidos",
+    img: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777321840/MINIS_rkkhfg.jpg",
+    quote:
+      "Productos lifestyle, regalos, accesorios y experiencias pensadas para sorprender.",
+  },
+  {
+    id: 3,
+    proveedor: "Giftland Bolivia",
+    titulo: "Regalos temáticos",
+    growth: "Bs 32,450 vendidos",
+    img: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777321841/313424317_491968809634570_7433880416632053513_n_zqyex5.jpg",
+    quote:
+      "Una propuesta enfocada en peluches, cajas sorpresa y regalos para ocasiones especiales.",
+  },
+  {
+    id: 4,
+    proveedor: "Wonder Perfumes Bolivia",
+    titulo: "Fragancias premium",
+    growth: "⭐ 4.4 rating",
+    img: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777321840/wonderimg_quqgak.gif",
+    quote:
+      "Fragancias importadas de alta calidad para clientes que buscan detalles elegantes.",
+  },
+  {
+    id: 5,
+    proveedor: "Arte Floral Bolivia",
+    titulo: "Diseño floral",
+    growth: "Bs 21,900 vendidos",
+    img: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777321841/arte_kzijh5.png",
+    quote:
+      "Decoración floral personalizada para celebraciones, regalos y experiencias especiales.",
+  },
+  {
+    id: 6,
+    proveedor: "Michelline",
+    titulo: "Nuevo proveedor",
+    growth: "Repostería",
+    img: "/logo/logo-business-expandido.png",
+    quote:
+      "Nuevos negocios también encuentran en Emotia Business una plataforma para crecer digitalmente.",
+  },
 ];
 
 const HISTORIAS_INFINITAS = [...HISTORIAS_CRECIMIENTO, ...HISTORIAS_CRECIMIENTO];

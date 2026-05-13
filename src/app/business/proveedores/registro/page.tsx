@@ -26,6 +26,7 @@ export default function RegistroProductorPage() {
   const [paso, setPaso] = useState(1);
   const [cargando, setCargando] = useState(false);
   const [errorSQL, setErrorSQL] = useState("");
+  const [errores, setErrores] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
     nombreEmpresa: "",
@@ -130,10 +131,90 @@ export default function RegistroProductorPage() {
       redesSociales: prev.redesSociales.filter((_, i) => i !== index),
     }));
   };
+  const enfocarPrimerError = (nuevosErrores: Record<string, string>) => {
+  const primerCampo = Object.keys(nuevosErrores)[0];
 
+  setTimeout(() => {
+    const elemento = document.querySelector(
+      `[name="${primerCampo}"]`
+    ) as HTMLElement | null;
+
+    elemento?.focus();
+  }, 100);
+};
+
+const validarPaso1 = () => {
+  const nuevosErrores: Record<string, string> = {};
+
+  if (!formData.nombreEmpresa.trim()) {
+    nuevosErrores.nombreEmpresa = "Ingresa el nombre del negocio.";
+  }
+
+  if (formData.categorias.length === 0) {
+    nuevosErrores.categorias = "Selecciona al menos una categoría.";
+  }
+
+  if (!formData.direccionNegocio.trim()) {
+    nuevosErrores.direccionNegocio = "Ingresa la dirección del negocio.";
+  }
+
+  setErrores(nuevosErrores);
+
+  if (Object.keys(nuevosErrores).length > 0) {
+    enfocarPrimerError(nuevosErrores);
+    return false;
+  }
+
+  return true;
+};
+
+const validarPaso2 = () => {
+  const nuevosErrores: Record<string, string> = {};
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const telefonoRegex = /^[67]\d{7}$/;
+  const anioActual = new Date().getFullYear();
+  const anio = Number(formData.anioNacimiento);
+
+  if (!formData.nombreRepresentante.trim()) {
+    nuevosErrores.nombreRepresentante = "Ingresa tu nombre completo.";
+  }
+
+  if (!emailRegex.test(formData.email.trim())) {
+    nuevosErrores.email = "Ingresa un correo válido.";
+  }
+
+  if (!telefonoRegex.test(formData.telefono.trim())) {
+    nuevosErrores.telefono = "Debe tener 8 dígitos y empezar con 6 o 7.";
+  }
+
+  if (!anio || anio < 1900 || anioActual - anio < 18) {
+    nuevosErrores.anioNacimiento = "Debes ser mayor de edad.";
+  }
+
+  if (formData.password.length < 8) {
+    nuevosErrores.password = "La contraseña debe tener mínimo 8 caracteres.";
+  }
+
+  if (formData.password !== formData.confirmPassword) {
+    nuevosErrores.confirmPassword = "Las contraseñas no coinciden.";
+  }
+
+  if (!formData.aceptaTerminos) {
+    nuevosErrores.aceptaTerminos = "Debes aceptar los términos.";
+  }
+
+  setErrores(nuevosErrores);
+
+  if (Object.keys(nuevosErrores).length > 0) {
+    enfocarPrimerError(nuevosErrores);
+    return false;
+  }
+
+  return true;
+};
   const manejarRegistroFinal = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    if (!validarPaso2()) return;
     setCargando(true);
     setErrorSQL("");
 
@@ -241,7 +322,13 @@ export default function RegistroProductorPage() {
                   agregarRedSocial={agregarRedSocial}
                   actualizarRedSocial={actualizarRedSocial}
                   eliminarRedSocial={eliminarRedSocial}
-                  onNext={() => setPaso(2)}
+                  errores={errores}
+                  onNext={() => {
+                    if (validarPaso1()) {
+                      setErrores({});
+                      setPaso(2);
+                    }
+                  }}
                 />
               ) : (
                 <PasoRepresentante
@@ -251,6 +338,7 @@ export default function RegistroProductorPage() {
                   onBack={() => setPaso(1)}
                   onSubmit={manejarRegistroFinal}
                   cargando={cargando}
+                  errores={errores}
                 />
               )}
             </AnimatePresence>
