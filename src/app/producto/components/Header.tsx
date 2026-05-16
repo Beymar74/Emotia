@@ -211,29 +211,39 @@ export default function Header({
   }, [isLoggedIn, loadAccountOverview]);
 
   useEffect(() => {
-    let timeoutId: number | undefined;
+  let timeoutId: number | undefined;
 
-    const handleCartHighlight = () => {
-      setIsCartHighlighted(true);
+  const handleCartHighlight = () => {
+    setIsCartHighlighted(true);
 
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
 
-      timeoutId = window.setTimeout(() => {
-        setIsCartHighlighted(false);
-      }, 700);
-    };
+    timeoutId = window.setTimeout(() => {
+      setIsCartHighlighted(false);
+    }, 700);
+  };
 
-    window.addEventListener("emotia-cart-highlight", handleCartHighlight);
+  const handleCartOpen = () => {
+    setIsAccountOpen(false);
+    setIsNotificationsOpen(false);
+    setIsCartOpen(true);
+    handleCartHighlight();
+  };
 
-    return () => {
-      window.removeEventListener("emotia-cart-highlight", handleCartHighlight);
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, []);
+  window.addEventListener("emotia-cart-highlight", handleCartHighlight);
+  window.addEventListener("emotia-cart-open", handleCartOpen);
+
+  return () => {
+    window.removeEventListener("emotia-cart-highlight", handleCartHighlight);
+    window.removeEventListener("emotia-cart-open", handleCartOpen);
+
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+  };
+}, []);
 
   const highlightedOrder = useMemo(() => {
     if (!accountOverview?.orders.length) return null;
@@ -653,7 +663,7 @@ export default function Header({
               }}
             >
               <ShoppingCart size={18} strokeWidth={2} />
-              <span className={styles.badge}>{count}</span>
+              {count > 0 ? <span className={styles.badge}>{count}</span> : null}
             </button>
           </div>
         </div>

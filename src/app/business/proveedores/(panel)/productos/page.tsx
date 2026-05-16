@@ -12,6 +12,12 @@ import {
   PackagePlus,
   Loader2,
   UploadCloud,
+  Boxes,
+  CheckCircle2,
+  Ban,
+  AlertTriangle,
+  MessageSquare,
+  Sparkles,
 } from "lucide-react";
 
 import {
@@ -76,7 +82,12 @@ const OCASIONES = [
   "amor",
   "día de la madre",
   "día del padre",
+  "día del niño",
   "agradecimiento",
+  "evento formal",
+  "cita",
+  "primavera",
+  "verano",
 ];
 
 const PERSONALIDADES = [
@@ -89,8 +100,15 @@ const PERSONALIDADES = [
   "minimalista",
   "kawaii",
   "detallista",
+  "fanático",
+  "infantil",
+  "premium",
+  "tierno",
+  "sorpresa",
 ];
-
+const unirOpcionesConGuardadas = (base: string[], guardadas: string[]) => {
+  return Array.from(new Set([...base, ...(guardadas || [])]));
+};
 export default function ProductosPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -105,7 +123,9 @@ export default function ProductosPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
-
+  const [filtroRapido, setFiltroRapido] = useState<
+    "todos" | "activos" | "inactivos" | "sin_stock" | "personalizables"
+  >("todos");
   const [productoEditando, setProductoEditando] = useState<ProductoVista | null>(null);
   const [formData, setFormData] = useState<DatosProductoProveedor>(FORM_INICIAL);
 
@@ -126,18 +146,42 @@ export default function ProductosPage() {
   useEffect(() => {
     cargarDatos();
   }, []);
-
+  const metricas = {
+    total: productos.length,
+    activos: productos.filter((producto) => producto.activo).length,
+    inactivos: productos.filter((producto) => !producto.activo).length,
+    sinStock: productos.filter((producto) => producto.stock <= 0).length,
+    personalizables: productos.filter((producto) => producto.permiteMensaje).length,
+  };
   const productosFiltrados = productos.filter((producto) => {
+    const textoBusqueda = searchTerm.toLowerCase().trim();
+
     const coincideBusqueda =
-      producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(producto.id).includes(searchTerm);
+      textoBusqueda.length === 0 ||
+      producto.nombre.toLowerCase().includes(textoBusqueda) ||
+      String(producto.id).includes(textoBusqueda);
 
     const coincideCategoria =
       filtroCategoria === "Todas" || producto.categoria === filtroCategoria;
 
-    return coincideBusqueda && coincideCategoria;
-  });
+    const coincideFiltroRapido =
+      filtroRapido === "todos" ||
+      (filtroRapido === "activos" && producto.activo) ||
+      (filtroRapido === "inactivos" && !producto.activo) ||
+      (filtroRapido === "sin_stock" && producto.stock <= 0) ||
+      (filtroRapido === "personalizables" && producto.permiteMensaje);
 
+    return coincideBusqueda && coincideCategoria && coincideFiltroRapido;
+  });
+  const ocasionesDisponibles = unirOpcionesConGuardadas(
+    OCASIONES,
+    formData.ocasiones
+  );
+
+  const personalidadesDisponibles = unirOpcionesConGuardadas(
+    PERSONALIDADES,
+    formData.personalidades
+  );
   const toggleArray = (campo: "ocasiones" | "personalidades", valor: string) => {
     setFormData((prev) => {
       const actual = prev[campo] || [];
@@ -280,8 +324,8 @@ export default function ProductosPage() {
       return;
     }
 
-    await cargarDatos();
-  };
+  await cargarDatos();
+};
 
   if (isLoading) {
     return (
@@ -296,10 +340,10 @@ export default function ProductosPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-[#1A1A1A] tracking-tight">
-            Catálogo de Productos
+            Mis productos
           </h1>
           <p className="text-[#B0B0B0] mt-1 font-medium">
-            Gestiona tu inventario, precios, personalización y recomendación inteligente.
+            Administra tu inventario, precios, imágenes y datos que alimentarán el catálogo inteligente.
           </p>
         </div>
 
@@ -310,7 +354,87 @@ export default function ProductosPage() {
           <Plus size={18} /> Añadir Producto
         </button>
       </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+  <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-xs font-black uppercase tracking-widest text-gray-400">
+          Total
+        </p>
+        <p className="text-2xl font-black text-[#3D0A1A] mt-1">
+          {metricas.total}
+        </p>
+      </div>
+      <div className="h-11 w-11 rounded-xl bg-[#F5E6D0] text-[#8E1B3A] flex items-center justify-center">
+        <Boxes size={22} />
+      </div>
+    </div>
+  </div>
 
+  <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-xs font-black uppercase tracking-widest text-gray-400">
+          Activos
+        </p>
+        <p className="text-2xl font-black text-[#3D0A1A] mt-1">
+          {metricas.activos}
+        </p>
+      </div>
+      <div className="h-11 w-11 rounded-xl bg-green-50 text-green-700 flex items-center justify-center">
+        <CheckCircle2 size={22} />
+      </div>
+    </div>
+  </div>
+
+  <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-xs font-black uppercase tracking-widest text-gray-400">
+          Inactivos
+        </p>
+        <p className="text-2xl font-black text-[#3D0A1A] mt-1">
+          {metricas.inactivos}
+        </p>
+      </div>
+      <div className="h-11 w-11 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center">
+        <Ban size={22} />
+      </div>
+    </div>
+  </div>
+
+  <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-xs font-black uppercase tracking-widest text-gray-400">
+          Sin stock
+        </p>
+        <p className="text-2xl font-black text-[#3D0A1A] mt-1">
+          {metricas.sinStock}
+        </p>
+      </div>
+      <div className="h-11 w-11 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+        <AlertTriangle size={22} />
+      </div>
+    </div>
+  </div>
+
+  <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-xs font-black uppercase tracking-widest text-gray-400">
+          Personalizables
+        </p>
+        <p className="text-2xl font-black text-[#3D0A1A] mt-1">
+          {metricas.personalizables}
+        </p>
+      </div>
+      <div className="h-11 w-11 rounded-xl bg-[#F5E6D0] text-[#BC9968] flex items-center justify-center">
+        <MessageSquare size={22} />
+      </div>
+    </div>
+  </div>
+</div>
       <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:w-96">
           <Search
@@ -347,7 +471,29 @@ export default function ProductosPage() {
           />
         </div>
       </div>
-
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+  <div className="flex flex-wrap gap-2">
+    {[
+      ["todos", "Todos"],
+      ["activos", "Activos"],
+      ["inactivos", "Inactivos"],
+      ["sin_stock", "Sin stock"],
+      ["personalizables", "Personalizables"],
+    ].map(([value, label]) => (
+      <button
+        key={value}
+        onClick={() => setFiltroRapido(value as typeof filtroRapido)}
+        className={`px-4 py-2 rounded-xl text-xs font-black border transition-all ${
+          filtroRapido === value
+            ? "bg-[#8E1B3A] text-white border-[#8E1B3A] shadow-sm"
+            : "bg-white text-gray-600 border-gray-200 hover:bg-[#F5E6D0]/40"
+        }`}
+      >
+        {label}
+      </button>
+    ))}
+  </div>
+</div>      
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -357,6 +503,7 @@ export default function ProductosPage() {
                 <th className="px-6 py-4">Categoría</th>
                 <th className="px-6 py-4">Precio</th>
                 <th className="px-6 py-4">Stock</th>
+                <th className="px-6 py-4">IA / Público</th>
                 <th className="px-6 py-4 text-center">Estado</th>
                 <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
@@ -415,7 +562,57 @@ export default function ProductosPage() {
                         {producto.stock > 0 ? `${producto.stock} und.` : "Agotado"}
                       </span>
                     </td>
+                    <td className="px-6 py-4 min-w-[260px]">
+                      <div className="flex flex-col gap-2">
+                        <div className="flex flex-wrap gap-1.5">
+                          {producto.ocasiones.slice(0, 2).map((ocasion) => (
+                            <span
+                              key={ocasion}
+                              className="px-2 py-1 rounded-full text-[10px] font-black bg-[#F5E6D0] text-[#5A0F24] border border-[#BC9968]/30"
+                            >
+                              {ocasion}
+                            </span>
+                          ))}
 
+                          {producto.personalidades.slice(0, 2).map((personalidad) => (
+                            <span
+                              key={personalidad}
+                              className="px-2 py-1 rounded-full text-[10px] font-black bg-white text-[#8E1B3A] border border-[#8E1B3A]/20"
+                            >
+                              {personalidad}
+                            </span>
+                          ))}
+
+                          {producto.ocasiones.length === 0 &&
+                            producto.personalidades.length === 0 && (
+                              <span className="px-2 py-1 rounded-full text-[10px] font-black bg-gray-100 text-gray-500">
+                                Sin datos IA
+                              </span>
+                            )}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold text-gray-500">
+                          <span className="inline-flex items-center gap-1">
+                            <Sparkles size={12} className="text-[#BC9968]" />
+                            {producto.generoDestinatario || "cualquiera"}
+                          </span>
+
+                          {(producto.edadMin || producto.edadMax) && (
+                            <span>
+                              {producto.edadMin || "0"} - {producto.edadMax || "+"} años
+                            </span>
+                          )}
+
+                          {producto.permiteMensaje && (
+                            <span className="text-[#8E1B3A]">Mensaje</span>
+                          )}
+
+                          {producto.permiteEmpaque && (
+                            <span className="text-[#BC9968]">Empaque</span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => toggleActivo(producto.id)}
@@ -452,7 +649,7 @@ export default function ProductosPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-16 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-16 text-center text-gray-500">
                     <PackagePlus size={48} className="mx-auto text-gray-300 mb-4" />
                     <p className="font-bold text-gray-700 text-lg">
                       No hay productos
@@ -711,9 +908,14 @@ export default function ProductosPage() {
                 </section>
 
                 <section>
-                  <h3 className="text-sm font-bold text-[#8E1B3A] uppercase tracking-widest mb-4 border-b border-gray-100 pb-2">
-                    5. Recomendación inteligente
-                  </h3>
+                  <div className="mb-4 border-b border-gray-100 pb-3">
+                    <h3 className="text-sm font-bold text-[#8E1B3A] uppercase tracking-widest">
+                      5. Recomendación inteligente
+                    </h3>
+                    <p className="text-xs text-gray-500 font-medium mt-1">
+                      Estos datos ayudarán a que Emotia recomiende tu producto en el catálogo público, el chatbot y futuras búsquedas con IA.
+                    </p>
+                  </div>
 
                   <div className="space-y-5">
                     <div>
@@ -721,7 +923,7 @@ export default function ProductosPage() {
                         Ocasiones
                       </label>
                       <div className="flex flex-wrap gap-2">
-                        {OCASIONES.map((item) => (
+                        {ocasionesDisponibles.map((item) => (
                           <button
                             key={item}
                             type="button"
@@ -743,7 +945,7 @@ export default function ProductosPage() {
                         Personalidades
                       </label>
                       <div className="flex flex-wrap gap-2">
-                        {PERSONALIDADES.map((item) => (
+                        {personalidadesDisponibles.map((item) => (
                           <button
                             key={item}
                             type="button"

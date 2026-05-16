@@ -73,6 +73,8 @@ interface PasoEmpresaProps {
   ) => void;
   eliminarRedSocial: (index: number) => void;
   onNext: () => void;
+  errores: Record<string, string>;
+  
 }
 
 interface PasoRepresentanteProps {
@@ -83,6 +85,7 @@ interface PasoRepresentanteProps {
   onBack: () => void;
   onSubmit: (e: React.FormEvent) => void;
   cargando: boolean;
+  errores: Record<string, string>;
 }
 
 const CATEGORIAS = [
@@ -112,7 +115,21 @@ function obtenerLabelsCategorias(valores: string[]) {
     .filter(Boolean)
     .join(", ");
 }
+function errorInputClass(tieneError?: boolean) {
+  return tieneError
+    ? "border-red-400 bg-red-50/50 ring-2 ring-red-100 animate-pulse"
+    : "";
+}
 
+function MensajeError({ mensaje }: { mensaje?: string }) {
+  if (!mensaje) return null;
+
+  return (
+    <p className="text-xs font-bold text-red-500 ml-1 mt-1">
+      {mensaje}
+    </p>
+  );
+}
 export function PasoEmpresa({
   formData,
   handleChange,
@@ -121,6 +138,7 @@ export function PasoEmpresa({
   actualizarRedSocial,
   eliminarRedSocial,
   onNext,
+  errores,
 }: PasoEmpresaProps) {
   const plataformasUsadas = formData.redesSociales.map((r) => r.plataforma);
 
@@ -160,12 +178,6 @@ export function PasoEmpresa({
       <form
         onSubmit={(e) => {
           e.preventDefault();
-
-          if (formData.categorias.length === 0) {
-            alert("Selecciona al menos una categoría.");
-            return;
-          }
-
           onNext();
         }}
         className="space-y-6"
@@ -176,31 +188,49 @@ export function PasoEmpresa({
           </label>
 
           <input
-            required
-            type="text"
-            name="nombreEmpresa"
-            value={formData.nombreEmpresa}
-            onChange={handleChange}
-            placeholder="Ej: Joyería Los Andes"
-            autoComplete="organization"
-            maxLength={150}
-            spellCheck={false}
-            className="w-full px-5 py-4 rounded-2xl bg-gray-50 border outline-none focus:bg-white transition-all"
-            style={{ border: `1px solid ${P.beige}` }}
-          />
+  required
+  type="text"
+  name="nombreEmpresa"
+  value={formData.nombreEmpresa}
+  onChange={handleChange}
+  placeholder="Ej: Joyería Los Andes"
+  autoComplete="organization"
+  maxLength={150}
+  spellCheck={false}
+  className={`w-full px-5 py-4 rounded-2xl bg-gray-50 border outline-none focus:bg-white transition-all ${errorInputClass(
+    Boolean(errores.nombreEmpresa)
+  )}`}
+  style={{
+    border: `1px solid ${errores.nombreEmpresa ? "#ef4444" : P.beige}`,
+  }}
+/>
+<MensajeError mensaje={errores.nombreEmpresa} />
         </div>
 
         <div className="space-y-3">
-          <div>
-            <label className="text-xs font-black uppercase tracking-wider ml-1" style={{ color: P.doradoOscuro }}>
-              Categorías del negocio
-            </label>
-            <p className="text-xs mt-1" style={{ color: P.choco, opacity: 0.7 }}>
-              Selecciona todas las categorías que describen tu negocio.
-            </p>
-          </div>
+  <div>
+    <label
+      className="text-xs font-black uppercase tracking-wider ml-1"
+      style={{ color: P.doradoOscuro }}
+    >
+      Categorías del negocio
+    </label>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+    <p
+      className="text-xs mt-1"
+      style={{ color: P.choco, opacity: 0.7 }}
+    >
+      Selecciona todas las categorías que describen tu negocio.
+    </p>
+  </div>
+
+  <div
+  className={`grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-2xl transition-all ${
+    errores.categorias
+      ? "ring-2 ring-red-100 p-2 bg-red-50/40"
+      : ""
+  }`}
+>
             {CATEGORIAS.map((cat) => {
               const active = formData.categorias.includes(cat.value);
               const Icon = cat.icon;
@@ -234,6 +264,8 @@ export function PasoEmpresa({
               );
             })}
           </div>
+
+          <MensajeError mensaje={errores.categorias} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -267,13 +299,21 @@ export function PasoEmpresa({
                 autoComplete="street-address"
                 maxLength={255}
                 spellCheck={false}
-                className="w-full pl-12 pr-5 py-4 rounded-2xl bg-gray-50 border outline-none focus:bg-white transition-all"
-                style={{ border: `1px solid ${P.beige}` }}
+                className={`w-full pl-12 pr-5 py-4 rounded-2xl bg-gray-50 border outline-none focus:bg-white transition-all ${errorInputClass(
+                  Boolean(errores.direccionNegocio)
+                )}`}
+                style={{
+                  border: `1px solid ${
+                    errores.direccionNegocio ? "#ef4444" : P.beige
+                  }`,
+                }}
               />
+              
             </div>
             <p className="text-xs ml-1" style={{ color: P.choco, opacity: 0.65 }}>
               Indica la dirección donde se encuentra tu negocio.
             </p>
+            <MensajeError mensaje={errores.direccionNegocio} />
           </div>
         </div>
 
@@ -387,6 +427,7 @@ export function PasoRepresentante({
   onBack,
   onSubmit,
   cargando,
+  errores,
 }: PasoRepresentanteProps) {
   const categoriasTexto = obtenerLabelsCategorias(formData.categorias);
 
@@ -574,27 +615,42 @@ export function PasoRepresentante({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-black uppercase tracking-wider ml-1" style={{ color: P.doradoOscuro }}>
-              Confirmar contraseña
-            </label>
+  <label
+    className="text-xs font-black uppercase tracking-wider ml-1"
+    style={{ color: P.doradoOscuro }}
+  >
+    Confirmar contraseña
+  </label>
 
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-              <input
-                required
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="••••••••"
-                autoComplete="new-password"
-                minLength={8}
-                maxLength={100}
-                className="w-full pl-12 pr-5 py-4 rounded-2xl bg-gray-50 border outline-none"
-                style={{ border: `1px solid ${P.beige}` }}
-              />
-            </div>
-          </div>
+  <div className="relative">
+    <Lock
+      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300"
+      size={18}
+    />
+
+    <input
+      required
+      type="password"
+      name="confirmPassword"
+      value={formData.confirmPassword}
+      onChange={handleChange}
+      placeholder="••••••••"
+      autoComplete="new-password"
+      minLength={8}
+      maxLength={100}
+      className={`w-full pl-12 pr-5 py-4 rounded-2xl bg-gray-50 border outline-none ${errorInputClass(
+        Boolean(errores.confirmPassword)
+      )}`}
+      style={{
+        border: `1px solid ${
+          errores.confirmPassword ? "#ef4444" : P.beige
+        }`,
+      }}
+    />
+  </div>
+
+  <MensajeError mensaje={errores.confirmPassword} />
+</div>
         </div>
 
         <div

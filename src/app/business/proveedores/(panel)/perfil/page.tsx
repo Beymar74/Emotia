@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { Save, Loader2, CheckCircle2 } from "lucide-react";
-import { TarjetaLogo, FormulariosPerfil } from "./_components/PerfilComponentes";
+import {
+  TarjetaLogo,
+  FormulariosPerfil,
+  type PerfilBusinessData,
+} from "./_components/PerfilComponentes";
 import { obtenerPerfilProveedor, actualizarPerfilProveedor } from "./actions";
 
 export default function PerfilNegocioPage() {
@@ -11,7 +15,8 @@ export default function PerfilNegocioPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   // Estado inicial vacío hasta que Prisma responda
-  const [businessData, setBusinessData] = useState<any>(null);
+ const [businessData, setBusinessData] =
+  useState<PerfilBusinessData | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   // 1. Al cargar la página, traemos los datos de la Base de Datos
@@ -53,10 +58,14 @@ export default function PerfilNegocioPage() {
 
     setLogoPreview(result.url);
 
-    setBusinessData((prev: any) => ({
-      ...prev,
-      logo: result.url,
-    }));
+    setBusinessData((prev) => {
+  if (!prev) return prev;
+
+  return {
+    ...prev,
+    logo: result.url,
+  };
+});
   } catch (error) {
     console.error("Error subiendo logo:", error);
     setLogoPreview(businessData?.logo || null);
@@ -97,10 +106,19 @@ export default function PerfilNegocioPage() {
     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-extrabold text-[#1A1A1A] tracking-tight">Perfil de Negocio</h1>
-          <p className="text-[#B0B0B0] mt-1 font-medium">Esta información será visible para tus clientes en la plataforma Emotia.</p>
-        </div>
+        <div className="mb-8">
+  <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#BC9968] mb-1">
+    EMOTIA BUSINESS — SOCIO
+  </p>
+
+  <h1 className="font-serif text-4xl font-bold text-[#3D0A1A] leading-tight">
+    Perfil del Negocio
+  </h1>
+
+  <p className="text-sm text-[#B0B0B0] mt-2 font-medium">
+    Esta información será visible para tus clientes en la plataforma Emotia.
+  </p>
+</div>
       </div>
       {errorMsg && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl font-bold text-sm">
@@ -117,28 +135,35 @@ export default function PerfilNegocioPage() {
         />
 
         <div className="lg:col-span-2 space-y-6">
-          {/* Usamos el componente modular de la derecha */}
-          <FormulariosPerfil 
-            businessData={businessData} 
-            setBusinessData={setBusinessData} 
-          />
+  <FormulariosPerfil
+    businessData={businessData}
+    setBusinessData={setBusinessData}
+  />
 
-          {/* Botón de Guardar */}
-          <div className="flex items-center justify-end gap-4 mt-8">
-            {showSuccess && (
-              <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl font-bold animate-in fade-in">
-                <CheckCircle2 size={20} /> Perfil actualizado
-              </div>
-            )}
-            <button 
-              type="submit"
-              disabled={isSaving}
-              className="flex items-center gap-2 bg-[#8E1B3A] text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-[#8E1B3A]/20 hover:bg-[#5A0F24] transition-all active:scale-95 disabled:opacity-70"
-            >
-              {isSaving ? <>Guardando... <Loader2 size={20} className="animate-spin" /></> : <>Guardar Cambios <Save size={20} /></>}
-            </button>
-          </div>
-        </div>
+  <div className="flex items-center justify-end gap-4">
+    {showSuccess && (
+      <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl font-bold animate-in fade-in">
+        <CheckCircle2 size={20} /> Perfil actualizado
+      </div>
+    )}
+
+    <button
+      type="submit"
+      disabled={isSaving}
+      className="flex items-center gap-2 bg-[#8E1B3A] text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-[#8E1B3A]/20 hover:bg-[#5A0F24] transition-all active:scale-95 disabled:opacity-70"
+    >
+      {isSaving ? (
+        <>
+          Guardando... <Loader2 size={20} className="animate-spin" />
+        </>
+      ) : (
+        <>
+          Guardar Cambios <Save size={20} />
+        </>
+      )}
+    </button>
+  </div>
+</div>
 
       </form>
     </div>
