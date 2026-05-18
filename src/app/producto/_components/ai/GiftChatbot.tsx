@@ -152,8 +152,15 @@ export default function GiftChatbot({ productos }: GiftChatbotProps) {
         onClick={() => setIsOpen(true)}
         aria-label="Abrir asistente de regalos"
       >
-        <MessageCircle size={22} />
-        <span>IA</span>
+        <span className={styles.chatbotFloatingLogoWrap}>
+          <img
+            src="/logo/logo-store.png"
+            alt=""
+            className={styles.chatbotFloatingLogo}
+          />
+        </span>
+
+        <span className={styles.chatbotFloatingText}>IA</span>
       </button>
 
       {isOpen && (
