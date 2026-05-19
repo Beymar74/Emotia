@@ -2,10 +2,11 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
 
 export async function cambiarEstadoProveedorAction(
   id: number,
-  nuevoEstado: "activo" | "pendiente" | "suspendido"
+  nuevoEstado: "aprobado" | "pendiente" | "suspendido"
 ) {
   try {
     await prisma.proveedores.update({
@@ -35,8 +36,11 @@ export async function editarProveedorAction(formData: FormData) {
   const rep_email = String(formData.get("rep_email") || "").trim();
   const rep_telefono = String(formData.get("rep_telefono") || "").trim();
   const descripcion = String(formData.get("descripcion") || "").trim();
-  const estado = String(formData.get("estado") || "pendiente");
-
+  const estadoRaw = String(formData.get("estado") || "pendiente");
+  const estado = ["pendiente", "aprobado", "suspendido"].includes(estadoRaw)
+  ? estadoRaw
+  : "pendiente";
+  
   if (!id || !nombre_negocio || !email) {
     return {
       error: "El nombre del negocio y el correo son obligatorios.",
@@ -92,6 +96,58 @@ export async function actualizarLogoProveedor(id: number, url: string | null) {
 
     return {
       error: "No se pudo guardar el logo del proveedor.",
+    };
+  }
+}
+export async function resetProveedorPasswordAction(
+  proveedorId: number,
+  formData: FormData
+) {
+  const password = String(formData.get("password") || "").trim();
+  const confirmPassword = String(formData.get("confirmPassword") || "").trim();
+
+  if (!proveedorId) {
+    return {
+      error: "Proveedor inválido.",
+    };
+  }
+
+  if (password.length < 8) {
+    return {
+      error: "La contraseña debe tener al menos 8 caracteres.",
+    };
+  }
+
+  if (password !== confirmPassword) {
+    return {
+      error: "Las contraseñas no coinciden.",
+    };
+  }
+
+  try {
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    await prisma.proveedores.update({
+      where: {
+        id: proveedorId,
+      },
+      data: {
+        password_hash: passwordHash,
+        updated_at: new Date(),
+      },
+    });
+
+    revalidatePath("/admin/proveedores");
+    revalidatePath(`/admin/proveedores/${proveedorId}`);
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("Error restableciendo contraseña proveedor:", error);
+
+    return {
+      error: "No se pudo restablecer la contraseña del proveedor.",
     };
   }
 }

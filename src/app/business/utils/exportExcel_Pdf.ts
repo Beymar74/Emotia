@@ -11,10 +11,12 @@ const COLORS = {
   blanco: "FFFFFFFF",
   grisClaro: "FFEEEEEE",
   negro: "FF1A1A1A",
+  choco: "FF5C3A2E",
 };
 
 type PedidoDashboard = {
   id: string;
+  pedidoId?: string;
   cliente: string;
   producto: string;
   fecha?: string;
@@ -37,6 +39,62 @@ type PedidoProveedor = {
   total: number;
   fecha: string;
 };
+export type ReporteDashboardEjecutivo = {
+  empresa: string;
+  filtro: string;
+  rango: string;
+  generadoEn: string;
+  kpis: {
+    ingresosTotales: number;
+    totalPedidos: number;
+    ticketPromedio: number;
+    productosVendidos: number;
+    entregados: number;
+    pendientes: number;
+    enProceso: number;
+    cancelados: number;
+    productosActivos: number;
+    stockBajo: number;
+  };
+  ventasPorMes: {
+    mes: string;
+    ingresos: number;
+    pedidos: number;
+  }[];
+  pedidosPorEstado: {
+    estado: string;
+    cantidad: number;
+  }[];
+  topProductos: {
+    producto: string;
+    categoria: string;
+    ingresos: number;
+    cantidad: number;
+  }[];
+  stockBajo: {
+    id: number;
+    nombre: string;
+    stock: number;
+    imagen: string | null;
+    porcentaje: number;
+  }[];
+  insights: {
+    estadoPredominante: string;
+    mejorProducto: string;
+    estadoOperacion: string;
+    textoOperacion: string;
+    crecimientoIngresos: number;
+    crecimientoEntregados: number;
+  };
+  pedidos: PedidoDashboard[];
+};
+
+function formatBs(value: number) {
+  return `Bs. ${Number(value || 0).toLocaleString("es-BO", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
 
 async function cargarLogoBase64() {
   const response = await fetch("/logo/logo-business-expandido.png");
@@ -371,6 +429,441 @@ export const exportarPedidosProveedorPDF = async (
   });
 
   doc.save("Lista_Pedidos_Proveedor_Emotia.pdf");
+};
+
+export const exportarReporteDashboardEjecutivoExcel = async (
+  reporte: ReporteDashboardEjecutivo
+) => {
+  const workbook = new ExcelJS.Workbook();
+
+  workbook.creator = "Emotia Business";
+  workbook.created = new Date();
+
+  const resumen = workbook.addWorksheet("Resumen Ejecutivo", {
+    views: [{ showGridLines: false }],
+  });
+
+  resumen.columns = [
+    { width: 28 },
+    { width: 20 },
+    { width: 24 },
+    { width: 20 },
+    { width: 24 },
+    { width: 20 },
+  ];
+
+  await agregarLogoExcel(workbook, resumen);
+
+  resumen.mergeCells("A4:F4");
+  resumen.getCell("A4").value = "REPORTE EJECUTIVO — EMOTIA BUSINESS";
+  resumen.getCell("A4").font = {
+    size: 16,
+    bold: true,
+    color: { argb: COLORS.bordoNegro },
+  };
+  resumen.getCell("A4").alignment = {
+    horizontal: "center",
+    vertical: "middle",
+  };
+
+  resumen.mergeCells("A5:F5");
+  resumen.getCell("A5").value = `${reporte.empresa} · ${reporte.rango} · Generado ${formatearFecha(reporte.generadoEn)}`;
+  resumen.getCell("A5").font = {
+    size: 10,
+    italic: true,
+    color: { argb: "FF666666" },
+  };
+  resumen.getCell("A5").alignment = { horizontal: "center" };
+
+  const kpis = [
+    ["Ingresos totales", formatBs(reporte.kpis.ingresosTotales)],
+    ["Total pedidos", reporte.kpis.totalPedidos],
+    ["Ticket promedio", formatBs(reporte.kpis.ticketPromedio)],
+    ["Productos vendidos", reporte.kpis.productosVendidos],
+    ["Entregados", reporte.kpis.entregados],
+    ["Pendientes", reporte.kpis.pendientes],
+    ["En proceso", reporte.kpis.enProceso],
+    ["Cancelados", reporte.kpis.cancelados],
+    ["Productos activos", reporte.kpis.productosActivos],
+    ["Stock bajo", reporte.kpis.stockBajo],
+  ];
+
+  resumen.mergeCells("A7:F7");
+  resumen.getCell("A7").value = "Indicadores principales";
+  resumen.getCell("A7").font = {
+    bold: true,
+    size: 13,
+    color: { argb: COLORS.granate },
+  };
+
+  let row = 9;
+  kpis.forEach(([label, value], index) => {
+    const col = index % 2 === 0 ? 1 : 4;
+    const currentRow = row + Math.floor(index / 2) * 2;
+
+    resumen.getCell(currentRow, col).value = label;
+    resumen.getCell(currentRow, col).font = {
+      bold: true,
+      size: 10,
+      color: { argb: "FF7A5260" },
+    };
+
+    resumen.getCell(currentRow + 1, col).value = value;
+    resumen.getCell(currentRow + 1, col).font = {
+      bold: true,
+      size: 16,
+      color: { argb: COLORS.bordoNegro },
+    };
+
+    resumen.mergeCells(currentRow, col, currentRow, col + 1);
+    resumen.mergeCells(currentRow + 1, col, currentRow + 1, col + 1);
+  });
+
+  resumen.mergeCells("A21:F21");
+  resumen.getCell("A21").value = "Resumen ejecutivo";
+  resumen.getCell("A21").font = {
+    bold: true,
+    size: 13,
+    color: { argb: COLORS.granate },
+  };
+
+  const insights = [
+    `Estado predominante: ${reporte.insights.estadoPredominante}`,
+    `Producto con mejor rendimiento: ${reporte.insights.mejorProducto}`,
+    `Operación: ${reporte.insights.estadoOperacion} (${reporte.insights.textoOperacion})`,
+    `Crecimiento de ingresos: ${reporte.insights.crecimientoIngresos.toFixed(1)}%`,
+    `Crecimiento de entregados: ${reporte.insights.crecimientoEntregados.toFixed(1)}%`,
+  ];
+
+  insights.forEach((insight, index) => {
+    resumen.mergeCells(22 + index, 1, 22 + index, 6);
+    resumen.getCell(22 + index, 1).value = `• ${insight}`;
+    resumen.getCell(22 + index, 1).font = {
+      size: 10,
+      color: { argb: COLORS.choco },
+    };
+  });
+
+  const ventasMes = workbook.addWorksheet("Ventas por Mes", {
+    views: [{ showGridLines: false }],
+  });
+
+  ventasMes.columns = [
+    { header: "Mes", key: "mes", width: 22 },
+    { header: "Ingresos", key: "ingresos", width: 20 },
+    { header: "Pedidos", key: "pedidos", width: 18 },
+    { header: "Ticket promedio", key: "ticket", width: 22 },
+  ];
+
+  reporte.ventasPorMes.forEach((item) => {
+    ventasMes.addRow({
+      mes: item.mes,
+      ingresos: item.ingresos,
+      pedidos: item.pedidos,
+      ticket: item.pedidos > 0 ? item.ingresos / item.pedidos : 0,
+    });
+  });
+
+  aplicarHeaderTabla(ventasMes, 1);
+  aplicarEstiloDatos(ventasMes, 2, 4);
+
+  ventasMes.getColumn("ingresos").numFmt = '"Bs." #,##0.00';
+  ventasMes.getColumn("ticket").numFmt = '"Bs." #,##0.00';
+
+  const chartDataStart = 2;
+  const chartDataEnd = Math.max(2, reporte.ventasPorMes.length + 1);
+
+  ventasMes.addTable({
+    name: "TablaVentasPorMes",
+    ref: "A1",
+    headerRow: true,
+    style: {
+      theme: "TableStyleMedium4",
+      showRowStripes: true,
+    },
+    columns: [
+      { name: "Mes" },
+      { name: "Ingresos" },
+      { name: "Pedidos" },
+      { name: "Ticket promedio" },
+    ],
+    rows: reporte.ventasPorMes.map((item) => [
+      item.mes,
+      item.ingresos,
+      item.pedidos,
+      item.pedidos > 0 ? item.ingresos / item.pedidos : 0,
+    ]),
+  });
+
+  const productos = workbook.addWorksheet("Top Productos", {
+    views: [{ showGridLines: false }],
+  });
+
+  productos.columns = [
+    { header: "Producto", key: "producto", width: 42 },
+    { header: "Categoría", key: "categoria", width: 24 },
+    { header: "Cantidad", key: "cantidad", width: 16 },
+    { header: "Ingresos", key: "ingresos", width: 20 },
+  ];
+
+  reporte.topProductos.forEach((item) => {
+    productos.addRow(item);
+  });
+
+  aplicarHeaderTabla(productos, 1);
+  aplicarEstiloDatos(productos, 2, 4);
+  productos.getColumn("ingresos").numFmt = '"Bs." #,##0.00';
+
+  const estados = workbook.addWorksheet("Estados", {
+    views: [{ showGridLines: false }],
+  });
+
+  estados.columns = [
+    { header: "Estado", key: "estado", width: 24 },
+    { header: "Cantidad", key: "cantidad", width: 18 },
+  ];
+
+  reporte.pedidosPorEstado.forEach((item) => {
+    estados.addRow(item);
+  });
+
+  aplicarHeaderTabla(estados, 1);
+  aplicarEstiloDatos(estados, 2, 2);
+
+  const detalle = workbook.addWorksheet("Detalle Pedidos", {
+    views: [{ showGridLines: false }],
+  });
+
+  detalle.columns = [
+    { header: "Pedido", key: "pedidoId", width: 18 },
+    { header: "Cliente", key: "cliente", width: 28 },
+    { header: "Producto", key: "producto", width: 42 },
+    { header: "Fecha", key: "fecha", width: 22 },
+    { header: "Estado", key: "estado", width: 18 },
+    { header: "Total", key: "total", width: 18 },
+  ];
+
+  reporte.pedidos.forEach((pedido) => {
+    detalle.addRow({
+      pedidoId: pedido.pedidoId || pedido.id,
+      cliente: pedido.cliente,
+      producto: pedido.producto,
+      fecha: formatearFecha(pedido.fecha),
+      estado: pedido.estado,
+      total: Number(pedido.total || 0),
+    });
+  });
+
+  aplicarHeaderTabla(detalle, 1);
+  aplicarEstiloDatos(detalle, 2, 6);
+  detalle.getColumn("total").numFmt = '"Bs." #,##0.00';
+
+  [resumen, ventasMes, productos, estados, detalle].forEach((sheet) => {
+    sheet.eachRow((r) => {
+      r.eachCell((cell) => {
+        cell.alignment = {
+          ...cell.alignment,
+          vertical: "middle",
+          wrapText: true,
+        };
+      });
+    });
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  saveAs(
+    new Blob([buffer]),
+    `Reporte_Ejecutivo_Emotia_${reporte.rango.replace(/\s+/g, "_")}.xlsx`
+  );
+};
+
+export const exportarReporteDashboardEjecutivoPDF = async (
+  reporte: ReporteDashboardEjecutivo
+) => {
+  const doc = new jsPDF("landscape", "mm", "a4");
+
+  await agregarHeaderPDF(
+    doc,
+    "REPORTE EJECUTIVO — EMOTIA BUSINESS",
+    `${reporte.empresa} · ${reporte.rango}`
+  );
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(61, 10, 26);
+  doc.text("Indicadores principales", 14, 45);
+
+  const kpiCards = [
+    ["Ingresos", formatBs(reporte.kpis.ingresosTotales)],
+    ["Pedidos", String(reporte.kpis.totalPedidos)],
+    ["Ticket promedio", formatBs(reporte.kpis.ticketPromedio)],
+    ["Vendidos", String(reporte.kpis.productosVendidos)],
+    ["Entregados", String(reporte.kpis.entregados)],
+    ["Stock bajo", String(reporte.kpis.stockBajo)],
+  ];
+
+  const cardW = 43;
+  const cardH = 18;
+  const startX = 14;
+  const startY = 50;
+
+  kpiCards.forEach(([label, value], index) => {
+    const x = startX + index * 46;
+
+    doc.setFillColor(250, 247, 243);
+    doc.setDrawColor(230, 220, 214);
+    doc.roundedRect(x, startY, cardW, cardH, 3, 3, "FD");
+
+    doc.setFontSize(7);
+    doc.setTextColor(122, 82, 96);
+    doc.text(label.toUpperCase(), x + 3, startY + 6);
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(61, 10, 26);
+    doc.text(value, x + 3, startY + 13);
+  });
+
+  doc.setFontSize(11);
+  doc.setTextColor(61, 10, 26);
+  doc.text("Resumen ejecutivo", 14, 82);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(80, 80, 80);
+
+  const insights = [
+    `Estado predominante: ${reporte.insights.estadoPredominante}`,
+    `Producto con mejor rendimiento: ${reporte.insights.mejorProducto}`,
+    `Operación: ${reporte.insights.estadoOperacion} (${reporte.insights.textoOperacion})`,
+    `Crecimiento de ingresos: ${reporte.insights.crecimientoIngresos.toFixed(1)}%`,
+    `Crecimiento de entregados: ${reporte.insights.crecimientoEntregados.toFixed(1)}%`,
+  ];
+
+  insights.forEach((line, index) => {
+    doc.text(`• ${line}`, 16, 89 + index * 5);
+  });
+
+  autoTable(doc, {
+    startY: 118,
+    margin: { left: 14, right: 154 },
+    head: [["Mes", "Ingresos", "Pedidos"]],
+    body: reporte.ventasPorMes.map((item) => [
+      item.mes,
+      formatBs(item.ingresos),
+      item.pedidos,
+    ]),
+    theme: "grid",
+    headStyles: {
+      fillColor: [142, 27, 58],
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+    },
+    styles: {
+      fontSize: 7.5,
+      cellPadding: 2.3,
+    },
+    alternateRowStyles: {
+      fillColor: [250, 247, 243],
+    },
+  });
+
+  autoTable(doc, {
+    startY: 118,
+    margin: { left: 154, right: 14 },
+    head: [["Producto", "Cant.", "Ingresos"]],
+    body: reporte.topProductos.slice(0, 6).map((item) => [
+      item.producto,
+      item.cantidad,
+      formatBs(item.ingresos),
+    ]),
+    theme: "grid",
+    headStyles: {
+      fillColor: [92, 58, 46],
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+    },
+    styles: {
+      fontSize: 7,
+      cellPadding: 2.3,
+    },
+    alternateRowStyles: {
+      fillColor: [250, 247, 243],
+    },
+    columnStyles: {
+      0: { cellWidth: 58 },
+      1: { halign: "center" },
+      2: { halign: "right", fontStyle: "bold" },
+    },
+  });
+
+  doc.addPage();
+
+  await agregarHeaderPDF(
+    doc,
+    "DETALLE OPERATIVO — EMOTIA BUSINESS",
+    `${reporte.empresa} · ${reporte.rango}`
+  );
+
+  autoTable(doc, {
+    startY: 42,
+    head: [["Pedido", "Cliente", "Producto", "Fecha", "Estado", "Total"]],
+    body: reporte.pedidos.map((pedido) => [
+      pedido.pedidoId || pedido.id,
+      pedido.cliente,
+      pedido.producto,
+      formatearFecha(pedido.fecha),
+      pedido.estado,
+      formatBs(Number(pedido.total || 0)),
+    ]),
+    theme: "grid",
+    headStyles: {
+      fillColor: [142, 27, 58],
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      halign: "center",
+    },
+    styles: {
+      fontSize: 8,
+      cellPadding: 3,
+      valign: "middle",
+    },
+    alternateRowStyles: {
+      fillColor: [250, 247, 243],
+    },
+    columnStyles: {
+      0: { fontStyle: "bold", textColor: [142, 27, 58] },
+      2: { cellWidth: 75 },
+      5: { halign: "right", fontStyle: "bold" },
+    },
+  });
+
+  if (reporte.stockBajo.length > 0) {
+    const finalY = (doc as any).lastAutoTable?.finalY || 120;
+
+    autoTable(doc, {
+      startY: finalY + 10,
+      head: [["Alertas de stock bajo", "Stock"]],
+      body: reporte.stockBajo.map((item) => [item.nombre, item.stock]),
+      theme: "grid",
+      headStyles: {
+        fillColor: [188, 153, 104],
+        textColor: [61, 10, 26],
+        fontStyle: "bold",
+      },
+      styles: {
+        fontSize: 8,
+        cellPadding: 3,
+      },
+      columnStyles: {
+        1: { halign: "center", fontStyle: "bold" },
+      },
+    });
+  }
+
+  doc.save(
+    `Reporte_Ejecutivo_Emotia_${reporte.rango.replace(/\s+/g, "_")}.pdf`
+  );
 };
 
 // Compatibilidad con tu llamada actual del dashboard

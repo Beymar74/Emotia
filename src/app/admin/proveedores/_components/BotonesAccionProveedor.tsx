@@ -19,7 +19,7 @@ export default function BotonesAccionProveedor({ proveedor }: Props) {
 
   const estadoActual = proveedor.estado || "pendiente";
 
-  const cambiarEstado = (nuevoEstado: "activo" | "pendiente" | "suspendido") => {
+  const cambiarEstado = (nuevoEstado: "aprobado" | "pendiente" | "suspendido") => {
     startTransition(async () => {
       await cambiarEstadoProveedorAction(proveedor.id, nuevoEstado);
     });
@@ -58,13 +58,13 @@ export default function BotonesAccionProveedor({ proveedor }: Props) {
           Editar
         </button>
 
-        {estadoActual !== "activo" ? (
-          <button
-            onClick={() => cambiarEstado("activo")}
+        {estadoActual !== "aprobado" ? (
+         <button
+            onClick={() => cambiarEstado("aprobado")}
             disabled={isPending}
             className="text-[11px] px-3 py-1.5 rounded-lg font-bold transition-all shadow-sm flex items-center justify-center min-w-[75px] bg-[#EEF8F0] text-[#2D7A47] hover:bg-[#2D7A47] hover:text-white"
           >
-            {isPending ? <Loader2 size={12} className="animate-spin" /> : "Activar"}
+            {isPending ? <Loader2 size={12} className="animate-spin" /> : "Aprobar"}
           </button>
         ) : (
           <button
@@ -155,7 +155,7 @@ export default function BotonesAccionProveedor({ proveedor }: Props) {
                       className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all text-[#2A0E18]"
                     >
                       <option value="pendiente">Pendiente</option>
-                      <option value="activo">Activo</option>
+                      <option value="aprobado">Aprobado</option>
                       <option value="suspendido">Suspendido</option>
                     </select>
                   </div>

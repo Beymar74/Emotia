@@ -104,9 +104,9 @@ export default async function ProveedoresPage({
     prisma.proveedores.count(),
 
     prisma.proveedores.count({
-      where: {
-        estado: "activo",
-      },
+        where: {
+            estado: "aprobado",
+        },
     }),
 
     prisma.proveedores.count({
@@ -187,11 +187,11 @@ export default async function ProveedoresPage({
             icon: <Store size={14} />,
           },
           {
-            label: "Activos",
+            label: "Aprobados",
             valor: proveedoresActivos,
             color: "#2D7A47",
             icon: <CheckCircle2 size={14} />,
-          },
+        },
           {
             label: "Pendientes",
             valor: proveedoresPendientes,

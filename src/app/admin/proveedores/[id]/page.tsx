@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Breadcrumbs from "../../_components/Breadcrumbs";
 import LogoProveedorUploader from "../_components/LogoProveedorUploader";
+import ResetPasswordProveedorForm from "../_components/ResetPasswordProveedorForm";
 
 export const dynamic = "force-dynamic";
 
@@ -89,11 +90,11 @@ export default async function DetalleProveedorPage({
 
   const estado = proveedor.estado || "pendiente";
 
-  const estadoStyles: Record<string, string> = {
-    activo: "bg-[#EEF8F0] border-[#2D7A47]/10 text-[#2D7A47]",
-    pendiente: "bg-[#FFF6E8] border-[#BC9968]/20 text-[#8C5E08]",
-    suspendido: "bg-[#FBF0F0] border-[#A32D2D]/10 text-[#A32D2D]",
-  };
+    const estadoStyles: Record<string, string> = {
+        aprobado: "bg-[#EEF8F0] border-[#2D7A47]/10 text-[#2D7A47]",
+        pendiente: "bg-[#FFF6E8] border-[#BC9968]/20 text-[#8C5E08]",
+        suspendido: "bg-[#FBF0F0] border-[#A32D2D]/10 text-[#A32D2D]",
+    };
 
   const inicial = proveedor.nombre_negocio
     ? proveedor.nombre_negocio.charAt(0).toUpperCase()
@@ -288,7 +289,16 @@ export default async function DetalleProveedorPage({
             <h3 className="text-sm font-bold text-[#5A0F24] uppercase tracking-[2px] mb-4">
               Estado y Actividad
             </h3>
+            <div className="pt-4 mt-2 border-t border-[#8E1B3A]/10">
+                <h4 className="text-[10px] text-[#7A5260] uppercase font-bold tracking-wider mb-1">
+                    Seguridad
+                </h4>
+                <p className="text-xs text-[#7A5260] mb-3">
+                    Puedes restablecer la contraseña que usa el proveedor para ingresar al panel Business.
+                </p>
 
+                <ResetPasswordProveedorForm proveedorId={proveedor.id} />
+            </div>
             <div className="flex items-center gap-4 text-[#2A0E18]">
               <div
                 className={`p-3 rounded-xl shadow-sm border ${

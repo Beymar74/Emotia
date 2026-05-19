@@ -5,7 +5,7 @@ import { Search, Filter, Store } from "lucide-react";
 import BotonesAccionProveedor from "./BotonesAccionProveedor";
 
 const estadoPill: Record<string, string> = {
-  activo: "bg-[#EEF8F0] text-[#2D7A47] border border-[#2D7A47]/10",
+  aprobado: "bg-[#EEF8F0] text-[#2D7A47] border border-[#2D7A47]/10",
   pendiente: "bg-[#FFF6E8] text-[#8C5E08] border border-[#BC9968]/20",
   suspendido: "bg-[#FBF0F0] text-[#A32D2D] border border-[#A32D2D]/10",
 };
@@ -93,7 +93,7 @@ export default function ProveedoresListClient({
             className="bg-white text-xs font-semibold border border-[#8E1B3A]/10 rounded-xl px-4 py-2.5 outline-none text-[#7A5260] cursor-pointer hover:bg-[#FDFBF9]"
           >
             <option value="">Todos los estados</option>
-            <option value="activo">Activo</option>
+            <option value="aprobado">Aprobado</option>
             <option value="pendiente">Pendiente</option>
             <option value="suspendido">Suspendido</option>
           </select>

@@ -98,6 +98,7 @@ export async function obtenerDashboardProveedor(
     pedidosPendientesMes,
     pedidosEntregadosMes,
     pedidosEntregadosMesAnterior,
+    detalleReporte,
   ] = await Promise.all([
     prisma.productos.count({
       where: {
@@ -279,6 +280,42 @@ export async function obtenerDashboardProveedor(
         },
       },
     }),
+    prisma.detalle_pedidos.findMany({
+  where: {
+    proveedor_id: proveedor.id,
+    created_at: {
+      gte: inicioPeriodo,
+    },
+  },
+  orderBy: {
+    created_at: "desc",
+  },
+  include: {
+    pedidos: {
+      include: {
+        usuarios: {
+          select: {
+            nombre: true,
+            apellido: true,
+          },
+        },
+      },
+    },
+    productos: {
+      select: {
+        id: true,
+        nombre: true,
+        imagen_url: true,
+        stock: true,
+        categorias: {
+          select: {
+            nombre: true,
+          },
+        },
+      },
+    },
+  },
+}),
   ]);
 
   const ingresosMes = detalleMes.reduce(
@@ -396,31 +433,162 @@ export async function obtenerDashboardProveedor(
     ventasPorDia[6],
     ventasPorDia[0],
   ];
-  return {
-    metricas: {
-      ingresosMes,
-      crecimientoIngresos,
-      pedidosPendientes,
-      pedidosPendientesMes,
-      pedidosEnProceso,
-      pedidosEntregados,
-      crecimientoEntregados,
-      estadoOperacion,
-      textoOperacion,
-      productosActivos,
-      stockBajo: productosStockBajo.length,
-    },
-    productosRecientes: productosRecientes.map((producto) => ({
-      id: producto.id,
-      nombre: producto.nombre,
-      stock: producto.stock,
-      activo: producto.activo,
-      precio: Number(producto.precio_venta),
-      imagen: producto.imagen_url,
-    })),
-    inventario,
-    ultimosPedidos,
-    actividadReciente,
-    graficaVentas,
+
+  const totalPedidosReporte = detalleReporte.length;
+const productosVendidos = detalleReporte.reduce(
+  (total, detalle) => total + Number(detalle.cantidad || 0),
+  0
+);
+
+const ticketPromedio =
+  totalPedidosReporte > 0 ? ingresosMes / totalPedidosReporte : 0;
+
+const pedidosPorEstadoMap = new Map<string, number>();
+
+detalleReporte.forEach((detalle) => {
+  const estado = normalizarEstadoPedido(detalle.pedidos.estado);
+  pedidosPorEstadoMap.set(estado, (pedidosPorEstadoMap.get(estado) || 0) + 1);
+});
+
+const pedidosPorEstado = Array.from(pedidosPorEstadoMap.entries()).map(
+  ([estado, cantidad]) => ({
+    estado,
+    cantidad,
+  })
+);
+
+const ventasPorMesMap = new Map<
+  string,
+  {
+    mes: string;
+    ingresos: number;
+    pedidos: number;
+  }
+>();
+
+detalleReporte.forEach((detalle) => {
+  const fecha = detalle.created_at;
+  const mes = new Intl.DateTimeFormat("es-BO", {
+    month: "short",
+    year: "numeric",
+    timeZone: "America/La_Paz",
+  }).format(fecha);
+
+  const actual = ventasPorMesMap.get(mes) || {
+    mes,
+    ingresos: 0,
+    pedidos: 0,
   };
+
+  actual.ingresos += Number(detalle.subtotal || 0);
+  actual.pedidos += 1;
+
+  ventasPorMesMap.set(mes, actual);
+});
+
+const ventasPorMes = Array.from(ventasPorMesMap.values());
+
+const productosMap = new Map<
+  number,
+  {
+    producto: string;
+    categoria: string;
+    ingresos: number;
+    cantidad: number;
+  }
+>();
+
+detalleReporte.forEach((detalle) => {
+  const productoId = detalle.productos.id;
+
+  const actual = productosMap.get(productoId) || {
+    producto: detalle.productos.nombre,
+    categoria: detalle.productos.categorias?.nombre || "Sin categoría",
+    ingresos: 0,
+    cantidad: 0,
+  };
+
+  actual.ingresos += Number(detalle.subtotal || 0);
+  actual.cantidad += Number(detalle.cantidad || 0);
+
+  productosMap.set(productoId, actual);
+});
+
+const topProductos = Array.from(productosMap.values())
+  .sort((a, b) => b.ingresos - a.ingresos)
+  .slice(0, 8);
+
+const estadoPredominante =
+  pedidosPorEstado.length > 0
+    ? [...pedidosPorEstado].sort((a, b) => b.cantidad - a.cantidad)[0].estado
+    : "Sin pedidos";
+
+const mejorProducto =
+  topProductos.length > 0 ? topProductos[0].producto : "Sin ventas registradas";
+
+const reporteEjecutivo = {
+  empresa: proveedor.nombre_negocio,
+  filtro: filtro,
+  rango: filtro === "ultimos_7_dias"
+    ? "Últimos 7 días"
+    : filtro === "anio_actual"
+      ? "Año actual"
+      : "Este mes",
+  generadoEn: ahora.toISOString(),
+  kpis: {
+    ingresosTotales: ingresosMes,
+    totalPedidos: totalPedidosReporte,
+    ticketPromedio,
+    productosVendidos,
+    entregados: pedidosEntregados,
+    pendientes: pedidosPendientes,
+    enProceso: pedidosEnProceso,
+    cancelados: detalleReporte.filter(
+      (detalle) => detalle.pedidos.estado === "cancelado"
+    ).length,
+    productosActivos,
+    stockBajo: productosStockBajo.length,
+  },
+  ventasPorMes,
+  pedidosPorEstado,
+  topProductos,
+  stockBajo: inventario,
+  insights: {
+    estadoPredominante,
+    mejorProducto,
+    estadoOperacion,
+    textoOperacion,
+    crecimientoIngresos,
+    crecimientoEntregados,
+  },
+  pedidos: ultimosPedidos,
+};
+  return {
+  metricas: {
+    ingresosMes,
+    crecimientoIngresos,
+    pedidosPendientes,
+    pedidosPendientesMes,
+    pedidosEnProceso,
+    pedidosEntregados,
+    crecimientoEntregados,
+    estadoOperacion,
+    textoOperacion,
+    productosActivos,
+    stockBajo: productosStockBajo.length,
+  },
+  productosRecientes: productosRecientes.map((producto) => ({
+    id: producto.id,
+    nombre: producto.nombre,
+    stock: producto.stock,
+    activo: producto.activo,
+    precio: Number(producto.precio_venta),
+    imagen: producto.imagen_url,
+  })),
+  inventario,
+  ultimosPedidos,
+  actividadReciente,
+  graficaVentas,
+  reporteEjecutivo,
+};
 }
