@@ -81,7 +81,7 @@ export default async function ReporteCalidadPage({
   // Datos para descarga
   const config = {
     filename: "reporte-calidad",
-    titulo: "Reporte de Calidad — Emotia",
+    titulo: "Reporte de Calidad — PREPE",
     formatos: ["pdf", "excel"] as ("pdf" | "excel")[],
     kpis: [
       { label: "Calificación promedio", valor: promedioGlobal.toFixed(2) + " ★", color: "#BC9968" },

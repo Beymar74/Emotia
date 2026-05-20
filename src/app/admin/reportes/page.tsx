@@ -9,6 +9,8 @@ export default async function ReportesHubPage() {
     totalEmpresas,
     totalProductos,
     totalCalificaciones,
+    totalProveedores,
+    totalUsuariosRegistrados,
   ] = await Promise.all([
     prisma.pedidos.aggregate({ _sum: { total: true }, where: { estado: 'entregado' } }),
     prisma.pedidos.count({ where: { estado: 'entregado' } }),
@@ -16,6 +18,8 @@ export default async function ReportesHubPage() {
     prisma.proveedores.count({ where: { estado: 'aprobado' } }),
     prisma.productos.count({ where: { activo: true } }),
     prisma.detalle_pedidos.count({ where: { calificacion: { not: null } } }),
+    prisma.proveedores.count(),
+    prisma.usuarios.count({ where: { tipo: 'usuario' } }),
   ]);
 
   const ingresos = Number(totalIngresos._sum.total || 0);
@@ -130,9 +134,41 @@ export default async function ReportesHubPage() {
       bg: "bg-[#2D7A47]/8",
     },
     {
+      href: "/admin/reportes/usuarios",
+      titulo: "Usuarios",
+      descripcion: "Usuarios registrados, actividad, roles y estadísticas de la plataforma.",
+      icono: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <circle cx="8" cy="7" r="3" stroke="currentColor" strokeWidth="2" />
+          <path d="M2 20c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="17" cy="7" r="2.5" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M21 20c0-2.5-1.8-4.5-4-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      ),
+      stat: String(totalUsuariosRegistrados),
+      statLabel: "usuarios registrados",
+      color: "#5C3A2E",
+      bg: "bg-[#5C3A2E]/8",
+    },
+    {
+      href: "/admin/reportes/proveedores",
+      titulo: "Proveedores",
+      descripcion: "Estado, actividad y rendimiento de los proveedores registrados en PREPE.",
+      icono: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 22V12h6v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+      stat: String(totalProveedores),
+      statLabel: "proveedores en sistema",
+      color: "#185FA5",
+      bg: "bg-[#185FA5]/8",
+    },
+    {
       href: "/admin/reportes/global",
       titulo: "Reporte Global",
-      descripcion: "Visión consolidada de todas las métricas del sistema.",
+      descripcion: "Visión consolidada de todas las métricas del Sistema PREPE.",
       icono: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
@@ -155,18 +191,20 @@ export default async function ReportesHubPage() {
         <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
         <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">Centro de Reportes</h1>
         <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-          En esta sección puedes acceder a todos los reportes detallados y análisis del sistema para tomar decisiones informadas sobre ventas, clientes y calidad.
+          Accede a todos los reportes detallados del Sistema PREPE. Cada módulo tiene su propio reporte independiente con métricas, gráficas y datos exportables.
         </p>
         <p className="text-sm text-[#7A5260] mt-1">Selecciona un tipo de reporte para ver el análisis detallado.</p>
       </div>
 
       {/* Métricas rápidas */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { label: "Ingresos totales", valor: formatBs(ingresos), color: "#8E1B3A" },
           { label: "Pedidos entregados", valor: String(totalPedidos), color: "#2D7A47" },
-          { label: "Clientes activos", valor: String(totalUsuarios), color: "#BC9968" },
-          { label: "Empresas activas", valor: String(totalEmpresas), color: "#AB3A50" },
+          { label: "Usuarios registrados", valor: String(totalUsuariosRegistrados), color: "#5C3A2E" },
+          { label: "Usuarios activos", valor: String(totalUsuarios), color: "#BC9968" },
+          { label: "Proveedores totales", valor: String(totalProveedores), color: "#185FA5" },
+          { label: "Proveedores activos", valor: String(totalEmpresas), color: "#AB3A50" },
         ].map((m) => (
           <div key={m.label} className="bg-white rounded-xl border border-[#8E1B3A]/10 p-4 relative overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#8E1B3A]/30">
             <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: m.color }} />

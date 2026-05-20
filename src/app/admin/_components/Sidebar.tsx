@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useStackApp, useUser } from "@stackframe/stack";
+import Image from "next/image";
 
 const navSections = [
   {
@@ -15,21 +16,21 @@ const navSections = [
     ],
   },
   {
-    label: "Usuarios & Accesos",
+    label: "Usuarios",
     icon: IconUser,
     soloAdmin: true,
     items: [
       { href: "/admin/usuarios", label: "Gestión de usuarios", soloAdmin: true },
-      { href: "/admin/proveedores", label: "Gestión de proveedores", soloAdmin: true },
     ],
   },
   {
-    label: "Empresas",
+    label: "Proveedores",
     icon: IconCheck,
-    soloAdmin: false,
+    soloAdmin: true,
     items: [
-      { href: "/admin/empresas/actividad", label: "Supervisar actividad", soloAdmin: false },
-      { href: "/admin/empresas/rendimiento", label: "Rendimiento", soloAdmin: false },
+      { href: "/admin/proveedores", label: "Todos los proveedores", soloAdmin: true },
+      { href: "/admin/empresas/actividad", label: "Actividad", soloAdmin: true },
+      { href: "/admin/empresas/rendimiento", label: "Rendimiento", soloAdmin: true },
     ],
   },
   {
@@ -73,7 +74,7 @@ const navSections = [
     icon: IconStar,
     soloAdmin: false,
     items: [
-      { href: "/admin/calificaciones", label: "reseñas de productos", soloAdmin: false },
+      { href: "/admin/calificaciones", label: "Reseñas de productos", soloAdmin: false },
     ],
   },
   {
@@ -138,23 +139,34 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
       <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#BC9968]/40 to-transparent" />
 
       {/* Header */}
-      <div className="px-5 py-6 border-b border-[#BC9968]/20 flex items-start justify-between">
-        <div>
-          <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium mb-1">
-            Sistema PREPE
-          </p>
-          <h1 className="font-serif text-3xl font-bold text-[#F5E6D0] leading-none">
-            Emotia
-          </h1>
-          <p className="text-xs text-[#F5E6D0]/50 mt-1.5">
-            Panel de Administración Total
-          </p>
+      <div className="px-5 py-5 border-b border-[#BC9968]/20 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden border border-[#BC9968]/30">
+            <Image
+              src="/logo/prepe.png"
+              alt="PREPE"
+              width={36}
+              height={36}
+              className="object-contain"
+            />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] tracking-[2px] uppercase text-[#BC9968] font-semibold leading-none mb-0.5">
+              Sistema
+            </p>
+            <h1 className="font-serif text-xl font-bold text-[#F5E6D0] leading-tight tracking-wide">
+              PREPE
+            </h1>
+            <p className="text-[10px] text-[#F5E6D0]/45 mt-0.5 leading-tight truncate">
+              Plataforma de Regalos y Experiencias
+            </p>
+          </div>
         </div>
         {/* Botón cerrar en mobile */}
         {onClose && (
           <button
             onClick={onClose}
-            className="lg:hidden text-[#F5E6D0]/60 hover:text-[#F5E6D0] p-1 -mr-1 -mt-1 transition-colors"
+            className="lg:hidden text-[#F5E6D0]/60 hover:text-[#F5E6D0] p-1 flex-shrink-0 transition-colors"
             aria-label="Cerrar menú"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -241,9 +253,9 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
           </div>
           <div>
             <p className="text-sm text-[#F5E6D0] font-medium">
-              {esAdmin ? "Super Admin" : "Operador"}
+              {esAdmin ? "Administrador" : "Operador"}
             </p>
-            <p className="text-xs text-[#BC9968]">PREPE · Emotia</p>
+            <p className="text-xs text-[#BC9968]">Sistema PREPE</p>
             <span className="inline-block text-xs bg-[#BC9968]/25 text-[#BC9968] px-2 py-0.5 rounded-full tracking-wide uppercase mt-1">
               {esAdmin ? "Acceso total" : "Acceso limitado"}
             </span>

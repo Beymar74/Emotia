@@ -96,7 +96,7 @@ export default async function ReporteFidelizacionPage({
 
   const config = {
     filename: "reporte-fidelizacion",
-    titulo: "Reporte de Fidelización — Emotia",
+    titulo: "Reporte de Fidelización — PREPE",
     formatos: ["pdf", "excel"] as ("pdf" | "excel")[],
     kpis: [
       { label: "Clientes con compras", valor: String(clientes.length), color: "#8E1B3A" },

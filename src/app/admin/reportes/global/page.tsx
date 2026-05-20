@@ -111,7 +111,7 @@ export default async function ReporteGlobalPage({
   // Datos para descarga
   const config = {
     filename: "reporte-global",
-    titulo: "Reporte Global del Sistema — Emotia",
+    titulo: "Reporte Global del Sistema — PREPE",
     formatos: ["pdf"] as ("pdf" | "excel")[],
     kpis: kpisGenerales,
     graficos: [
@@ -160,7 +160,7 @@ export default async function ReporteGlobalPage({
             <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte Global del Sistema</h1>
         <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-          En esta sección puedes obtener una perspectiva holística de la salud de Emotia, uniendo las métricas de todas las áreas clave en un solo lugar.
+          En esta sección puedes obtener una perspectiva holística del Sistema PREPE, uniendo las métricas de todas las áreas clave en un solo lugar.
         </p>
           </div>
         </div>
@@ -194,6 +194,8 @@ export default async function ReporteGlobalPage({
         <p className="text-sm text-white/70 mb-4">Accede a análisis específicos por área del sistema.</p>
         <div className="flex flex-wrap gap-2">
           {[
+            { href: "/admin/reportes/usuarios", label: "Usuarios" },
+            { href: "/admin/reportes/proveedores", label: "Proveedores" },
             { href: "/admin/reportes/ventas", label: "Ventas" },
             { href: "/admin/reportes/clientes", label: "Clientes" },
             { href: "/admin/reportes/pedidos", label: "Pedidos" },

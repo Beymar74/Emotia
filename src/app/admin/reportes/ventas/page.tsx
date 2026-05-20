@@ -85,7 +85,7 @@ export default async function ReporteVentasPage({
 
   const config = {
     filename: "reporte-ventas",
-    titulo: "Reporte de Ventas — Emotia",
+    titulo: "Reporte de Ventas — PREPE",
     formatos: ["pdf", "excel"] as ("pdf" | "excel")[],
     kpis: [
       { label: "Ingresos totales", valor: formatBs(totalIngresos), color: "#8E1B3A" },

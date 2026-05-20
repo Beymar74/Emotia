@@ -369,7 +369,7 @@ async function generarPDF(config: ReporteConfig) {
   doc.setFontSize(8);
   doc.setTextColor(188, 153, 104);
   const fecha = new Intl.DateTimeFormat("es-BO", { day: "2-digit", month: "long", year: "numeric" }).format(new Date());
-  doc.text(`Generado el ${fecha} · Emotia — Sistema PREPE`, pw / 2, 22, { align: "center" });
+  doc.text(`Generado el ${fecha} · Sistema PREPE`, pw / 2, 22, { align: "center" });
 
   let y = 36;
 
@@ -451,7 +451,7 @@ async function generarPDF(config: ReporteConfig) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(122, 82, 96);
-    doc.text(`Emotia · Sistema PREPE · Reporte confidencial`, margin, ph - 2.5);
+    doc.text(`PREPE · Plataforma de Regalos Personalizados y Experiencias · Reporte confidencial`, margin, ph - 2.5);
     doc.text(`Página ${p} de ${pages}`, pw - margin, ph - 2.5, { align: "right" });
   }
 
@@ -463,7 +463,7 @@ async function generarPDF(config: ReporteConfig) {
 async function generarExcel(config: ReporteConfig) {
   const ExcelJS = await import("exceljs");
   const wb = new ExcelJS.Workbook();
-  wb.creator = "Emotia — Sistema PREPE";
+  wb.creator = "Sistema PREPE";
   wb.created = new Date();
 
   const MAROON = "5A0F24";

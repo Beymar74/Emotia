@@ -169,7 +169,7 @@ export default async function ProveedoresPage({
             Gestión de Proveedores
           </h1>
           <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-            Administra las empresas registradas en Emotia Business, revisa su
+            Administra los proveedores registrados en el Sistema PREPE, revisa su
             estado, productos, actividad y datos del representante.
           </p>
           <p className="text-xs text-[#7A5260] mt-1">

@@ -79,7 +79,7 @@ export default async function ReporteClientesPage({
 
   const config = {
     filename: "reporte-clientes",
-    titulo: "Reporte de Clientes — Emotia",
+    titulo: "Reporte de Clientes — PREPE",
     formatos: ["pdf", "excel"] as ("pdf" | "excel")[],
     kpis: [
       { label: "Total clientes", valor: String(totalUsuarios), color: "#8E1B3A" },

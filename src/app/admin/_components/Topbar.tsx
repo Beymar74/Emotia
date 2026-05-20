@@ -18,17 +18,17 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
         </button>
         <div>
           <p className="text-[10px] sm:text-xs tracking-widest uppercase text-[#BC9968] font-medium">
-            Sistema PREPE — Administración
+            PREPE · Panel de Administración
           </p>
-          <h2 className="font-serif text-lg sm:text-2xl font-semibold text-[#5A0F24] leading-tight">
-            Dashboard General
+          <h2 className="font-serif text-base sm:text-xl font-semibold text-[#5A0F24] leading-tight">
+            Plataforma de Regalos Personalizados y Experiencias
           </h2>
         </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4">
-        <span className="hidden sm:inline text-xs bg-[#8E1B3A]/10 text-[#8E1B3A] px-4 py-1.5 rounded-full font-medium tracking-wide">
-          Acceso total
+        <span className="hidden sm:inline text-xs bg-[#5A0F24]/10 text-[#5A0F24] px-3 py-1.5 rounded-full font-medium tracking-wide border border-[#5A0F24]/15">
+          Admin PREPE
         </span>
         <span className="hidden md:inline text-sm text-[#7A5260] bg-[#F5E6D0] px-4 py-1.5 rounded-full">
           {new Intl.DateTimeFormat("es-BO", { month: "long", year: "numeric", timeZone: "America/La_Paz" }).format(new Date())}

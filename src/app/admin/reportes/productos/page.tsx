@@ -87,7 +87,7 @@ export default async function ReporteProductosPage({
   // Datos para descarga
   const config = {
     filename: "reporte-productos",
-    titulo: "Reporte de Productos — Emotia",
+    titulo: "Reporte de Productos — PREPE",
     formatos: ["pdf", "excel"] as ("pdf" | "excel")[],
     kpis: [
       { label: "Total productos", valor: String(totalProductos), color: "#8E1B3A" },

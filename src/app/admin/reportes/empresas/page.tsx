@@ -89,7 +89,7 @@ export default async function ReporteEmpresasPage({
 
   const config = {
     filename: "reporte-empresas",
-    titulo: "Reporte de Empresas — Emotia",
+    titulo: "Reporte de Empresas — PREPE",
     formatos: ["pdf", "excel"] as ("pdf" | "excel")[],
     kpis: [
       { label: "Total empresas", valor: String(totalEmpresas), color: "#8E1B3A" },

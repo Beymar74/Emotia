@@ -142,6 +142,24 @@ export default async function AdminPage({
   return (
     <div className="space-y-6 p-4">
 
+      {/* Banner de bienvenida */}
+      <div className="bg-gradient-to-r from-[#5A0F24] to-[#8E1B3A] rounded-2xl px-6 py-5 flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs tracking-[2px] uppercase text-[#BC9968] font-semibold mb-1">Panel de Administración</p>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-white leading-tight">
+            Bienvenido al Sistema PREPE
+          </h1>
+          <p className="text-sm text-white/60 mt-1">
+            Plataforma de Regalos Personalizados y Experiencias — Administración total
+          </p>
+        </div>
+        <div className="hidden sm:flex flex-col items-end gap-1 flex-shrink-0">
+          <span className="text-xs bg-white/15 text-white px-3 py-1.5 rounded-full border border-white/20 font-medium">
+            Acceso completo al sistema
+          </span>
+        </div>
+      </div>
+
       {/* Sección de Métricas */}
       <section>
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-4">
@@ -150,7 +168,7 @@ export default async function AdminPage({
               Resumen — {new Intl.DateTimeFormat("es-BO", { month: "long", year: "numeric", timeZone: "America/La_Paz" }).format(new Date())}
             </h2>
             <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-              Aquí puedes ver un resumen global de las métricas clave de Emotia, o filtrar por una empresa específica para analizar su desempeño particular (ingresos, pedidos, etc.).
+              Resumen global de las métricas clave del Sistema PREPE. Puedes filtrar por empresa para analizar su desempeño particular.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
