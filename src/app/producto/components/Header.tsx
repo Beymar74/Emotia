@@ -46,7 +46,6 @@ type OverviewNotification = {
   mensaje: string | null;
   leida: boolean;
   createdAt: string;
-  // Sugerencia futura: Podrían añadir "referenciaId" a su BD para saber exactamente qué pedido abrir
   referenciaId?: number;
 };
 
@@ -77,6 +76,7 @@ function getNotificationIcon(tipo: string) {
     case "pedido":
     case "nuevo_pedido":
     case "pedido_aprobado":
+    case "actualizacion_pedido": // <-- AÑADIDO AQUI PARA LAS NUEVAS FASES
       return PackageSearch;
 
     case "pedido_enviado":
@@ -301,18 +301,17 @@ export default function Header({
     setIsNotificationsOpen(false);
   };
 
-  // 👇 NUEVA FUNCIÓN MÁGICA: Manejar clics en notificaciones 👇
   const handleNotificationClick = async (notification: OverviewNotification) => {
     console.log("🚨 1. Clic detectado en la notificación ID:", notification.id);
 
-    // 1. Si es de un pedido, intentamos abrir el modal de rastreo
     if (
       notification.tipo === "pedido" ||
       notification.tipo === "nuevo_pedido" ||
       notification.tipo === "pedido_aprobado" ||
       notification.tipo === "pedido_enviado" ||
       notification.tipo === "pedido_entregado" ||
-      notification.tipo === "pedido_cancelado"
+      notification.tipo === "pedido_cancelado" ||
+      notification.tipo === "actualizacion_pedido" // <-- AÑADIDO PARA QUE ABRA EL SEGUIMIENTO
     ) {
       const matchingOrder = accountOverview?.orders.find(
         (order) => order.id === notification.referenciaId
@@ -325,7 +324,6 @@ export default function Header({
       }
     }
 
-    // 2. Si ya estaba leída, no hacemos nada más
     if (notification.leida) {
       console.log("🚨 2. La notificación ya estaba leída. Abortando fetch.");
       return;
@@ -373,12 +371,12 @@ export default function Header({
   const unreadCount = accountOverview?.unreadNotifications ?? 0;
   const activeCount = accountOverview?.summary?.activeOrders ?? 0;
 
-  const accountMenuContent = isLoggedIn && user ? (
+const accountMenuContent = isLoggedIn && user ? (
     <>
       <div className={styles.accountInfo}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
           <div>
-            <span className={styles.accountInfoLabel}>Sesion activa</span>
+            <span className={styles.accountInfoLabel}>Sesión activa</span>
             <strong style={{ display: "block" }}>{accountOverview?.profile?.shortName || user.name}</strong>
             <span style={{ fontSize: "0.8rem", color: "#8a6f62" }}>{accountOverview?.profile?.email || user.email}</span>
           </div>
@@ -433,79 +431,8 @@ export default function Header({
         return null;
       })()}
 
-      <div className={styles.accountSection}>
-        <div className={styles.accountSectionHeader}>
-          <div>
-            <strong>Mis pedidos</strong>
-            <span>
-              {activeCount > 0
-                ? `${activeCount} pedido${activeCount === 1 ? "" : "s"} en movimiento`
-                : "Revisa tus compras y el estado de cada entrega"}
-            </span>
-          </div>
-          <button
-            type="button"
-            className={styles.accountLinkButton}
-            onClick={() => {
-              setIsAccountOpen(false);
-              router.push("/mis-pedidos");
-            }}
-          >
-            Ver todos
-            <ArrowRight size={14} strokeWidth={2} />
-          </button>
-        </div>
-
-        {isOverviewLoading && !accountOverview ? (
-          <p className={styles.accountEmptyState}>Cargando tus pedidos...</p>
-        ) : null}
-
-        {accountOverview?.orders.length ? (
-          <div className={styles.orderList}>
-            {accountOverview.orders.map((order) => {
-              const statusMeta = getOrderStatusMeta(order.estado);
-
-              return (
-                <article key={order.id} className={styles.orderCard}>
-                  <div className={styles.orderCardTop}>
-                    <div className={styles.orderCardText}>
-                      <span className={styles.orderCode}>Pedido {formatOrderCode(order.id)}</span>
-                      <strong>{order.primaryProductName}</strong>
-                      <span>{order.brandName}</span>
-                    </div>
-                    <span
-                      className={`${styles.orderStatusBadge} ${styles[`orderStatus${statusMeta.tone}`]}`}
-                    >
-                      {statusMeta.label}
-                    </span>
-                  </div>
-
-                  <div className={styles.orderCardMeta}>
-                    <span>{formatShortDate(order.createdAt)}</span>
-                    <span>{order.itemCount} item{order.itemCount === 1 ? "" : "s"}</span>
-                    <strong>Bs. {order.total.toFixed(2)}</strong>
-                  </div>
-
-                  <button
-                    type="button"
-                    className={styles.orderActionButton}
-                    onClick={() => openOrderDetail(order)}
-                  >
-                    {statusMeta.actionLabel}
-                    <ArrowRight size={14} strokeWidth={2} />
-                  </button>
-                </article>
-              );
-            })}
-          </div>
-        ) : !isOverviewLoading ? (
-          <p className={styles.accountEmptyState}>
-            Cuando hagas tu primera compra, aqui veras tus productos y el estado del pedido.
-          </p>
-        ) : null}
-      </div>
-
-      <div className={styles.accountMenuActions}>
+      {/* Menú limpio y directo, sin lista de pedidos estorbando */}
+      <div className={styles.accountMenuActions} style={{ marginTop: "1rem", borderTop: "1px solid rgba(230, 136, 92, 0.12)", paddingTop: "1rem" }}>
         <button
           className={`${styles.accountMenuButton} ${styles.accountMenuButtonSoft}`}
           onClick={() => {
@@ -514,15 +441,16 @@ export default function Header({
           }}
         >
           <PackageSearch size={16} strokeWidth={2} />
-          Mis pedidos
+          Ver mis pedidos {activeCount > 0 ? `(${activeCount} activos)` : ""}
         </button>
         <button className={styles.accountMenuButton} onClick={handleLogout} disabled={isLoggingOut}>
           <LogOut size={16} strokeWidth={2} />
-          {isLoggingOut ? "Cerrando..." : "Log out"}
+          {isLoggingOut ? "Cerrando..." : "Cerrar sesión"}
         </button>
       </div>
     </>
   ) : (
+    // ... el fallback de Invitado se mantiene igual ...
     <>
       <div className={styles.accountInfo}>
         <span className={styles.accountInfoLabel}>Cuenta Emotia</span>
@@ -563,12 +491,23 @@ export default function Header({
           {accountOverview.notifications.map((notification) => {
             const NotificationIcon = getNotificationIcon(notification.tipo);
 
+            // Cruzamos los datos: Buscamos el pedido al que pertenece esta notificación
+            let targetOrderId = notification.referenciaId;
+            if (!targetOrderId) {
+              const match = `${notification.titulo} ${notification.mensaje || ""}`.match(/EM-0*(\d+)/);
+              if (match) targetOrderId = parseInt(match[1], 10);
+            }
+            const matchingOrder = targetOrderId ? accountOverview.orders.find(o => o.id === targetOrderId) : null;
+
+            // Limpiamos el título si ya trae el EM- incrustado del backend
+            const cleanTitle = notification.titulo.split(':')[0];
+
             return (
               <article
                 key={notification.id}
-                onClick={() => handleNotificationClick(notification)} // 👇 Conectamos el Click aquí
+                onClick={() => handleNotificationClick(notification)}
                 className={`${styles.notificationCard} ${!notification.leida ? styles.notificationCardUnread : ""
-                  } cursor-pointer transition-colors hover:bg-gray-50`} // Añadimos cursor pointer para UX
+                  } cursor-pointer transition-colors hover:bg-gray-50`}
               >
                 <div className={styles.notificationIcon}>
                   <NotificationIcon size={16} strokeWidth={2} />
@@ -585,11 +524,29 @@ export default function Header({
                         "pedido_enviado",
                         "pedido_entregado",
                         "pedido_cancelado",
-                      ].includes(notification.tipo) && notification.titulo}
-                    </strong>                    {!notification.leida ? <span className={styles.notificationDot} /> : null}
+                      ].includes(notification.tipo) && cleanTitle}
+                    </strong>
+                    {!notification.leida ? <span className={styles.notificationDot} /> : null}
                   </div>
-                  <p>{notification.mensaje || "Tienes una nueva novedad en tu cuenta."}</p>
-                  <span>{formatLongDate(notification.createdAt)}</span>
+
+                  {/* AQUÍ ESTÁ LA MAGIA: Si encuentra el pedido, arma la tarjetita */}
+                  {matchingOrder ? (
+                    <div style={{ marginTop: "4px", display: "flex", flexDirection: "column", gap: "2px" }}>
+                      <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "#BC9968", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Pedido EM-{matchingOrder.id.toString().padStart(4, "0")}
+                      </span>
+                      <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#4a3f39", lineHeight: "1.2" }}>
+                        {matchingOrder.primaryProductName}
+                      </span>
+                      <span style={{ fontSize: "0.75rem", color: "#8a6f62", marginTop: "2px" }}>
+                        {notification.mensaje || "Tienes una nueva novedad."}
+                      </span>
+                    </div>
+                  ) : (
+                    <p>{notification.mensaje || "Tienes una nueva novedad en tu cuenta."}</p>
+                  )}
+
+                  <span style={{ marginTop: "6px", display: "block" }}>{formatLongDate(notification.createdAt)}</span>
                 </div>
               </article>
             );
@@ -599,17 +556,6 @@ export default function Header({
         <p className={styles.notificationEmptyState}>
           Cuando un pedido sea aceptado, entregado o cancelado, te avisaremos aqui.
         </p>
-      ) : null}
-
-      {highlightedOrder ? (
-        <button
-          type="button"
-          className={styles.notificationActionButton}
-          onClick={() => openOrderDetail(highlightedOrder)}
-        >
-          Ver seguimiento del ultimo pedido
-          <ArrowRight size={14} strokeWidth={2} />
-        </button>
       ) : null}
     </>
   );

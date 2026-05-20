@@ -416,7 +416,7 @@
   cursor: pointer;
 }
 
-.accountMenuButton + .accountMenuButton {
+.accountMenuButton+.accountMenuButton {
   margin-top: 0.55rem;
 }
 
@@ -528,6 +528,12 @@
   flex-direction: column;
   gap: 0.75rem;
   margin-top: 0.95rem;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.notificationList::-webkit-scrollbar {
+  display: none;
 }
 
 .notificationCard {
@@ -775,7 +781,7 @@
   box-shadow: 0 14px 26px rgba(92, 58, 46, 0.05);
 }
 
-.cartItem + .cartItem {
+.cartItem+.cartItem {
   margin-top: 0.85rem;
 }
 
@@ -979,6 +985,13 @@
     linear-gradient(180deg, #fffaf7 0%, #fff4ee 100%);
   border: 1px solid rgba(230, 136, 92, 0.16);
   box-shadow: 0 26px 70px rgba(92, 58, 46, 0.24);
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
+  scrollbar-width: none;
+}
+
+.trackingModal::-webkit-scrollbar {
+  display: none;
 }
 
 .trackingHeader {
