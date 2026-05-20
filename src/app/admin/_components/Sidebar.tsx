@@ -20,6 +20,7 @@ const navSections = [
     soloAdmin: true,
     items: [
       { href: "/admin/usuarios", label: "Gestión de usuarios", soloAdmin: true },
+      { href: "/admin/proveedores", label: "Gestión de proveedores", soloAdmin: true },
     ],
   },
   {
