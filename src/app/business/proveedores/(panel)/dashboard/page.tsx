@@ -23,11 +23,16 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 
 import {
-  exportarReporteDashboardExcel,
-  exportarReporteDashboardPDF,
+  exportarReporteDashboardEjecutivoExcel,
+  exportarReporteDashboardEjecutivoPDF,
 } from "../../../utils/exportExcel_Pdf";
 import { obtenerDashboardProveedor } from "./actions";
 
@@ -49,6 +54,7 @@ const labelFiltro: Record<FiltroDashboard, string> = {
   este_mes: "Este Mes",
   anio_actual: "Año Actual",
 };
+const CHART_COLORS = ["#8E1B3A", "#BC9968", "#5C3A2E", "#AB3A50", "#3D0A1A"];
 type EstadoPedidoUI = "Pendiente" | "En proceso" | "Entregado" | "Desconocido";
 
 type DashboardData = {
@@ -101,6 +107,64 @@ type DashboardData = {
     name: string;
     ventas: number;
   }[];
+  reporteEjecutivo: {
+  empresa: string;
+  filtro: string;
+  rango: string;
+  generadoEn: string;
+  kpis: {
+    ingresosTotales: number;
+    totalPedidos: number;
+    ticketPromedio: number;
+    productosVendidos: number;
+    entregados: number;
+    pendientes: number;
+    enProceso: number;
+    cancelados: number;
+    productosActivos: number;
+    stockBajo: number;
+  };
+  ventasPorMes: {
+    mes: string;
+    ingresos: number;
+    pedidos: number;
+  }[];
+  pedidosPorEstado: {
+    estado: string;
+    cantidad: number;
+  }[];
+  topProductos: {
+    producto: string;
+    categoria: string;
+    ingresos: number;
+    cantidad: number;
+  }[];
+  stockBajo: {
+    id: number;
+    nombre: string;
+    stock: number;
+    imagen: string | null;
+    porcentaje: number;
+  }[];
+  insights: {
+    estadoPredominante: string;
+    mejorProducto: string;
+    estadoOperacion: string;
+    textoOperacion: string;
+    crecimientoIngresos: number;
+    crecimientoEntregados: number;
+  };
+  pedidos: {
+    id: string;
+    pedidoId: string;
+    cliente: string;
+    producto: string;
+    estado: string;
+    total: number;
+    fecha: string;
+    imagen: string | null;
+  }[];
+};
 };
 export default function DashboardPage() {
   const [isExporting, setIsExporting] = useState(false);
@@ -120,24 +184,21 @@ export default function DashboardPage() {
 }, [filtroActual]);
 
   const exportarDashboardExcel = async () => {
-  if (!dashboardData) return;
+    if (!dashboardData) return;
 
-  setIsExporting(true);
+    setIsExporting(true);
 
-  try {
-    await exportarReporteDashboardExcel(
-      dashboardData.ultimosPedidos.map((pedido) => ({
-        ...pedido,
-        total: String(pedido.total),
-      }))
-    );
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setIsExporting(false);
-    setMostrarMenuExportar(false);
-  }
-};
+    try {
+      await exportarReporteDashboardEjecutivoExcel(
+        dashboardData.reporteEjecutivo
+      );
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsExporting(false);
+      setMostrarMenuExportar(false);
+    }
+  };
 
 const exportarDashboardPDF = async () => {
   if (!dashboardData) return;
@@ -145,11 +206,8 @@ const exportarDashboardPDF = async () => {
   setIsExporting(true);
 
   try {
-    await exportarReporteDashboardPDF(
-      dashboardData.ultimosPedidos.map((pedido) => ({
-        ...pedido,
-        total: String(pedido.total),
-      }))
+    await exportarReporteDashboardEjecutivoPDF(
+      dashboardData.reporteEjecutivo
     );
   } catch (error) {
     console.error(error);
@@ -182,16 +240,26 @@ const exportarDashboardPDF = async () => {
       </div>
     );
   }
-
+  
   if (!dashboardData) {
     return (
-      <div className="text-center text-red-500 font-bold mt-10">
-        No se pudo cargar el dashboard.
-      </div>
-    );
-  }
+    <div className="text-center text-red-500 font-bold mt-10">
+      No se pudo cargar el dashboard.
+    </div>
+  );
+}
 
-  return (
+const topProductosDashboard = dashboardData.reporteEjecutivo.topProductos.slice(0, 6);
+
+const maxIngresoTop = Math.max(
+  ...topProductosDashboard.map((producto) => producto.ingresos),
+  1
+);
+
+const recortarTexto = (texto: string, limite = 34) =>
+  texto.length > limite ? `${texto.slice(0, limite)}...` : texto;
+
+return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto pb-8">
       <section>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
@@ -328,10 +396,108 @@ const exportarDashboardPDF = async () => {
             <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-[#BC9968] to-[#F5E6D0]" />
           </div>
         </div>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mt-4">
+  <div className="xl:col-span-2 bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+    <div className="flex items-center justify-between mb-4">
+      <div>
+        <h3 className="font-semibold text-sm text-[#1A1A1A]">
+          Resumen ejecutivo
+        </h3>
+        <p className="text-xs text-gray-400">
+          Lectura rápida del rendimiento del periodo seleccionado.
+        </p>
+      </div>
+
+      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#8E1B3A]/10 text-[#8E1B3A] uppercase">
+        {dashboardData.reporteEjecutivo.rango}
+      </span>
+    </div>
+
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="rounded-xl bg-[#FDFBF9] border border-[#8E1B3A]/10 p-4">
+        <p className="text-[10px] uppercase tracking-wider text-[#7A5260] font-bold">
+          Ticket promedio
+        </p>
+        <p className="mt-1 text-xl font-black text-[#3D0A1A]">
+          {formatBs(dashboardData.reporteEjecutivo.kpis.ticketPromedio)}
+        </p>
+      </div>
+
+      <div className="rounded-xl bg-[#FDFBF9] border border-[#8E1B3A]/10 p-4">
+        <p className="text-[10px] uppercase tracking-wider text-[#7A5260] font-bold">
+          Productos vendidos
+        </p>
+        <p className="mt-1 text-xl font-black text-[#3D0A1A]">
+          {dashboardData.reporteEjecutivo.kpis.productosVendidos}
+        </p>
+      </div>
+
+      <div className="rounded-xl bg-[#FDFBF9] border border-[#8E1B3A]/10 p-4">
+        <p className="text-[10px] uppercase tracking-wider text-[#7A5260] font-bold">
+          Producto destacado
+        </p>
+        <p className="mt-1 text-sm font-bold text-[#3D0A1A] line-clamp-2">
+          {dashboardData.reporteEjecutivo.insights.mejorProducto}
+        </p>
+      </div>
+
+      <div className="rounded-xl bg-[#FDFBF9] border border-[#8E1B3A]/10 p-4">
+        <p className="text-[10px] uppercase tracking-wider text-[#7A5260] font-bold">
+          Estado predominante
+        </p>
+        <p className="mt-1 text-sm font-bold text-[#3D0A1A]">
+          {dashboardData.reporteEjecutivo.insights.estadoPredominante}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div className="bg-[#3D0A1A] rounded-xl p-5 shadow-sm relative overflow-hidden">
+    <div className="absolute -right-6 -top-6 opacity-10 text-white">
+      <TrendingUp size={100} />
+    </div>
+
+    <h3 className="font-semibold text-sm text-white mb-2 relative z-10">
+      Diagnóstico operativo
+    </h3>
+
+    <p className="text-xs text-white/70 leading-relaxed relative z-10">
+      La operación se encuentra en estado{" "}
+      <strong className="text-[#BC9968]">
+        {dashboardData.reporteEjecutivo.insights.estadoOperacion}
+      </strong>
+      , con un flujo considerado{" "}
+      <strong className="text-[#BC9968]">
+        {dashboardData.reporteEjecutivo.insights.textoOperacion}
+      </strong>
+      .
+    </p>
+
+    <div className="mt-4 grid grid-cols-2 gap-3 relative z-10">
+      <div className="rounded-xl bg-white/10 border border-white/10 p-3">
+        <p className="text-[10px] text-white/50 uppercase font-bold">
+          Crec. ingresos
+        </p>
+        <p className="text-lg font-black text-white">
+          {dashboardData.reporteEjecutivo.insights.crecimientoIngresos.toFixed(1)}%
+        </p>
+      </div>
+
+      <div className="rounded-xl bg-white/10 border border-white/10 p-3">
+        <p className="text-[10px] text-white/50 uppercase font-bold">
+          Crec. entregas
+        </p>
+        <p className="text-lg font-black text-white">
+          {dashboardData.reporteEjecutivo.insights.crecimientoEntregados.toFixed(1)}%
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
       </section>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1.6fr_1fr] gap-4">
-        <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_390px] gap-4">
+        <div className="flex flex-col gap-4 min-w-0">
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1">
             <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
               <h3 className="font-semibold text-sm text-[#1A1A1A]">
@@ -452,8 +618,131 @@ const exportarDashboardPDF = async () => {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <div className="bg-[#3D0A1A] p-5 rounded-xl shadow-md relative overflow-hidden group flex-1">
+        <div className="flex flex-col gap-4 min-w-0">
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-semibold text-sm text-[#1A1A1A]">
+                  Pedidos por estado
+                </h3>
+                <p className="text-[11px] text-gray-400">
+                  Distribución del periodo seleccionado.
+                </p>
+              </div>
+            </div>
+
+            <div className="h-[230px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={dashboardData.reporteEjecutivo.pedidosPorEstado}
+                    dataKey="cantidad"
+                    nameKey="estado"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={54}
+                    outerRadius={82}
+                    paddingAngle={4}
+                  >
+                    {dashboardData.reporteEjecutivo.pedidosPorEstado.map(
+                      (entry, index) => (
+                        <Cell
+                          key={entry.estado}
+                          fill={CHART_COLORS[index % CHART_COLORS.length]}
+                        />
+                      )
+                    )}
+                  </Pie>
+
+                  <Tooltip
+                    formatter={(value) => [`${value} pedidos`, "Cantidad"]}
+                    contentStyle={{
+                      borderRadius: "8px",
+                      border: "1px solid #e5e7eb",
+                      fontSize: "12px",
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {dashboardData.reporteEjecutivo.pedidosPorEstado.map((item, index) => (
+                <div
+                  key={item.estado}
+                  className="flex items-center gap-2 text-[11px] text-gray-500 min-w-0"
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{
+                      backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
+                    }}
+                  />
+                  <span className="truncate">
+                    {item.estado}: {item.cantidad}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-semibold text-sm text-[#1A1A1A]">
+                  Top productos por ingresos
+                </h3>
+                <p className="text-[11px] text-gray-400">
+                  Ranking de productos con mejor rendimiento.
+                </p>
+              </div>
+            </div>
+
+            {topProductosDashboard.length === 0 ? (
+              <div className="rounded-lg bg-gray-50 p-4 text-xs text-gray-400">
+                Todavía no hay productos con ventas en este periodo.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {topProductosDashboard.map((producto, index) => {
+                  const porcentaje = Math.max(
+                    8,
+                    Math.round((producto.ingresos / maxIngresoTop) * 100)
+                  );
+
+                  return (
+                    <div key={`${producto.producto}-${index}`} className="space-y-1.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p
+                            className="text-xs font-bold text-[#3D0A1A] leading-snug"
+                            title={producto.producto}
+                          >
+                            {recortarTexto(producto.producto)}
+                          </p>
+                          <p className="text-[10px] text-gray-400">
+                            {producto.cantidad} vendidos · {producto.categoria}
+                          </p>
+                        </div>
+
+                        <span className="text-xs font-black text-[#8E1B3A] shrink-0">
+                          {formatBs(producto.ingresos)}
+                        </span>
+                      </div>
+
+                      <div className="h-2 w-full rounded-full bg-[#F5E6D0]/60 overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-[#8E1B3A] to-[#BC9968]"
+                          style={{ width: `${porcentaje}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <div className="bg-[#3D0A1A] p-5 rounded-xl shadow-md relative overflow-hidden group">
             <div className="absolute -right-4 -top-4 opacity-10 text-white transition-transform duration-500 group-hover:scale-110">
               <Package size={80} />
             </div>
@@ -504,7 +793,7 @@ const exportarDashboardPDF = async () => {
             </Link>
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex-1">
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
             <h3 className="font-semibold text-sm text-[#1A1A1A] mb-4 flex items-center gap-2">
               <Bell size={16} className="text-[#BC9968]" /> Actividad Reciente
             </h3>
