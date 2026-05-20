@@ -75,9 +75,22 @@ type HeaderProps = {
 function getNotificationIcon(tipo: string) {
   switch (tipo) {
     case "pedido":
+    case "nuevo_pedido":
+    case "pedido_aprobado":
       return PackageSearch;
+
+    case "pedido_enviado":
+      return Truck;
+
+    case "pedido_entregado":
+      return CheckCircle2;
+
+    case "pedido_cancelado":
+      return CircleSlash;
+
     case "promo":
       return Gift;
+
     default:
       return BellRing;
   }
@@ -211,39 +224,39 @@ export default function Header({
   }, [isLoggedIn, loadAccountOverview]);
 
   useEffect(() => {
-  let timeoutId: number | undefined;
+    let timeoutId: number | undefined;
 
-  const handleCartHighlight = () => {
-    setIsCartHighlighted(true);
+    const handleCartHighlight = () => {
+      setIsCartHighlighted(true);
 
-    if (timeoutId) {
-      window.clearTimeout(timeoutId);
-    }
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
 
-    timeoutId = window.setTimeout(() => {
-      setIsCartHighlighted(false);
-    }, 700);
-  };
+      timeoutId = window.setTimeout(() => {
+        setIsCartHighlighted(false);
+      }, 700);
+    };
 
-  const handleCartOpen = () => {
-    setIsAccountOpen(false);
-    setIsNotificationsOpen(false);
-    setIsCartOpen(true);
-    handleCartHighlight();
-  };
+    const handleCartOpen = () => {
+      setIsAccountOpen(false);
+      setIsNotificationsOpen(false);
+      setIsCartOpen(true);
+      handleCartHighlight();
+    };
 
-  window.addEventListener("emotia-cart-highlight", handleCartHighlight);
-  window.addEventListener("emotia-cart-open", handleCartOpen);
+    window.addEventListener("emotia-cart-highlight", handleCartHighlight);
+    window.addEventListener("emotia-cart-open", handleCartOpen);
 
-  return () => {
-    window.removeEventListener("emotia-cart-highlight", handleCartHighlight);
-    window.removeEventListener("emotia-cart-open", handleCartOpen);
+    return () => {
+      window.removeEventListener("emotia-cart-highlight", handleCartHighlight);
+      window.removeEventListener("emotia-cart-open", handleCartOpen);
 
-    if (timeoutId) {
-      window.clearTimeout(timeoutId);
-    }
-  };
-}, []);
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, []);
 
   const highlightedOrder = useMemo(() => {
     if (!accountOverview?.orders.length) return null;
@@ -293,8 +306,21 @@ export default function Header({
     console.log("🚨 1. Clic detectado en la notificación ID:", notification.id);
 
     // 1. Si es de un pedido, intentamos abrir el modal de rastreo
-    if (notification.tipo === "pedido") {
-      if (highlightedOrder) {
+    if (
+      notification.tipo === "pedido" ||
+      notification.tipo === "nuevo_pedido" ||
+      notification.tipo === "pedido_aprobado" ||
+      notification.tipo === "pedido_enviado" ||
+      notification.tipo === "pedido_entregado" ||
+      notification.tipo === "pedido_cancelado"
+    ) {
+      const matchingOrder = accountOverview?.orders.find(
+        (order) => order.id === notification.referenciaId
+      );
+
+      if (matchingOrder) {
+        openOrderDetail(matchingOrder);
+      } else if (highlightedOrder) {
         openOrderDetail(highlightedOrder);
       }
     }
@@ -372,7 +398,7 @@ export default function Header({
       {(() => {
         const role = (stackUser?.clientMetadata as any)?.role;
         const isAdmin = role === 'admin' || stackUser?.primaryEmail?.includes('admin@');
-        
+
         if (isAdmin) {
           return (
             <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(230, 136, 92, 0.12)" }}>
@@ -549,8 +575,18 @@ export default function Header({
                 </div>
                 <div className={styles.notificationBody}>
                   <div className={styles.notificationTitleRow}>
-                    <strong>{notification.titulo}</strong>
-                    {!notification.leida ? <span className={styles.notificationDot} /> : null}
+                    <strong>
+                      {notification.tipo === "pedido_aprobado" && "✅ Pago aprobado"}
+                      {notification.tipo === "pedido_enviado" && "🚚 Pedido en camino"}
+                      {notification.tipo === "pedido_entregado" && "🎉 Pedido entregado"}
+                      {notification.tipo === "pedido_cancelado" && "❌ Pedido cancelado"}
+                      {![
+                        "pedido_aprobado",
+                        "pedido_enviado",
+                        "pedido_entregado",
+                        "pedido_cancelado",
+                      ].includes(notification.tipo) && notification.titulo}
+                    </strong>                    {!notification.leida ? <span className={styles.notificationDot} /> : null}
                   </div>
                   <p>{notification.mensaje || "Tienes una nueva novedad en tu cuenta."}</p>
                   <span>{formatLongDate(notification.createdAt)}</span>

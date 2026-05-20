@@ -301,6 +301,22 @@ export async function POST(req: Request) {
         },
       });
 
+
+      const uniqueProviderIds = Array.from(
+        new Set(items.map((item) => productsById.get(item.id)!.proveedor_id))
+      );
+
+      // Creamos una notificación para cada proveedor involucrado
+      await tx.proveedor_notificaciones.createMany({
+        data: uniqueProviderIds.map((provId) => ({
+          proveedor_id: provId,
+          tipo: "nuevo_pedido",
+          titulo: "💳 ¡Nuevo pago por revisar!",
+          mensaje: `Has recibido un pago por transferencia/QR. Revisa el comprobante para aprobarlo.`,
+          leida: false,
+        })),
+      });
+
       return pedido;
     });
 

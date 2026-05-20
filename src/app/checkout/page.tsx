@@ -61,6 +61,7 @@ export default function CheckoutPage() {
   const [cvvTarjeta, setCvvTarjeta] = useState("");
   const [comprobante, setComprobante] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const qrImageUrl = "URL_DE_TU_QR_AQUI";
   const cuentaBancaria = "Banco Unión - Cuenta corriente 100-2458796";
   const { items, subtotal, clearCart } = useCart();
@@ -76,12 +77,75 @@ export default function CheckoutPage() {
 
   const direccionCompleta = direccion.trim().length > 6 && destinatario.trim() !== "" && telefono.trim().length === 8;
 
+  // Formateadores para inputs de tarjeta
+  const handleTarjetaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").substring(0, 16);
+    const formatted = value.replace(/(\d{4})(?=\d)/g, "$1 ");
+    setNumeroTarjeta(formatted);
+  };
+
+  // Magia de UX para la fecha de la tarjeta
+  const handleFechaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/\D/g, "");
+
+    if (val.length === 0) {
+      setFechaTarjeta("");
+      return;
+    }
+
+    // Si el usuario escribe un mes del 2 al 9, le ponemos un 0 adelante automáticamente
+    if (val.length === 1 && parseInt(val) > 1) {
+      val = "0" + val;
+    }
+
+    if (val.length >= 2) {
+      let month = parseInt(val.substring(0, 2), 10);
+      // Si el mes es mayor a 12, lo forzamos a 12
+      if (month > 12) {
+        val = "12" + val.substring(2);
+      } 
+      // Si pone 00, lo forzamos a 01
+      else if (month === 0) {
+        val = "01" + val.substring(2);
+      }
+    }
+
+    // Agregamos la barra divisora
+    if (val.length > 2) {
+      setFechaTarjeta(`${val.substring(0, 2)}/${val.substring(2, 4)}`);
+    } else {
+      setFechaTarjeta(val);
+    }
+  };
+
+  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCvvTarjeta(e.target.value.replace(/\D/g, "").substring(0, 4));
+  };
+
+  const isTarjetaVigente = () => {
+    if (fechaTarjeta.length !== 5) return false;
+    
+    const [mesStr, anioStr] = fechaTarjeta.split('/');
+    const mes = parseInt(mesStr, 10);
+    const anio = parseInt(anioStr, 10) + 2000;
+    
+    const fechaActual = new Date();
+    const anioActual = fechaActual.getFullYear();
+    const mesActual = fechaActual.getMonth() + 1;
+
+    if (mes < 1 || mes > 12) return false;
+    if (anio < anioActual) return false;
+    if (anio === anioActual && mes < mesActual) return false;
+    
+    return true;
+  };
+
   const metodoListo =
-    metodoSeleccionado === "qr" ||
+    (metodoSeleccionado === "qr" && Boolean(comprobante)) ||
     (metodoSeleccionado === "tarjeta" &&
       numeroTarjeta.replace(/\s/g, "").length >= 16 &&
       nombreTarjeta.trim() !== "" &&
-      fechaTarjeta.trim().length >= 5 &&
+      isTarjetaVigente() &&
       cvvTarjeta.trim().length >= 3) ||
     (metodoSeleccionado === "transferencia" && Boolean(comprobante));
 
@@ -92,7 +156,7 @@ export default function CheckoutPage() {
     }
 
     if (!direccionCompleta || !metodoListo) {
-      alert("Completa la dirección de entrega y los datos del método de pago antes de confirmar.");
+      alert("Completa la dirección y los datos de pago antes de confirmar.");
       return;
     }
 
@@ -159,8 +223,9 @@ export default function CheckoutPage() {
               <span className="mb-2 block text-[13px] font-extrabold uppercase tracking-[0.18em] text-[#8A6F62]">Número de tarjeta</span>
               <input
                 value={numeroTarjeta}
-                onChange={(event) => setNumeroTarjeta(event.target.value)}
+                onChange={handleTarjetaChange}
                 placeholder="1234 5678 9012 3456"
+                inputMode="numeric"
                 className="min-h-[58px] w-full rounded-[20px] border border-[#E6885C]/18 bg-[#FFFDFC] px-5 text-[#5C3A2E] outline-none transition focus:border-[#C6284F] focus:ring-4 focus:ring-[#C6284F]/10"
               />
             </label>
@@ -179,18 +244,24 @@ export default function CheckoutPage() {
               <span className="mb-2 block text-[13px] font-extrabold uppercase tracking-[0.18em] text-[#8A6F62]">Vencimiento</span>
               <input
                 value={fechaTarjeta}
-                onChange={(event) => setFechaTarjeta(event.target.value)}
+                onChange={handleFechaChange}
                 placeholder="MM/AA"
-                className="min-h-[58px] w-full rounded-[20px] border border-[#E6885C]/18 bg-[#FFFDFC] px-5 text-[#5C3A2E] outline-none transition focus:border-[#C6284F] focus:ring-4 focus:ring-[#C6284F]/10"
+                inputMode="numeric"
+                className={`min-h-[58px] w-full rounded-[20px] border border-[#E6885C]/18 bg-[#FFFDFC] px-5 text-[#5C3A2E] outline-none transition focus:border-[#C6284F] focus:ring-4 focus:ring-[#C6284F]/10 ${
+                  fechaTarjeta.length === 5 && !isTarjetaVigente() ? "border-red-500 text-red-600 focus:border-red-500 focus:ring-red-500/10" : ""
+                }`}
               />
             </label>
 
             <label>
               <span className="mb-2 block text-[13px] font-extrabold uppercase tracking-[0.18em] text-[#8A6F62]">CVV</span>
               <input
+                type="password"
                 value={cvvTarjeta}
-                onChange={(event) => setCvvTarjeta(event.target.value)}
-                placeholder="123"
+                onChange={handleCvvChange}
+                placeholder="***"
+                inputMode="numeric"
+                maxLength={4}
                 className="min-h-[58px] w-full rounded-[20px] border border-[#E6885C]/18 bg-[#FFFDFC] px-5 text-[#5C3A2E] outline-none transition focus:border-[#C6284F] focus:ring-4 focus:ring-[#C6284F]/10"
               />
             </label>
@@ -217,7 +288,7 @@ export default function CheckoutPage() {
             <p className="mt-3 text-xl font-black text-[#5C3A2E]">{cuentaBancaria}</p>
           </div>
 
-          <label className="block rounded-[28px] border border-dashed border-[#C6284F]/30 bg-white p-6 text-center transition hover:border-[#C6284F]">
+          <label className="block rounded-[28px] border border-dashed border-[#C6284F]/30 bg-white p-6 text-center transition hover:border-[#C6284F] cursor-pointer">
             <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,#FFE3E8,#FFF3E6)] text-[#C6284F]">
               <ShieldCheck size={24} strokeWidth={2} />
             </span>
@@ -269,6 +340,22 @@ export default function CheckoutPage() {
           )}
         </div>
 
+        <label className="block rounded-[28px] border border-dashed border-[#C6284F]/30 bg-white p-6 text-center transition hover:border-[#C6284F] cursor-pointer">
+          <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,#FFE3E8,#FFF3E6)] text-[#C6284F]">
+            <ShieldCheck size={24} strokeWidth={2} />
+          </span>
+          <span className="mt-4 block text-lg font-black text-[#5C3A2E]">Sube tu comprobante QR</span>
+          <span className="mt-2 block text-sm text-[#8A6F62]">
+            {comprobante ? comprobante.name : "Selecciona la captura de tu pago QR"}
+          </span>
+          <input
+            type="file"
+            accept="image/*,.pdf"
+            className="hidden"
+            onChange={(event) => setComprobante(event.target.files?.[0] || null)}
+          />
+        </label>
+        
         <p className="text-center text-sm font-bold uppercase tracking-[0.18em] text-[#8E3651]">Escanea para pagar seguro</p>
       </div>
     );
@@ -532,13 +619,14 @@ export default function CheckoutPage() {
       {showSuccessModal ? (
         <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-[rgba(44,27,20,0.48)] px-4 backdrop-blur-[6px]">
           <div className="w-full max-w-[520px] rounded-[28px] border border-[#E6885C]/16 bg-[linear-gradient(180deg,#FFFDFC_0%,#FFF4F6_100%)] p-6 text-center shadow-[0_28px_80px_rgba(92,58,46,0.22)] sm:rounded-[32px] sm:p-8">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,#C6284F,#E04A64)] text-3xl font-black text-white sm:h-20 sm:w-20 sm:text-4xl">
-              ✓
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,#E6885C,#D96A38)] text-3xl font-black text-white sm:h-20 sm:w-20 sm:text-4xl">
+              ⏱
             </div>
-            <p className="mt-6 text-sm font-extrabold uppercase tracking-[0.22em] text-[#8A6F62]">Pago confirmado</p>
-            <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] text-[#5C3A2E] sm:text-4xl">Tu pedido fue registrado con éxito</h2>
+            
+            <p className="mt-6 text-sm font-extrabold uppercase tracking-[0.22em] text-[#8A6F62]">Pago en revisión</p>
+            <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] text-[#5C3A2E] sm:text-4xl">Tu pedido está siendo procesado</h2>
             <p className="mt-4 text-base leading-7 text-[#8A6F62]">
-              Recibimos tu pago y estamos preparando la entrega. Te notificaremos cualquier actualización del envío.
+              Hemos recibido los datos de tu pago. El proveedor revisará el comprobante y te notificaremos en cuanto sea aprobado para despachar tu regalo.
             </p>
 
             <div className="mt-6 rounded-[24px] border border-[#E6885C]/14 bg-white/80 p-5 text-left">
