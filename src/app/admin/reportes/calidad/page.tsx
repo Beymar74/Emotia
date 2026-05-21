@@ -4,6 +4,8 @@ import DescargarReporteBtn from "../_components/DescargarReporteBtn";
 import { GraficoEstrellas, GraficoSatisfaccion } from "./CalidadCharts";
 import { Suspense } from "react";
 import EmpresaFilter from "../../_components/EmpresaFilter";
+import ReportSubNav from "../_components/ReportSubNav";
+import CalidadTablas from "./_components/CalidadTablas";
 
 export default async function ReporteCalidadPage({
   searchParams,
@@ -31,7 +33,7 @@ export default async function ReporteCalidadPage({
       where: { ...empresaFiltroPedido },
       select: { id: true, estado: true, created_at: true },
     }),
-    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } })
+    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true, logo_url: true }, orderBy: { nombre_negocio: "asc" } })
   ]);
 
   const totalReseñas = detallesDB.length;
@@ -70,8 +72,15 @@ export default async function ReporteCalidadPage({
   const tasaCancelacion = totalPedidos > 0 ? Math.round((cancelados / totalPedidos) * 100) : 0;
   const tasaEntrega = totalPedidos > 0 ? Math.round((entregados / totalPedidos) * 100) : 0;
 
-  // Reseñas recientes
-  const reseñasRecientes = detallesDB.slice(0, 6);
+  const todasLasResenas = detallesDB.map((r) => ({
+    id: r.id,
+    producto: r.productos?.nombre || "Producto",
+    categoria: (r.productos as any)?.categorias?.nombre || "Sin categoría",
+    cliente: (r.pedidos as any)?.usuarios?.nombre || "Cliente",
+    calificacion: Number(r.calificacion || 0),
+    resena: r.resena || "",
+    fecha: r.created_at,
+  }));
 
   const formatFecha = (d: Date) =>
     new Intl.DateTimeFormat("es-BO", { day: "2-digit", month: "short", year: "numeric" }).format(d);
@@ -83,6 +92,7 @@ export default async function ReporteCalidadPage({
     filename: "reporte-calidad",
     titulo: "Reporte de Calidad — PREPE",
     formatos: ["pdf", "excel"] as ("pdf" | "excel")[],
+    logoUrl: empresaId > 0 ? (empresasLista.find((e) => e.id === empresaId)?.logo_url || undefined) : undefined,
     kpis: [
       { label: "Calificación promedio", valor: promedioGlobal.toFixed(2) + " ★", color: "#BC9968" },
       { label: "Total reseñas", valor: String(totalReseñas), color: "#8E1B3A" },
@@ -121,29 +131,25 @@ export default async function ReporteCalidadPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/admin/reportes"
-            className="p-2 bg-white border border-[#8E1B3A]/10 rounded-xl text-[#7A5260] hover:text-[#8E1B3A] hover:bg-[#FDFBF9] transition-all shadow-sm"
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M12 4l-6 6 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Link>
-          <div>
-            <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Calidad</h1>
-        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-          Aquí puedes analizar las métricas de calidad del servicio, evaluaciones de productos y el nivel de satisfacción general de los clientes.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Link href="/admin/reportes" className="text-xs text-[#BC9968] hover:text-[#8E1B3A] font-medium transition-colors">Reportes</Link>
+            <span className="text-[#BC9968]/40 text-xs">/</span>
+            <span className="text-xs text-[#5A0F24] font-medium">Calidad</span>
           </div>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Calidad</h1>
+          <p className="mt-1 text-sm text-[#7A5260] max-w-2xl leading-relaxed">
+            Calificaciones, distribución de reseñas y nivel de satisfacción general de los clientes.
+          </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
           <DescargarReporteBtn config={config} />
         </div>
       </div>
+
+      <ReportSubNav />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -224,38 +230,8 @@ export default async function ReporteCalidadPage({
         </div>
       </div>
 
-      {/* Reseñas recientes */}
-      {reseñasRecientes.length > 0 && (
-        <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
-          <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Reseñas recientes</h3>
-          <div className="space-y-3">
-            {reseñasRecientes.map((r) => {
-              const calif = Number(r.calificacion);
-              return (
-                <div key={r.id} className="border border-[#8E1B3A]/8 rounded-xl p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <p className="text-sm font-medium text-[#2A0E18]">{r.productos?.nombre || "Producto"}</p>
-                      <p className="text-xs text-[#7A5260]">
-                        por {(r.pedidos as any)?.usuarios?.nombre || "Cliente"} · {formatFecha(r.created_at)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <span key={s} className="text-sm" style={{ color: s <= Math.round(calif) ? "#BC9968" : "#E5E7EB" }}>
-                          ★
-                        </span>
-                      ))}
-                      <span className="text-xs font-bold text-[#5A0F24] ml-1">{calif.toFixed(1)}</span>
-                    </div>
-                  </div>
-                  {r.resena && <p className="text-sm text-[#7A5260] leading-relaxed">{r.resena}</p>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Interactive and complete reviews/ratings tables */}
+      <CalidadTablas productos={productosCalif} resenas={todasLasResenas} />
     </div>
   );
 }

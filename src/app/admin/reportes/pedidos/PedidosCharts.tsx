@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -39,15 +40,20 @@ const TooltipBar = ({ active, payload, label }: any) => {
   );
 };
 
-const RenderLabel = ({ cx, cy, total }: { cx: number; cy: number; total: number }) => (
-  <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central">
-    <tspan x={cx} dy="-8" fontSize="22" fontWeight="700" fill="#5A0F24">{total}</tspan>
-    <tspan x={cx} dy="20" fontSize="11" fill="#7A5260">pedidos</tspan>
-  </text>
-);
-
 export function GraficoDonutEstados({ data, total }: { data: EstadoData[]; total: number }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const pieData = data.map((e) => ({ name: e.label, value: e.count, color: e.color }));
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[272px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando distribución de estados...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Distribución por estado</h3>
@@ -97,6 +103,17 @@ export function GraficoDonutEstados({ data, total }: { data: EstadoData[]; total
 }
 
 export function GraficoEvolucionPedidos({ data }: { data: MesData[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[302px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando evolución de pedidos...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-5">Evolución mensual</h3>
@@ -116,8 +133,20 @@ export function GraficoEvolucionPedidos({ data }: { data: MesData[] }) {
 }
 
 export function GraficoValorEstados({ data }: { data: EstadoData[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const formatBs = (n: number) =>
     n >= 1000 ? `Bs ${(n / 1000).toFixed(1)}k` : `Bs ${n}`;
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[272px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando valor monetario...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-5">Valor monetario por estado</h3>

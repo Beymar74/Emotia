@@ -3,6 +3,8 @@ import prisma from "@/lib/prisma";
 import DescargarReporteBtn from "../_components/DescargarReporteBtn";
 import { Suspense } from "react";
 import EmpresaFilter from "../../_components/EmpresaFilter";
+import ReportSubNav from "../_components/ReportSubNav";
+import FidelizacionTabla from "./_components/FidelizacionTabla";
 
 export default async function ReporteFidelizacionPage({
   searchParams,
@@ -24,10 +26,8 @@ export default async function ReporteFidelizacionPage({
       where: { tipo: 'usuario', activo: true, ...empresaFiltroUsuario },
       select: { id: true, nombre: true, email: true, created_at: true },
     }),
-    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } })
+    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true, logo_url: true }, orderBy: { nombre_negocio: "asc" } })
   ]);
-
-  const formatBs = (n: number) => `Bs ${n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
   // Frecuencia de compra por cliente
   type ClienteFreq = { id: number; nombre: string; email: string; pedidos: number; total: number; entregados: number };
@@ -51,8 +51,7 @@ export default async function ReporteFidelizacionPage({
 
   // Top clientes recurrentes
   const topRecurrentes = [...clientes]
-    .sort((a, b) => b.pedidos - a.pedidos)
-    .slice(0, 8);
+    .sort((a, b) => b.pedidos - a.pedidos);
 
   // Segmentación RFM simplificada
   const segmentos = [
@@ -98,6 +97,7 @@ export default async function ReporteFidelizacionPage({
     filename: "reporte-fidelizacion",
     titulo: "Reporte de Fidelización — PREPE",
     formatos: ["pdf", "excel"] as ("pdf" | "excel")[],
+    logoUrl: empresaId > 0 ? (empresasLista.find((e) => e.id === empresaId)?.logo_url || undefined) : undefined,
     kpis: [
       { label: "Clientes con compras", valor: String(clientes.length), color: "#8E1B3A" },
       { label: "Compradores recurrentes", valor: String(clientesRecurrentes), color: "#2D7A47" },
@@ -139,24 +139,25 @@ export default async function ReporteFidelizacionPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link href="/admin/reportes" className="p-2 bg-white border border-[#8E1B3A]/10 rounded-xl text-[#7A5260] hover:text-[#8E1B3A] hover:bg-[#FDFBF9] transition-all shadow-sm">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </Link>
-          <div>
-            <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Fidelización</h1>
-        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-          En esta sección puedes revisar el impacto de las campañas de fidelización, el comportamiento de compras recurrentes y la retención de usuarios.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Link href="/admin/reportes" className="text-xs text-[#BC9968] hover:text-[#8E1B3A] font-medium transition-colors">Reportes</Link>
+            <span className="text-[#BC9968]/40 text-xs">/</span>
+            <span className="text-xs text-[#5A0F24] font-medium">Fidelización</span>
           </div>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Fidelización</h1>
+          <p className="mt-1 text-sm text-[#7A5260] max-w-2xl leading-relaxed">
+            Segmentación RFM, frecuencia de compra, retención y evolución de compradores recurrentes.
+          </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
           <DescargarReporteBtn config={config} />
         </div>
       </div>
+
+      <ReportSubNav />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -208,8 +209,6 @@ export default async function ReporteFidelizacionPage({
           <div className="space-y-3">
             {evolucion.map((m) => {
               const total = m.nuevos + m.recurrentes;
-              const barPct = Math.round((total / maxEv) * 100);
-              const recPct = total > 0 ? Math.round((m.recurrentes / total) * 100) : 0;
               return (
                 <div key={m.mes}>
                   <div className="flex justify-between text-xs mb-1">
@@ -236,58 +235,7 @@ export default async function ReporteFidelizacionPage({
       </div>
 
       {/* Top clientes recurrentes */}
-      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 overflow-x-auto">
-        <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Clientes más recurrentes</h3>
-        {topRecurrentes.length === 0 ? (
-          <p className="text-sm text-[#7A5260] text-center py-4">Sin datos de compras.</p>
-        ) : (
-          <table className="w-full border-collapse">
-            <thead>
-              <tr>
-                {["#", "Cliente", "Total pedidos", "Entregados", "Gasto total", "Ticket promedio", "Perfil"].map(h => (
-                  <th key={h} className="text-left px-3 py-2 text-xs tracking-widest uppercase text-[#7A5260] font-medium border-b border-[#8E1B3A]/10">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {topRecurrentes.map((c, i) => {
-                const ticket = c.pedidos > 0 ? c.total / c.pedidos : 0;
-                const perfil = c.pedidos >= 5 ? "Leal" : c.pedidos >= 2 ? "Frecuente" : "Nuevo";
-                const perfilColor = c.pedidos >= 5 ? "bg-[#EEF8F0] text-[#2D7A47]" : c.pedidos >= 2 ? "bg-[#FAF3EC] text-[#8C5E08]" : "bg-[#EEF3FB] text-[#185FA5]";
-                return (
-                  <tr key={c.id} className="border-b border-[#8E1B3A]/5 last:border-0 hover:bg-[#FAF3EC]/50">
-                    <td className="px-3 py-3">
-                      <span className="w-6 h-6 rounded-full bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] text-white text-xs font-bold flex items-center justify-center">
-                        {i + 1}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-[#FAF3EC] flex items-center justify-center text-[#8E1B3A] text-xs font-bold flex-shrink-0">
-                          {(c.nombre?.[0] || "C").toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-[#2A0E18]">{c.nombre}</p>
-                          <p className="text-[10px] text-[#7A5260]">{c.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-sm font-bold text-[#5A0F24]">{c.pedidos}</td>
-                    <td className="px-3 py-3 text-sm text-[#2D7A47] font-medium">{c.entregados}</td>
-                    <td className="px-3 py-3 text-sm font-semibold text-[#5A0F24]">{formatBs(c.total)}</td>
-                    <td className="px-3 py-3 text-sm text-[#7A5260]">{formatBs(ticket)}</td>
-                    <td className="px-3 py-3">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${perfilColor}`}>
-                        {perfil}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <FidelizacionTabla clientes={topRecurrentes} />
     </div>
   );
 }

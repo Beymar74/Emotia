@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -14,6 +15,17 @@ interface CatData { nombre: string; monto: number; items: number; pct: number }
 const fmt = (n: number) => n >= 1000 ? `Bs ${(n / 1000).toFixed(1)}k` : `Bs ${n}`;
 
 export function GraficoSemanalGlobal({ data, totalIngresos }: { data: SemanaData[]; totalIngresos: number }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[300px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando gráfico semanal...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-5">Evolución semanal de ingresos</h3>
@@ -48,11 +60,22 @@ export function GraficoSemanalGlobal({ data, totalIngresos }: { data: SemanaData
 }
 
 export function GraficoEmpresasGlobal({ data, totalIngresos }: { data: EmpresaData[]; totalIngresos: number }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const chartData = data.map((e) => ({
     nombre: e.nombre_negocio.length > 14 ? e.nombre_negocio.slice(0, 13) + "…" : e.nombre_negocio,
     ventas: Number(e.total_vendido || 0),
     pct: totalIngresos > 0 ? Math.round((Number(e.total_vendido || 0) / totalIngresos) * 100) : 0,
   }));
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[300px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando gráfico de empresas...
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
@@ -76,6 +99,17 @@ export function GraficoEmpresasGlobal({ data, totalIngresos }: { data: EmpresaDa
 }
 
 export function GraficoCategoriasGlobal({ data }: { data: CatData[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[272px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando gráfico por categoría...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Desglose por categoría</h3>

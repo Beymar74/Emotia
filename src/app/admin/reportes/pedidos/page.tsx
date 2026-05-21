@@ -4,6 +4,7 @@ import DescargarReporteBtn from "../_components/DescargarReporteBtn";
 import { GraficoDonutEstados, GraficoEvolucionPedidos, GraficoValorEstados } from "./PedidosCharts";
 import { Suspense } from "react";
 import EmpresaFilter from "../../_components/EmpresaFilter";
+import ReportSubNav from "../_components/ReportSubNav";
 
 export default async function ReportePedidosPage({
   searchParams,
@@ -19,10 +20,8 @@ export default async function ReportePedidosPage({
       select: { id: true, total: true, estado: true, created_at: true, updated_at: true },
       orderBy: { created_at: 'desc' },
     }),
-    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } })
+    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true, logo_url: true }, orderBy: { nombre_negocio: "asc" } })
   ]);
-
-  const formatBs = (n: number) => `Bs ${n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
   // Por estado
   const estados = ['pendiente', 'procesando', 'enviado', 'entregado', 'cancelado'];
@@ -48,7 +47,6 @@ export default async function ReportePedidosPage({
     monto: pedidosDB.filter((p: any) => p.estado === e).reduce((s: number, p: any) => s + Number(p.total), 0),
   }));
   const totalPedidos = pedidosDB.length;
-  const maxCount = Math.max(...conteoEstados.map(e => e.count), 1);
 
   // Evolución mensual
   const ahora = new Date();
@@ -69,7 +67,6 @@ export default async function ReportePedidosPage({
     }
   });
   const evolucion = Object.values(mesesMap);
-  const maxTotal = Math.max(...evolucion.map(m => m.total), 1);
 
   // Tasa de éxito
   const entregados = conteoEstados.find(e => e.estado === 'entregado')?.count || 0;
@@ -77,9 +74,11 @@ export default async function ReportePedidosPage({
   const tasaExito = totalPedidos > 0 ? Math.round((entregados / totalPedidos) * 100) : 0;
   const tasaCancelacion = totalPedidos > 0 ? Math.round((cancelados / totalPedidos) * 100) : 0;
 
+  const empresaNombre = empresaId > 0 ? (empresasLista.find(e => e.id === empresaId)?.nombre_negocio || "") : "";
+
   const config = {
-    filename: "reporte-pedidos",
-    titulo: "Reporte de Pedidos — PREPE",
+    filename: empresaId > 0 ? `reporte-pedidos-${empresaNombre.toLowerCase().replace(/[^a-z0-9]/g, "-")}` : "reporte-pedidos",
+    titulo: empresaId > 0 ? `Reporte de Pedidos — ${empresaNombre}` : "Reporte de Pedidos — PREPE",
     formatos: ["pdf", "excel"] as ("pdf" | "excel")[],
     kpis: [
       { label: "Total pedidos", valor: String(totalPedidos), color: "#8E1B3A" },
@@ -87,6 +86,7 @@ export default async function ReportePedidosPage({
       { label: "Tasa de éxito", valor: `${tasaExito}%`, color: "#BC9968" },
       { label: "Tasa cancelación", valor: `${tasaCancelacion}%`, color: "#A32D2D" },
     ],
+    logoUrl: empresaId > 0 ? (empresasLista.find(e => e.id === empresaId)?.logo_url || undefined) : undefined,
     graficos: [
       { tipo: "dona" as const, titulo: "Distribución por estado", datos: conteoEstados.filter((e) => e.count > 0).map((e) => ({ nombre: e.label, valor: e.count, color: e.color })) },
       { tipo: "barras" as const, titulo: "Evolución mensual (total)", datos: evolucion.map((m) => ({ nombre: m.mes, valor: m.total })), color: "#8E1B3A" },
@@ -115,24 +115,25 @@ export default async function ReportePedidosPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link href="/admin/reportes" className="p-2 bg-white border border-[#8E1B3A]/10 rounded-xl text-[#7A5260] hover:text-[#8E1B3A] hover:bg-[#FDFBF9] transition-all shadow-sm">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </Link>
-          <div>
-            <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Pedidos</h1>
-        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-          En esta sección puedes visualizar estadísticas completas sobre los estados de los pedidos, tiempos de entrega y volumen logístico.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Link href="/admin/reportes" className="text-xs text-[#BC9968] hover:text-[#8E1B3A] font-medium transition-colors">Reportes</Link>
+            <span className="text-[#BC9968]/40 text-xs">/</span>
+            <span className="text-xs text-[#5A0F24] font-medium">Pedidos</span>
           </div>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Pedidos</h1>
+          <p className="mt-1 text-sm text-[#7A5260] max-w-2xl leading-relaxed">
+            Estados, tiempos de entrega, tasa de éxito y volumen logístico mensual.
+          </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
           <DescargarReporteBtn config={config} />
         </div>
       </div>
+
+      <ReportSubNav />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

@@ -1,237 +1,265 @@
-export const dynamic = 'force-dynamic';
+
+export const dynamic = "force-dynamic";
 
 import prisma from "@/lib/prisma";
-import MetricCard from "./_components/MetricCard";
+import Image from "next/image";
+import DashboardGlobal from "./_components/DashboardGlobal";
 import QuickActions from "./_components/QuickActions";
-import ProveedoresTable from "./_components/ProveedoresTable";
-import VentasCategorias from "./_components/VentasCategorias";
 import SolicitudesPendientes from "./_components/SolicitudesPendientes";
-import DashboardFilter from "./_components/DashboardFilter";
-import EmpresaFilter from "./_components/EmpresaFilter";
-import { Suspense } from "react";
+import { Store, UserCheck, ShieldAlert } from "lucide-react";
 
-function calcDelta(actual: number, anterior: number): { delta: string; deltaType: "up" | "down" | "neutral" } {
-  if (anterior === 0) return { delta: "Sin datos prev.", deltaType: "neutral" };
-  const pct = ((actual - anterior) / anterior) * 100;
-  if (Math.abs(pct) < 0.5) return { delta: "Estable", deltaType: "neutral" };
-  const sign = pct > 0 ? "+" : "";
-  return {
-    delta: `${sign}${pct.toFixed(1)}%`,
-    deltaType: pct > 0 ? "up" : "down",
-  };
-}
-
-export default async function AdminPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const sp = await searchParams;
-  const rango = typeof sp.rango === "string" ? sp.rango : "historico";
-  const empresaId = typeof sp.empresa === "string" && sp.empresa !== "todas" ? parseInt(sp.empresa) : 0;
-
-  const now = new Date();
-  let startDate: Date | undefined;
-  let prevStartDate: Date | undefined;
-  let prevEndDate: Date | undefined;
-
-  if (rango !== "historico") {
-    startDate = new Date();
-    if (rango === "hoy") {
-      startDate.setHours(0, 0, 0, 0);
-      prevStartDate = new Date(startDate); prevStartDate.setDate(prevStartDate.getDate() - 1);
-      prevEndDate = new Date(startDate);
-    } else if (rango === "7dias") {
-      startDate.setDate(now.getDate() - 7);
-      prevStartDate = new Date(startDate); prevStartDate.setDate(prevStartDate.getDate() - 7);
-      prevEndDate = new Date(startDate);
-    } else if (rango === "30dias") {
-      startDate.setDate(now.getDate() - 30);
-      prevStartDate = new Date(startDate); prevStartDate.setDate(prevStartDate.getDate() - 30);
-      prevEndDate = new Date(startDate);
-    } else if (rango === "este_mes") {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      prevStartDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      prevEndDate = new Date(now.getFullYear(), now.getMonth(), 0);
-    }
-  }
-
-  const dateFilter = startDate ? { created_at: { gte: startDate } } : {};
-  const prevDateFilter = (prevStartDate && prevEndDate)
-    ? { created_at: { gte: prevStartDate, lte: prevEndDate } }
-    : null;
-
-  const empresaFiltroPedido = empresaId > 0 ? { detalle_pedidos: { some: { proveedor_id: empresaId } } } : {};
-  const empresaFiltroUsuario = empresaId > 0 ? { pedidos: { some: { detalle_pedidos: { some: { proveedor_id: empresaId } } } } } : {};
-  const empresaFiltroDetalle = empresaId > 0 ? { proveedor_id: empresaId } : {};
-  const empresaFiltroProducto = empresaId > 0 ? { proveedor_id: empresaId } : {};
-
-  // --- MÉTRICAS ACTUALES ---
-  const [ingresosResult, pedidosCompletados, usuariosActivos, proveedoresAprobados, empresasLista] = await Promise.all([
-    prisma.pedidos.aggregate({ _sum: { total: true }, where: { estado: 'entregado', ...dateFilter, ...empresaFiltroPedido } }),
-    prisma.pedidos.count({ where: { estado: 'entregado', ...dateFilter, ...empresaFiltroPedido } }),
-    prisma.usuarios.count({ where: { activo: true, tipo: 'usuario', ...dateFilter, ...empresaFiltroUsuario } }),
-    prisma.proveedores.count({ where: { estado: 'aprobado', ...(empresaId > 0 ? { id: empresaId } : {}) } }),
-    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } }),
+export default async function AdminPage() {
+  // 1. Fetch KPI Base Counts
+  const [
+    totalUsuarios,
+    totalEmpresas,
+    totalProveedores,
+    totalProductos,
+    pedidosCompletados,
+    ventasGlobales,
+    ingresosAgg,
+  ] = await Promise.all([
+    prisma.usuarios.count(),
+    prisma.proveedores.count({ where: { estado: "aprobado" } }),
+    prisma.proveedores.count(),
+    prisma.productos.count({ where: { activo: true } }),
+    prisma.pedidos.count({ where: { estado: "entregado" } }),
+    prisma.pedidos.count(),
+    prisma.pedidos.aggregate({
+      _sum: { total: true },
+      where: { estado: "entregado" },
+    }),
   ]);
 
-  const ingresosTotales = Number(ingresosResult._sum.total || 0);
+  const ingresosTotales = Number(ingresosAgg._sum.total || 0);
 
-  // --- MÉTRICAS PERÍODO ANTERIOR (para deltas) ---
-  let ingresosPrev = 0, pedidosPrev = 0, usuariosPrev = 0;
-  if (prevDateFilter) {
-    const [ingPrev, pedPrev, usPrev] = await Promise.all([
-      prisma.pedidos.aggregate({ _sum: { total: true }, where: { estado: 'entregado', ...prevDateFilter, ...empresaFiltroPedido } }),
-      prisma.pedidos.count({ where: { estado: 'entregado', ...prevDateFilter, ...empresaFiltroPedido } }),
-      prisma.usuarios.count({ where: { activo: true, tipo: 'usuario', ...prevDateFilter, ...empresaFiltroUsuario } }),
-    ]);
-    ingresosPrev = Number(ingPrev._sum.total || 0);
-    pedidosPrev = pedPrev;
-    usuariosPrev = usPrev;
-  }
+  // 2. Fetch growth metrics (Users in last 30 days vs total)
+  const lastMonthDate = new Date();
+  lastMonthDate.setDate(lastMonthDate.getDate() - 30);
+  const usuariosNuevosMes = await prisma.usuarios.count({
+    where: { created_at: { gte: lastMonthDate } },
+  });
+  const crecimientoMensual =
+    totalUsuarios > 0
+      ? (usuariosNuevosMes / Math.max(1, totalUsuarios - usuariosNuevosMes)) * 100
+      : 0;
 
-  const deltaIngresos = prevDateFilter ? calcDelta(ingresosTotales, ingresosPrev) : { delta: "Histórico", deltaType: "neutral" as const };
-  const deltaPedidos  = prevDateFilter ? calcDelta(pedidosCompletados, pedidosPrev) : { delta: "Histórico", deltaType: "neutral" as const };
-  const deltaUsuarios = prevDateFilter ? calcDelta(usuariosActivos, usuariosPrev) : { delta: "Histórico", deltaType: "neutral" as const };
+  // 3. Prepare monthly user registrations (last 6 months)
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+  sixMonthsAgo.setDate(1);
+  sixMonthsAgo.setHours(0, 0, 0, 0);
 
-  // --- VENTAS POR CATEGORÍA (datos reales) ---
-  const ventasCategoria = await prisma.detalle_pedidos.findMany({
+  const usuariosHistorico = await prisma.usuarios.findMany({
+    where: { created_at: { gte: sixMonthsAgo } },
+    select: { created_at: true },
+    orderBy: { created_at: "asc" },
+  });
+
+  const pedidosHistorico = await prisma.pedidos.findMany({
     where: {
-      pedidos: { estado: 'entregado', ...dateFilter },
-      ...empresaFiltroDetalle
+      estado: "entregado",
+      created_at: { gte: sixMonthsAgo },
     },
+    select: { created_at: true, total: true },
+    orderBy: { created_at: "asc" },
+  });
+
+  // JS grouping for months
+  const nombresMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+  
+  const getMesLabel = (date: Date) => {
+    return `${nombresMeses[date.getMonth()]} ${date.getFullYear().toString().slice(-2)}`;
+  };
+
+  // Generate continuous list of last 6 months
+  const ultimos6Meses: string[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    ultimos6Meses.push(getMesLabel(d));
+  }
+
+  // Users group mapping
+  const usersGroup: Record<string, number> = {};
+  ultimos6Meses.forEach((m) => (usersGroup[m] = 0));
+  usuariosHistorico.forEach((u) => {
+    const label = getMesLabel(u.created_at);
+    if (label in usersGroup) {
+      usersGroup[label]++;
+    }
+  });
+
+  const usuariosMensuales = ultimos6Meses.map((m) => ({
+    mes: m,
+    count: usersGroup[m],
+  }));
+
+  // Sales group mapping
+  const salesGroup: Record<string, { monto: number; pedidos: number }> = {};
+  ultimos6Meses.forEach((m) => (salesGroup[m] = { monto: 0, pedidos: 0 }));
+  pedidosHistorico.forEach((p) => {
+    const label = getMesLabel(p.created_at);
+    if (label in salesGroup) {
+      salesGroup[label].monto += Number(p.total || 0);
+      salesGroup[label].pedidos++;
+    }
+  });
+
+  const ventasMensuales = ultimos6Meses.map((m) => ({
+    mes: m,
+    monto: salesGroup[m].monto,
+    pedidos: salesGroup[m].pedidos,
+  }));
+
+  // 4. Fetch Top 5 Companies by Sales
+  const topEmpresasRaw = await prisma.proveedores.findMany({
+    where: { estado: "aprobado" },
+    orderBy: { total_vendido: "desc" },
+    take: 5,
+    select: { nombre_negocio: true, total_vendido: true },
+  });
+
+  const ingresosEmpresas = topEmpresasRaw.map((e) => ({
+    nombre: e.nombre_negocio,
+    monto: Number(e.total_vendido || 0),
+  }));
+
+  // 5. Fetch Orders by State
+  const pedidosTotal = await prisma.pedidos.count();
+  const pedidosPorEstadoRaw = await prisma.pedidos.groupBy({
+    by: ["estado"],
+    _count: { id: true },
+  });
+
+  const pedidosEstados = pedidosPorEstadoRaw.map((item) => {
+    const totalCantidad = item._count.id;
+    const pct = pedidosTotal > 0 ? Math.round((totalCantidad / pedidosTotal) * 100) : 0;
+    return {
+      nombre: item.estado,
+      cantidad: totalCantidad,
+      pct,
+    };
+  });
+
+  // 6. Fetch Top 5 Products sold
+  const topProductosVendidosRaw = await prisma.detalle_pedidos.findMany({
+    where: { pedidos: { estado: "entregado" } },
     select: {
+      cantidad: true,
       subtotal: true,
-      productos: { select: { categorias: { select: { nombre: true } } } },
+      productos: {
+        select: { nombre: true },
+      },
     },
   });
 
-  const totalVentas = ventasCategoria.reduce((acc, d) => acc + Number(d.subtotal), 0);
-  const ventasPorCat: Record<string, number> = {};
-  for (const d of ventasCategoria) {
-    const cat = d.productos.categorias?.nombre ?? "Sin categoría";
-    ventasPorCat[cat] = (ventasPorCat[cat] ?? 0) + Number(d.subtotal);
-  }
-  const categoriasData = Object.entries(ventasPorCat)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 6)
-    .map(([nombre, total]) => ({
-      nombre,
-      total,
-      porcentaje: totalVentas > 0 ? Math.round((total / totalVentas) * 100) : 0,
-    }));
+  const productSalesMap: Record<string, { nombre: string; cantidad: number; total: number }> = {};
+  topProductosVendidosRaw.forEach((d) => {
+    const name = d.productos?.nombre || "Producto Desconocido";
+    if (!productSalesMap[name]) {
+      productSalesMap[name] = { nombre: name, cantidad: 0, total: 0 };
+    }
+    productSalesMap[name].cantidad += d.cantidad;
+    productSalesMap[name].total += Number(d.subtotal || 0);
+  });
 
-  // --- SOLICITUDES PENDIENTES (datos reales) ---
-  const [proveedoresPendientes, productosInactivos, pedidosCancelados, pagosFallidos] = await Promise.all([
-    prisma.proveedores.count({ where: { estado: 'pendiente', ...(empresaId > 0 ? { id: empresaId } : {}) } }),
-    prisma.productos.count({ where: { activo: false, ...empresaFiltroProducto } }),
-    prisma.pedidos.count({ where: { estado: 'cancelado', ...dateFilter, ...empresaFiltroPedido } }),
-    prisma.pedidos.count({ where: { estado: 'cancelado', metodo_pago: { not: null }, ...dateFilter, ...empresaFiltroPedido } }),
+  const productosMasVendidos = Object.values(productSalesMap)
+    .sort((a, b) => b.cantidad - a.cantidad)
+    .slice(0, 5);
+
+  // 7. Get pending tasks metadata for bottom stats
+  const [
+    proveedoresPendientes,
+    productosInactivos,
+    pedidosCancelados,
+    pagosFallidos,
+  ] = await Promise.all([
+    prisma.proveedores.count({ where: { estado: "pendiente" } }),
+    prisma.productos.count({ where: { activo: false } }),
+    prisma.pedidos.count({ where: { estado: "cancelado" } }),
+    prisma.pedidos.count({ where: { estado: "cancelado", metodo_pago: { not: null } } }),
   ]);
 
-  // --- ÚLTIMOS PROVEEDORES ---
-  const ultimosProveedores = await prisma.proveedores.findMany({
-    where: empresaId > 0 ? { id: empresaId } : undefined,
-    take: 5,
-    orderBy: { created_at: 'desc' },
-  });
-
-  const formatBs = (monto: number) => `Bs ${monto.toLocaleString('es-BO', { minimumFractionDigits: 0 })}`;
-  const formatNum = (num: number) => num.toLocaleString('es-BO');
+  const dashboardData = {
+    kpis: {
+      usuariosRegistrados: totalUsuarios,
+      empresasActivas: totalEmpresas,
+      proveedoresActivos: totalProveedores,
+      productosPublicados: totalProductos,
+      pedidosCompletados: pedidosCompletados,
+      ventasGlobales: ventasGlobales,
+      ingresosTotales: ingresosTotales,
+      crecimientoMensual,
+    },
+    usuariosMensuales,
+    ventasMensuales,
+    ingresosEmpresas,
+    pedidosEstados,
+    productosMasVendidos,
+  };
 
   return (
-    <div className="space-y-6 p-4">
-
-      {/* Banner de bienvenida */}
-      <div className="bg-gradient-to-r from-[#5A0F24] to-[#8E1B3A] rounded-2xl px-6 py-5 flex items-center justify-between gap-4">
-        <div>
-          <p className="text-xs tracking-[2px] uppercase text-[#BC9968] font-semibold mb-1">Panel de Administración</p>
-          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-white leading-tight">
-            Bienvenido al Sistema PREPE
+    <div className="space-y-8 p-2 sm:p-0 animate-fade-in">
+      
+      {/* Cabecera / Banner PREPE Principal */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm border border-[#8E1B3A]/10 relative overflow-hidden">
+        
+        {/* Contenedor de Texto - max-w-[70%] asegura espacio para el logo */}
+        <div className="space-y-2 relative z-10 w-full md:max-w-[70%] text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8E1B3A]/10 border border-[#8E1B3A]/20 text-xs font-semibold text-[#BC9968]">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            Ecosistema Unificado Central
+          </div>
+          <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-[#5A0F24] leading-tight">
+            Bienvenido a la Plataforma de Regalos Personalizados y Experiencias (PREPE)
           </h1>
-          <p className="text-sm text-white/60 mt-1">
-            Plataforma de Regalos Personalizados y Experiencias — Administración total
+          <p className="text-sm sm:text-base text-[#7A5260] font-light">
+            Panel administrativo premium del ecosistema. Supervisa en tiempo real el catálogo, los ingresos consolidados, pedidos y el crecimiento integral de todas las cuentas y empresas comerciales de la plataforma.
           </p>
         </div>
-        <div className="hidden sm:flex flex-col items-end gap-1 flex-shrink-0">
-          <span className="text-xs bg-white/15 text-white px-3 py-1.5 rounded-full border border-white/20 font-medium">
-            Acceso completo al sistema
-          </span>
-        </div>
-      </div>
 
-      {/* Sección de Métricas */}
-      <section>
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-4">
-          <div>
-            <h2 className="text-[9px] tracking-[2.5px] uppercase text-[#7A5260] font-bold opacity-80">
-              Resumen — {new Intl.DateTimeFormat("es-BO", { month: "long", year: "numeric", timeZone: "America/La_Paz" }).format(new Date())}
-            </h2>
-            <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-              Resumen global de las métricas clave del Sistema PREPE. Puedes filtrar por empresa para analizar su desempeño particular.
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
-            <Suspense><DashboardFilter /></Suspense>
+        {/* Contenedor del Logo Agrandado */}
+        <div className="flex items-center justify-center relative z-10 flex-shrink-0 w-full md:w-auto">
+          <div className="relative w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 flex-shrink-0">
+            <Image
+              src="/logo/prepelogo.png"
+              alt="PREPE Logo"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <MetricCard
-            value={formatBs(ingresosTotales)}
-            label="Ingresos Totales"
-            delta={deltaIngresos.delta}
-            deltaType={deltaIngresos.deltaType}
-            barFrom="#8E1B3A"
-            barTo="#BC9968"
-          />
-          <MetricCard
-            value={formatNum(pedidosCompletados)}
-            label="Pedidos Completados"
-            delta={deltaPedidos.delta}
-            deltaType={deltaPedidos.deltaType}
-            barFrom="#AB3A50"
-            barTo="#BC9968"
-          />
-          <MetricCard
-            value={formatNum(usuariosActivos)}
-            label="Usuarios Activos"
-            delta={deltaUsuarios.delta}
-            deltaType={deltaUsuarios.deltaType}
-            barFrom="#5C3A2E"
-            barTo="#BC9968"
-          />
-          <MetricCard
-            value={formatNum(proveedoresAprobados)}
-            label="Empresas Aprobadas"
-            barFrom="#BC9968"
-            barTo="#F5E6D0"
-          />
-        </div>
-      </section>
 
-      {/* Acciones Rápidas */}
-      <section>
-        <h2 className="text-[9px] tracking-[2.5px] uppercase text-[#7A5260] font-bold mb-4 opacity-80">
-          Acciones rápidas de administración
-        </h2>
-        <QuickActions empresaId={empresaId} />
-      </section>
-
-      {/* Grid Principal: Tabla y Actividad */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1.6fr_1fr] gap-4">
-        <ProveedoresTable data={ultimosProveedores} />
-        <VentasCategorias categorias={categoriasData} />
+        {/* Glow de fondo */}
+        <div className="absolute -top-12 -right-12 w-64 h-64 bg-[#8E1B3A]/5 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Grid Inferior */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        <SolicitudesPendientes
-          proveedoresPendientes={proveedoresPendientes}
-          productosInactivos={productosInactivos}
-          pedidosCancelados={pedidosCancelados}
-          pagosFallidos={pagosFallidos}
-        />
+      {/* 8. Componente de Visualización e Interacción del Dashboard */}
+      <DashboardGlobal data={dashboardData} />
+
+      {/* 9. Módulo de Acciones Rápidas */}
+      <section className="bg-white/40 backdrop-blur-sm rounded-3xl p-6 border border-[#8E1B3A]/5 shadow-sm space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Store className="text-[#8E1B3A]" size={20} />
+          <h3 className="font-serif text-xl font-bold text-[#5A0F24]">Acciones Administrativas</h3>
+        </div>
+        <QuickActions empresaId={0} />
+      </section>
+
+      {/* 10. Módulo de Alertas Críticas & Solicitudes */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <SolicitudesPendientes
+            proveedoresPendientes={proveedoresPendientes}
+            productosInactivos={productosInactivos}
+            pedidosCancelados={pedidosCancelados}
+            pagosFallidos={pagosFallidos}
+          />
+        </div>
+
+        {/* Panel de soporte eliminado */}
       </div>
 
     </div>

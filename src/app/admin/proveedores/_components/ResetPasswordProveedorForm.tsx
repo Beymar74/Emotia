@@ -73,7 +73,7 @@ export default function ResetPasswordProveedorForm({
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-[#5A0F24] flex items-center gap-2">
           <KeyRound size={18} />
-          Nueva contraseña del proveedor
+          Nueva contraseña de la cuenta
         </h3>
 
         <button

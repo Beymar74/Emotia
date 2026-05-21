@@ -21,7 +21,7 @@ export default function SolicitudesPendientes({
   pagosFallidos,
 }: SolicitudesPendientesProps) {
   const solicitudes: SolicitudItem[] = [
-    { label: "Proveedores pendientes de aprobación", valor: proveedoresPendientes, urgente: true,  href: "/admin/empresas/actividad" },
+    { label: "Representantes pendientes de aprobación", valor: proveedoresPendientes, urgente: true,  href: "/admin/empresas/actividad" },
     { label: "Productos inactivos",                  valor: productosInactivos,    urgente: true,  href: "/admin/productos" },
     { label: "Pedidos cancelados",                   valor: pedidosCancelados,     urgente: false, href: "/admin/pedidos" },
     { label: "Pagos fallidos",                       valor: pagosFallidos,         urgente: false, href: "/admin/pagos" },

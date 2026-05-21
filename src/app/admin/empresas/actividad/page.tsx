@@ -1,13 +1,9 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import ActividadEmpresasClient from "./_components/ActividadEmpresasClient";
+import SubNav from "../_components/SubNav";
 
 export const dynamic = "force-dynamic";
-
-const subPages = [
-  { href: "/admin/empresas/actividad", label: "Supervisar actividad", icon: "◷", active: true },
-  { href: "/admin/empresas/rendimiento", label: "Rendimiento", icon: "▲" },
-];
 
 export default async function ActividadEmpresasPage({
   searchParams,
@@ -16,20 +12,29 @@ export default async function ActividadEmpresasPage({
 }) {
   const sp = await searchParams;
   const estadoFiltro = typeof sp.estado === "string" ? sp.estado : "";
-  const hoy      = new Date(); hoy.setHours(0, 0, 0, 0);
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
   const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
 
-  const where: any = { estado: { in: ["aprobado", "suspendido"] } };
+  const where: { estado?: string | { in: string[] } } = { estado: { in: ["aprobado", "suspendido"] } };
   if (estadoFiltro === "aprobado" || estadoFiltro === "suspendido") where.estado = estadoFiltro;
 
-  const [provActivos, pedidosCurso, completadosHoy, canceladosMes, empresasRaw,
-         completadosPorProv, canceladosPorProv] = await Promise.all([
+  const [
+    provActivos,
+    pedidosCurso,
+    completadosHoy,
+    canceladosMes,
+    totalFinalizadosMes,
+    empresasRaw,
+    completadosPorProv,
+    canceladosPorProv,
+    productosActivosPorProv,
+  ] = await Promise.all([
     prisma.proveedores.count({ where: { estado: "aprobado" } }),
     prisma.pedidos.count({ where: { estado: { notIn: ["entregado", "cancelado"] } } }),
     prisma.pedidos.count({ where: { estado: "entregado", updated_at: { gte: hoy } } }),
     prisma.pedidos.count({ where: { estado: "cancelado", updated_at: { gte: inicioMes } } }),
+    prisma.pedidos.count({ where: { estado: { in: ["entregado", "cancelado"] }, updated_at: { gte: inicioMes } } }),
     prisma.proveedores.findMany({ where, orderBy: { updated_at: "desc" } }),
-    // Conteos reales por proveedor
     prisma.detalle_pedidos.groupBy({
       by: ["proveedor_id"],
       _count: { id: true },
@@ -40,25 +45,72 @@ export default async function ActividadEmpresasPage({
       _count: { id: true },
       where: { pedidos: { estado: "cancelado" } },
     }),
+    prisma.productos.groupBy({
+      by: ["proveedor_id"],
+      _count: { id: true },
+      where: { activo: true },
+    }),
   ]);
 
   const completadosMap: Record<number, number> = {};
-  const canceladosMap:  Record<number, number> = {};
+  const canceladosMap: Record<number, number> = {};
+  const productosMap: Record<number, number> = {};
   for (const r of completadosPorProv) completadosMap[r.proveedor_id] = r._count.id;
-  for (const r of canceladosPorProv)  canceladosMap[r.proveedor_id]  = r._count.id;
+  for (const r of canceladosPorProv) canceladosMap[r.proveedor_id] = r._count.id;
+  for (const r of productosActivosPorProv) productosMap[r.proveedor_id] = r._count.id;
+
+  const tasaExitoMes =
+    totalFinalizadosMes > 0
+      ? Math.round(((totalFinalizadosMes - canceladosMes) / totalFinalizadosMes) * 100)
+      : 100;
 
   const empresas = empresasRaw.map((p) => ({
-    id:              p.id,
-    nombre_negocio:  p.nombre_negocio,
-    logo_url:        p.logo_url,
-    email:           p.email,
-    estado:          p.estado,
+    id: p.id,
+    nombre_negocio: p.nombre_negocio,
+    logo_url: p.logo_url,
+    email: p.email,
+    telefono: p.telefono,
+    categorias: p.categorias,
+    estado: p.estado,
     calificacion_prom: p.calificacion_prom ? Number(p.calificacion_prom) : 0,
-    total_vendido:   p.total_vendido ? Number(p.total_vendido) : 0,
-    updated_at:      p.updated_at.toISOString(),
+    total_vendido: p.total_vendido ? Number(p.total_vendido) : 0,
+    updated_at: p.updated_at.toISOString(),
+    created_at: p.created_at.toISOString(),
     pedidosCompletados: completadosMap[p.id] ?? 0,
-    pedidosCancelados:  canceladosMap[p.id]  ?? 0,
+    pedidosCancelados: canceladosMap[p.id] ?? 0,
+    productosActivos: productosMap[p.id] ?? 0,
   }));
+
+  const kpis = [
+    {
+      label: "Empresas activas",
+      valor: String(provActivos),
+      sub: "empresas aprobadas",
+      color: "#8E1B3A",
+      bg: "#FDF5F7",
+    },
+    {
+      label: "Pedidos en proceso",
+      valor: String(pedidosCurso),
+      sub: "sin completar ni cancelar",
+      color: "#BC9968",
+      bg: "#FDF8F1",
+    },
+    {
+      label: "Entregados hoy",
+      valor: String(completadosHoy),
+      sub: "pedidos completados hoy",
+      color: "#2D7A47",
+      bg: "#F0FAF3",
+    },
+    {
+      label: "Tasa de éxito del mes",
+      valor: `${tasaExitoMes}%`,
+      sub: `${canceladosMes} cancelado${canceladosMes !== 1 ? "s" : ""} este mes`,
+      color: tasaExitoMes >= 80 ? "#2D7A47" : tasaExitoMes >= 60 ? "#BC9968" : "#A32D2D",
+      bg: tasaExitoMes >= 80 ? "#F0FAF3" : tasaExitoMes >= 60 ? "#FDF8F1" : "#FBF0F0",
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -66,58 +118,41 @@ export default async function ActividadEmpresasPage({
         <div>
           <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Empresas</p>
           <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Supervisar actividad</h1>
-          <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-            Aquí puedes supervisar la actividad reciente de las empresas, revisar sus publicaciones, actualizaciones y el movimiento de sus catálogos.
+          <p className="mt-1 text-sm text-[#7A5260]">
+            Monitorea el desempeño y la actividad de cada empresa registrada.
           </p>
         </div>
         <Link
-          href="/admin/empresas/nuevo"
-          className="bg-[#8E1B3A] text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#5A0F24] transition-all shadow-lg shadow-[#8E1B3A]/20 flex items-center justify-center gap-2 active:scale-95"
+          href="/admin/usuarios?tab=representantes"
+          className="bg-[#8E1B3A]/10 text-[#8E1B3A] border border-[#8E1B3A]/20 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#8E1B3A] hover:text-white transition-all flex items-center gap-2 whitespace-nowrap"
         >
-          <span className="text-xl leading-none">+</span>
-          Agregar Empresa
+          Gestionar representantes →
         </Link>
       </div>
 
-      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-1.5 flex flex-col sm:flex-row gap-1.5">
-        {subPages.map((sp) => (
-          <Link
-            key={sp.href}
-            href={sp.href}
-            className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-              sp.active
-                ? "bg-gradient-to-r from-[#8E1B3A] to-[#AB3A50] text-white shadow-sm"
-                : "text-[#7A5260] hover:bg-[#FAF3EC] hover:text-[#5A0F24]"
-            }`}
-          >
-            <span>{sp.icon}</span>
-            <span>{sp.label}</span>
-          </Link>
-        ))}
-      </div>
+      <SubNav activa="actividad" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {[
-          { label: "Empresas activas",    valor: provActivos,    color: "#8E1B3A" },
-          { label: "Pedidos en curso",    valor: pedidosCurso,   color: "#BC9968" },
-          { label: "Completados hoy",     valor: completadosHoy, color: "#2D7A47" },
-          { label: "Cancelados este mes", valor: canceladosMes,  color: "#A32D2D" },
-        ].map((s) => (
-          <div key={s.label} className="bg-white rounded-xl border border-[#8E1B3A]/10 p-4 sm:p-5 relative overflow-hidden">
+        {kpis.map((s) => (
+          <div
+            key={s.label}
+            className="rounded-xl border p-4 sm:p-5 relative overflow-hidden"
+            style={{ background: s.bg, borderColor: `${s.color}25` }}
+          >
             <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: s.color }} />
-            <p className="font-serif text-2xl sm:text-4xl font-bold text-[#5A0F24]">{s.valor}</p>
-            <p className="text-xs sm:text-sm text-[#7A5260] mt-1">{s.label}</p>
+            <p className="font-serif text-2xl sm:text-3xl font-bold" style={{ color: s.color }}>
+              {s.valor}
+            </p>
+            <p className="text-xs font-semibold text-[#2A0E18] mt-1">{s.label}</p>
+            <p className="text-[10px] text-[#7A5260] mt-0.5">{s.sub}</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-3 sm:p-5">
-        <h3 className="font-serif text-lg sm:text-xl font-semibold text-[#5A0F24] mb-4">Actividad por empresa</h3>
-        <ActividadEmpresasClient
-          empresasReales={empresas}
-          estadoFiltroInicial={estadoFiltro}
-        />
-      </div>
+      <ActividadEmpresasClient
+        empresasReales={empresas}
+        estadoFiltroInicial={estadoFiltro}
+      />
     </div>
   );
 }

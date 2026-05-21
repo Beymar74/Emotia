@@ -66,6 +66,8 @@ export async function editarProveedorAction(formData: FormData) {
 
     revalidatePath("/admin/proveedores");
     revalidatePath(`/admin/proveedores/${id}`);
+    revalidatePath("/admin/empresas/actividad");
+    revalidatePath("/admin/usuarios");
 
     return { success: true };
   } catch (error) {
@@ -77,6 +79,56 @@ export async function editarProveedorAction(formData: FormData) {
     };
   }
 }
+export async function crearRepresentanteAction(formData: FormData) {
+  const nombre_negocio = String(formData.get("nombre_negocio") || "").trim();
+  const email = String(formData.get("email") || "").trim();
+  const password = String(formData.get("password") || "").trim();
+  const telefono = String(formData.get("telefono") || "").trim();
+  const direccion = String(formData.get("direccion") || "").trim();
+  const rep_nombre = String(formData.get("rep_nombre") || "").trim();
+  const rep_email = String(formData.get("rep_email") || "").trim();
+  const rep_telefono = String(formData.get("rep_telefono") || "").trim();
+  const rep_anio_raw = formData.get("rep_anio_nacimiento");
+
+  if (!nombre_negocio || !email || !password || !rep_nombre) {
+    return { error: "Nombre de negocio, email, contraseña y nombre del representante son obligatorios." };
+  }
+
+  if (password.length < 6) {
+    return { error: "La contraseña debe tener al menos 6 caracteres." };
+  }
+
+  try {
+    const existente = await prisma.proveedores.findUnique({ where: { email } });
+    if (existente) {
+      return { error: "Ya existe una empresa registrada con ese correo electrónico." };
+    }
+
+    const password_hash = await bcrypt.hash(password, 12);
+
+    await prisma.proveedores.create({
+      data: {
+        nombre_negocio,
+        email,
+        password_hash,
+        telefono: telefono || null,
+        direccion: direccion || null,
+        rep_nombre,
+        rep_email: rep_email || null,
+        rep_telefono: rep_telefono || null,
+        rep_anio_nacimiento: rep_anio_raw ? parseInt(String(rep_anio_raw)) : null,
+        estado: "pendiente",
+      },
+    });
+
+    revalidatePath("/admin/usuarios");
+    return { success: true };
+  } catch (error) {
+    console.error("Error creando representante:", error);
+    return { error: "No se pudo crear el representante. Verifica que el correo no esté duplicado." };
+  }
+}
+
 export async function actualizarLogoProveedor(id: number, url: string | null) {
   try {
     await prisma.proveedores.update({
@@ -89,6 +141,8 @@ export async function actualizarLogoProveedor(id: number, url: string | null) {
 
     revalidatePath("/admin/proveedores");
     revalidatePath(`/admin/proveedores/${id}`);
+    revalidatePath("/admin/empresas/actividad");
+    revalidatePath("/admin/usuarios");
 
     return { success: true };
   } catch (error) {

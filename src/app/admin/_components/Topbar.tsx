@@ -1,45 +1,119 @@
+"use client";
+
+import Image from "next/image";
+import { useUser } from "@stackframe/stack";
+import { Shield, Calendar, Bell } from "lucide-react";
+
 interface TopbarProps {
   onMenuToggle?: () => void;
 }
 
 export default function Topbar({ onMenuToggle }: TopbarProps) {
+  const user = useUser();
+  const role = (user?.clientMetadata as { role?: string } | null)?.role ?? "operador";
+  const esAdmin = role === "admin";
+  const labelRol = esAdmin ? "Admin. General PREPE" : "Admin. PREPE";
+  const displayName = user?.displayName || user?.primaryEmail?.split("@")[0] || "Administrador";
+
+  // Obtenemos la inicial para el avatar
+  const initial = displayName.charAt(0).toUpperCase();
+
+  // Fecha con formato un poco más completo (incluyendo el día de la semana)
+  const formattedDate = new Intl.DateTimeFormat("es-BO", {
+    weekday: "short",
+    day: "numeric",
+    month: "short", // Mes corto para mantenerlo limpio
+    year: "numeric",
+    timeZone: "America/La_Paz"
+  }).format(new Date());
+
+  const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+
   return (
-    <header className="bg-white border-b border-[#8E1B3A]/10 px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between flex-shrink-0">
-      <div className="flex items-center gap-3">
-        {/* Hamburger — solo visible en mobile */}
+    <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#8E1B3A]/10 px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between flex-shrink-0 shadow-sm transition-all duration-200">
+      
+      {/* ================= LEFT: Logo + Branding + Saludo ================= */}
+      <div className="flex items-center gap-3 lg:gap-4 min-w-0">
+        
+        {/* Hamburger — visible en mobile */}
         <button
           onClick={onMenuToggle}
-          className="lg:hidden p-1.5 -ml-1 text-[#5A0F24] hover:bg-[#8E1B3A]/8 rounded-lg transition-colors"
-          aria-label="Abrir menú"
+          className="lg:hidden flex-shrink-0 p-2 -ml-2 text-[#5A0F24] hover:bg-[#FAF3EC] rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#BC9968]/50"
+          aria-label="Abrir menú de navegación"
         >
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-            <path d="M4 6h14M4 11h14M4 16h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
-        <div>
-          <p className="text-[10px] sm:text-xs tracking-widest uppercase text-[#BC9968] font-medium">
-            PREPE · Panel de Administración
+
+        {/* Logo PREPE */}
+        <div className="flex-shrink-0 flex items-center" title="Plataforma de Regalos Personalizados y Experiencias">
+          <Image
+            src="/logo/prepe.png"
+            alt="Logo de PREPE"
+            width={40} // Ligeramente más compacto
+            height={40}
+            className="h-10 w-auto object-contain"
+            priority
+          />
+        </div>
+
+        {/* Nombre del sistema + Saludo */}
+        <div className="flex flex-col justify-center min-w-0 border-l border-gray-200 pl-3 md:pl-4 ml-1 md:ml-2">
+          <p className="text-[10px] tracking-[0.15em] uppercase font-bold text-[#BC9968] leading-none mb-1">
+            Plataforma de Regalos Personalizados y Experiencias (PREPE)
           </p>
-          <h2 className="font-serif text-base sm:text-xl font-semibold text-[#5A0F24] leading-tight">
-            Plataforma de Regalos Personalizados y Experiencias
-          </h2>
+          <h1 className="text-sm sm:text-base font-semibold text-[#5A0F24] leading-none truncate">
+            Hola, <span className="font-normal">{displayName}</span>
+          </h1>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-4">
-        <span className="hidden sm:inline text-xs bg-[#5A0F24]/10 text-[#5A0F24] px-3 py-1.5 rounded-full font-medium tracking-wide border border-[#5A0F24]/15">
-          Admin PREPE
-        </span>
-        <span className="hidden md:inline text-sm text-[#7A5260] bg-[#F5E6D0] px-4 py-1.5 rounded-full">
-          {new Intl.DateTimeFormat("es-BO", { month: "long", year: "numeric", timeZone: "America/La_Paz" }).format(new Date())}
-        </span>
-        <button className="relative p-1.5">
-          <svg width="22" height="22" viewBox="0 0 18 18" fill="none">
-            <path d="M9 2a5 5 0 00-5 5v2.5L2.5 12h13L14 9.5V7A5 5 0 009 2z" stroke="#5A0F24" strokeWidth="1.3" />
-            <path d="M7.5 14.5a1.5 1.5 0 003 0" stroke="#5A0F24" strokeWidth="1.3" strokeLinecap="round" />
-          </svg>
-          <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-[#8E1B3A] rounded-full border-2 border-white" />
-        </button>
+      {/* ================= RIGHT: Rol + Fecha + Notificaciones + Avatar ================= */}
+      <div className="flex items-center gap-3 sm:gap-4 lg:gap-5 flex-shrink-0">
+        
+        {/* Badge de Rol Premium (Estilo Píldora) */}
+        <div 
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF3EC] border border-[#BC9968]/30 rounded-full shadow-sm"
+          title="Nivel de acceso actual"
+        >
+          <Shield size={14} className="text-[#BC9968] flex-shrink-0" />
+          <span className="text-xs font-bold text-[#5A0F24] uppercase tracking-wider whitespace-nowrap">
+            {labelRol}
+          </span>
+        </div>
+
+        {/* Separador vertical sutil */}
+        <div className="hidden md:block h-6 w-px bg-gray-200"></div>
+
+        {/* Fecha con Calendario */}
+        <div className="hidden lg:flex items-center gap-2 text-[13px] text-gray-600">
+          <Calendar size={15} className="text-gray-400 flex-shrink-0" />
+          <span className="font-medium whitespace-nowrap">{capitalizedDate}</span>
+        </div>
+
+        {/* Grupo de Acciones Finales (Campana + Avatar) */}
+        <div className="flex items-center gap-2 sm:gap-3 ml-1 sm:ml-2">
+          
+          {/* Campana de Notificaciones */}
+          <button 
+            className="relative flex-shrink-0 p-2 text-gray-500 hover:text-[#5A0F24] hover:bg-[#FAF3EC] rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#BC9968]/50"
+            aria-label="Ver notificaciones"
+          >
+            <Bell size={20} strokeWidth={1.75} />
+            {/* Indicador de notificación activa */}
+            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#8E1B3A] border-2 border-white rounded-full"></span>
+          </button>
+
+          {/* Avatar del Usuario */}
+          <button 
+            className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-gradient-to-br from-[#8E1B3A] to-[#5A0F24] text-white font-semibold text-sm sm:text-base shadow-sm hover:opacity-90 transition-opacity ring-2 ring-white"
+            aria-label="Opciones de perfil"
+          >
+            {initial}
+          </button>
+        </div>
+        
       </div>
     </header>
   );

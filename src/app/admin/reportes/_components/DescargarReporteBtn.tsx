@@ -40,6 +40,7 @@ export type ReporteConfig = {
   kpis: KPI[];
   graficos?: Grafico[];
   tablas: Tabla[];
+  logoUrl?: string;
 };
 
 // ── Canvas chart helpers ───────────────────────────────────────────────────────
@@ -88,7 +89,7 @@ function canvasBase(wMm: number, hMm: number) {
   return { c, ctx };
 }
 
-function chartTitle(ctx: CanvasRenderingContext2D, title: string, cw: number) {
+function chartTitle(ctx: CanvasRenderingContext2D, title: string) {
   ctx.fillStyle = "#5A0F24";
   ctx.font = `bold ${13 * S / 3}px Georgia, serif`;
   ctx.textAlign = "left";
@@ -321,7 +322,7 @@ function drawAreaChart(
 
 async function renderGrafico(g: Grafico, wMm: number, hMm: number): Promise<string> {
   const { c, ctx } = canvasBase(wMm, hMm);
-  chartTitle(ctx, g.titulo, c.width);
+  chartTitle(ctx, g.titulo);
   const area = { x: 40, y: 26, w: c.width - 50, h: c.height - 38 };
 
   switch (g.tipo) {
@@ -344,6 +345,16 @@ async function renderGrafico(g: Grafico, wMm: number, hMm: number): Promise<stri
 
 // ── PDF generation ─────────────────────────────────────────────────────────────
 
+function loadImg(url: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
 async function generarPDF(config: ReporteConfig) {
   const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
     import("jspdf"),
@@ -355,21 +366,57 @@ async function generarPDF(config: ReporteConfig) {
   const ph = doc.internal.pageSize.getHeight(); // 210
   const margin = 14;
 
-  // ── Header ──
-  doc.setFillColor(90, 15, 36);
-  doc.rect(0, 0, pw, 28, "F");
-  doc.setFillColor(188, 153, 104);
-  doc.rect(0, 26, pw, 2, "F");
+  // ── Load Logos ──
+  const [logoPrepe, logoEmpresa] = await Promise.all([
+    loadImg("/logo/prepe.png"),
+    config.logoUrl ? loadImg(config.logoUrl) : Promise.resolve(null),
+  ]);
 
+  // ── Header Background ──
+  doc.setFillColor(252, 250, 248); // warm-white premium background
+  doc.rect(0, 0, pw, 24, "F");
+
+  // ── Draw PREPE Logo ──
+  if (logoPrepe) {
+    const aspect = logoPrepe.naturalWidth / logoPrepe.naturalHeight || 2.6;
+    const h = 12;
+    const w = h * aspect;
+    doc.addImage(logoPrepe, "PNG", margin, 6, w, h);
+  }
+
+  // ── Draw Company Logo ──
+  if (logoEmpresa) {
+    const aspect = logoEmpresa.naturalWidth / logoEmpresa.naturalHeight || 1;
+    const h = 12;
+    const w = h * aspect;
+    doc.addImage(logoEmpresa, "PNG", pw - margin - w, 6, w, h);
+  }
+
+  // ── Title & Subtitle ──
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(17);
-  doc.setTextColor(245, 230, 208);
-  doc.text(config.titulo, pw / 2, 13, { align: "center" });
+  doc.setFontSize(14);
+  doc.setTextColor(90, 15, 36); // #5A0F24 (Vino)
+  doc.text(config.titulo, pw / 2, 11, { align: "center" });
+
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(188, 153, 104);
+  doc.setFontSize(7.5);
+  doc.setTextColor(122, 82, 96); // #7A5260 (Discreet Maroon Gray)
   const fecha = new Intl.DateTimeFormat("es-BO", { day: "2-digit", month: "long", year: "numeric" }).format(new Date());
-  doc.text(`Generado el ${fecha} · Sistema PREPE`, pw / 2, 22, { align: "center" });
+  doc.text(`Generado el ${fecha} · Sistema PREPE`, pw / 2, 17, { align: "center" });
+
+  // ── Draw Gradient Bottom Border (Vino - Dorado - Vino) ──
+  const canvas = document.createElement("canvas");
+  canvas.width = 600;
+  canvas.height = 10;
+  const ctx = canvas.getContext("2d")!;
+  const grad = ctx.createLinearGradient(0, 0, 600, 0);
+  grad.addColorStop(0, "#5A0F24");
+  grad.addColorStop(0.5, "#BC9968");
+  grad.addColorStop(1, "#5A0F24");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 600, 10);
+  const gradImg = canvas.toDataURL("image/png");
+  doc.addImage(gradImg, "PNG", 0, 23.2, pw, 0.8, undefined, "FAST");
 
   let y = 36;
 
@@ -468,7 +515,6 @@ async function generarExcel(config: ReporteConfig) {
 
   const MAROON = "5A0F24";
   const GOLD = "BC9968";
-  const CREAM = "FAF3EC";
   const HEAD_FONT = { color: { argb: "FFF5E6D0" }, bold: true, size: 10 };
   const HEAD_FILL = { type: "pattern" as const, pattern: "solid" as const, fgColor: { argb: "FF" + MAROON } };
 
@@ -489,7 +535,6 @@ async function generarExcel(config: ReporteConfig) {
 
   config.kpis.forEach((k, i) => {
     const row = ws.addRow(["", k.label, k.valor]);
-    const [r, g, b] = hexToRgb(k.color);
     const argb = `FF${k.color.replace("#", "")}`;
     row.getCell(2).font = { size: 10, color: { argb: "FF2A0E18" } };
     row.getCell(3).font = { bold: true, size: 12, color: { argb: argb } };
