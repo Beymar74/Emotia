@@ -32,7 +32,9 @@ export default async function PedidosPage({
   const empresaId = typeof sp.empresa === "string" && sp.empresa !== "todas" ? parseInt(sp.empresa) : 0;
   const busqueda = typeof sp.q === "string" ? sp.q.trim() : "";
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const whereEstado: any = estadoFiltro !== "todos" ? { estado: estadoFiltro } : {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const whereStats: any = {};
 
   if (empresaId > 0) {
@@ -83,12 +85,13 @@ export default async function PedidosPage({
   const formatFecha = (fecha: Date) =>
     new Intl.DateTimeFormat("es-BO", { day: "2-digit", month: "2-digit", year: "numeric" }).format(fecha);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pedidosMapeados = pedidosDB.map((p: any) => {
     const detalles = p.detalle_pedidos || [];
     const prim = detalles[0];
     let producto  = prim?.productos?.nombre || "Producto desconocido";
-    let proveedor = prim?.proveedores?.nombre_negocio || "Proveedor desconocido";
-    if (detalles.length > 1) { producto += ` (+${detalles.length - 1} más)`; proveedor = "Varios proveedores"; }
+    let proveedor = prim?.proveedores?.nombre_negocio || "Representante desconocido";
+    if (detalles.length > 1) { producto += ` (+${detalles.length - 1} más)`; proveedor = "Varios representantes"; }
 
     return {
       id:       `#${p.id.toString().padStart(4, "0")}`,
@@ -120,7 +123,7 @@ export default async function PedidosPage({
           <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Pedidos &amp; Pagos</p>
           <h1 className="font-serif text-3xl font-bold text-[#5A0F24]">Todos los pedidos</h1>
           <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-            En esta sección puedes gestionar los pedidos de los clientes, revisar su estado actual, verificar los pagos y coordinar con los proveedores para asegurar entregas exitosas.
+            En esta sección puedes gestionar los pedidos de los clientes, revisar su estado actual, verificar los pagos y coordinar con los representantes para asegurar entregas exitosas.
           </p>
         </div>
         <div className="flex gap-3">

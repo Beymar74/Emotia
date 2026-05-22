@@ -105,14 +105,14 @@ export default async function DetalleProveedorPage({
       <Breadcrumbs
         crumbs={[
           { label: "Admin", href: "/admin" },
-          { label: "Proveedores", href: "/admin/proveedores" },
+          { label: "Representantes", href: "/admin/usuarios?tab=representantes" },
           { label: proveedor.nombre_negocio },
         ]}
       />
 
       <div className="flex items-center gap-4">
         <Link
-          href="/admin/proveedores"
+          href="/admin/usuarios?tab=representantes"
           className="p-2 bg-white border border-[#8E1B3A]/10 rounded-xl text-[#7A5260] hover:text-[#8E1B3A] hover:bg-[#FDFBF9] transition-all shadow-sm"
         >
           <ArrowLeft size={20} />
@@ -120,10 +120,10 @@ export default async function DetalleProveedorPage({
 
         <div>
           <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">
-            Gestión de Proveedores
+            Gestión de Representantes
           </p>
           <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">
-            Perfil del Proveedor
+            Perfil del Representante
           </h1>
         </div>
       </div>
@@ -139,7 +139,7 @@ export default async function DetalleProveedorPage({
                 <LogoProveedorUploader
                 proveedorId={proveedor.id}
                 logoActual={proveedor.logo_url}
-                label="Logo del proveedor"
+                label="Logo de la empresa"
                 />
             </div>
             </div>
@@ -169,7 +169,7 @@ export default async function DetalleProveedorPage({
                 </p>
               ) : (
                 <p className="text-[#FDFBF9]/55 text-sm">
-                  Este proveedor aún no tiene una descripción pública registrada.
+                  Esta empresa/representante aún no tiene una descripción pública registrada.
                 </p>
               )}
 
@@ -294,7 +294,7 @@ export default async function DetalleProveedorPage({
                     Seguridad
                 </h4>
                 <p className="text-xs text-[#7A5260] mb-3">
-                    Puedes restablecer la contraseña que usa el proveedor para ingresar al panel Business.
+                    Puedes restablecer la contraseña que usa el representante para ingresar al panel Business.
                 </p>
 
                 <ResetPasswordProveedorForm proveedorId={proveedor.id} />
@@ -401,7 +401,7 @@ export default async function DetalleProveedorPage({
               Productos recientes
             </h3>
             <p className="text-xs text-[#7A5260]">
-              Últimos productos publicados por este proveedor.
+              Últimos productos publicados por esta empresa.
             </p>
           </div>
 
@@ -436,7 +436,7 @@ export default async function DetalleProveedorPage({
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center">
                     <p className="text-sm font-medium text-[#7A5260]">
-                      Este proveedor aún no tiene productos registrados.
+                      Esta empresa aún no tiene productos registrados.
                     </p>
                   </td>
                 </tr>

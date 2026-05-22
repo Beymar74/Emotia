@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   BarChart, Bar, Cell, RadialBarChart, RadialBar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -8,7 +9,19 @@ import {
 interface DistData { stars: number; count: number; pct: number }
 
 export function GraficoEstrellas({ data, promedio }: { data: DistData[]; promedio: number }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const chartData = [...data].reverse(); // 1★ → 5★ ascendente
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[300px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando gráfico de estrellas...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <div className="flex items-start justify-between mb-5">
@@ -59,7 +72,18 @@ export function GraficoEstrellas({ data, promedio }: { data: DistData[]; promedi
 export function GraficoSatisfaccion({ satisfaccion, tasaEntrega, tasaCancelacion }: {
   satisfaccion: number; tasaEntrega: number; tasaCancelacion: number;
 }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const radialData = [{ name: "Satisfacción", value: satisfaccion, fill: "#BC9968" }];
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[240px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando indicadores de calidad...
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">

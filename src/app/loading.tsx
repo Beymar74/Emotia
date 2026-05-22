@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const messages = [
   "Preparando tu espacio seguro...",
@@ -12,11 +13,16 @@ const messages = [
 const LOADER_DURATION_MS = 2800;
 
 export default function Loading() {
+  const pathname = usePathname();
   const [progress, setProgress] = useState(0);
   const [msgIndex, setMsgIndex] = useState(0);
   const [visible, setVisible] = useState(true);
 
+  const isAdmin = pathname?.startsWith("/admin") ?? false;
+
   useEffect(() => {
+    if (isAdmin) return;
+
     const steps = 100;
     const interval = LOADER_DURATION_MS / steps;
 
@@ -35,7 +41,10 @@ export default function Loading() {
     }, interval);
 
     return () => window.clearInterval(timer);
-  }, []);
+  }, [isAdmin]);
+
+  // Las rutas admin tienen su propia pantalla de carga, no mostrar la genérica
+  if (isAdmin) return null;
 
   return (
     <>

@@ -64,7 +64,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Au
         }
       }
       onClose();
-      window.location.href = "/producto";
+      window.location.href = "/auth/redirect";
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || "Ocurrió un error. Verifica tus datos.");
@@ -76,7 +76,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Au
   const handleGoogleSignIn = async () => {
     try {
       const oauthCallbackUrl = new URL(stackApp.urls.oauthCallback, window.location.origin);
-      oauthCallbackUrl.searchParams.set("after_auth_return_to", "/producto");
+      oauthCallbackUrl.searchParams.set("after_auth_return_to", "/auth/redirect");
       await stackApp.signInWithOAuth("google", { returnTo: oauthCallbackUrl.toString() });
     } catch (err: any) {
       console.error("Error signing in with Google:", err);

@@ -90,7 +90,7 @@ export default function ConfiguracionClient({ adminEmail }: Props) {
         <h3 className="font-serif text-xl font-semibold text-[#5A0F24]">Información de la plataforma</h3>
         <div>
           <label className="text-sm font-medium text-[#2A0E18] block mb-1.5">Nombre de la plataforma</label>
-          <input name="nombre" type="text" defaultValue="Emotia"
+          <input name="nombre" type="text" defaultValue="PREPE"
             className="w-full text-sm border border-[#8E1B3A]/15 rounded-lg px-4 py-2.5 outline-none focus:border-[#8E1B3A]/40 text-[#2A0E18]" />
         </div>
         <div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -20,6 +21,17 @@ const TooltipArea = ({ active, payload, label }: any) => {
 };
 
 export function GraficoNuevosClientes({ data }: { data: MesData[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[292px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando evolución de clientes nuevos...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-5">Nuevos clientes por mes</h3>
@@ -51,6 +63,17 @@ export function GraficoNuevosClientes({ data }: { data: MesData[] }) {
 }
 
 export function GraficoSegmentacionClientes({ data }: { data: SegmentoData[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[272px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando segmentación...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Segmentación de la base</h3>
@@ -92,6 +115,9 @@ export function GraficoSegmentacionClientes({ data }: { data: SegmentoData[] }) 
 }
 
 export function GraficoTopCompradores({ data }: { data: Comprador[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const formatBs = (n: number) =>
     n >= 1000 ? `Bs ${(n / 1000).toFixed(1)}k` : `Bs ${n}`;
 
@@ -100,6 +126,14 @@ export function GraficoTopCompradores({ data }: { data: Comprador[] }) {
     total: c.total,
     pedidos: c.pedidos,
   }));
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[292px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando top compradores...
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">

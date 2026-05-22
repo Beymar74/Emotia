@@ -87,7 +87,7 @@ export default function BotonesAccionProveedor({ proveedor }: Props) {
             <div className="bg-[#FDFBF9] border-b border-[#8E1B3A]/10 px-6 py-4 flex justify-between items-center">
               <div>
                 <h2 className="font-serif text-xl font-bold text-[#5A0F24]">
-                  Editar proveedor
+                  Editar empresa/representante
                 </h2>
                 <p className="text-[10px] text-[#7A5260] uppercase tracking-widest font-bold">
                   Datos del negocio y representante

@@ -1,5 +1,4 @@
 import prisma from "@/lib/prisma";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import CambiarEstadoBtn from "../_components/CambiarEstadoBtn";
 import Breadcrumbs from "../../_components/Breadcrumbs";
@@ -82,10 +81,10 @@ export default async function DetallePedidoPage({
             { label: "TOTAL",            valor: `Bs ${Number(pedido.total).toFixed(2)}`, bold: true },
             { label: "Método de pago",   valor: pedido.metodo_pago ?? "—" },
             { label: "Referencia pago",  valor: pedido.referencia_pago ?? "—" },
-          ].map((f) => (
+          ].map((f: { label: string; valor: string; bold?: boolean }) => (
             <div key={f.label}>
               <p className="text-xs uppercase tracking-wider text-[#7A5260] font-medium">{f.label}</p>
-              <p className={`mt-0.5 ${(f as any).bold ? "text-xl font-bold text-[#5A0F24]" : "text-[#2A0E18]"}`}>
+              <p className={`mt-0.5 ${f.bold ? "text-xl font-bold text-[#5A0F24]" : "text-[#2A0E18]"}`}>
                 {f.valor}
               </p>
             </div>
@@ -146,7 +145,7 @@ export default async function DetallePedidoPage({
         <table className="w-full border-collapse min-w-[650px]">
           <thead>
             <tr>
-              {["Producto", "Proveedor", "Cant.", "Precio unit.", "Subtotal", "Calificación", "resena"].map(
+              {["Producto", "Representante", "Cant.", "Precio unit.", "Subtotal", "Calificación", "resena"].map(
                 (h) => (
                   <th
                     key={h}
@@ -173,7 +172,7 @@ export default async function DetallePedidoPage({
                   )}
                   {d.mensaje_personal && (
                     <p className="text-xs text-[#7A5260] mt-0.5 font-normal italic">
-                      "{d.mensaje_personal}"
+                      &ldquo;{d.mensaje_personal}&rdquo;
                     </p>
                   )}
                 </td>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -10,13 +11,7 @@ const COLORES = ["#8E1B3A", "#BC9968", "#5C3A2E", "#AB3A50", "#185FA5", "#2D7A47
 interface MesData { mes: string; pedidos: number; monto: number }
 interface EmpresaData { nombre: string; monto: number; pct: number; items: number }
 interface CatData { nombre: string; monto: number; items: number; pct: number }
-
-interface Props {
-  ventasMensuales: MesData[];
-  ventasEmpresas: EmpresaData[];
-  ventasCategorias: CatData[];
-  totalIngresos: number;
-}
+interface ProductoData { nombre: string; monto: number; cantidad: number }
 
 const fmt = (n: number) =>
   n >= 1000 ? `Bs ${(n / 1000).toFixed(1)}k` : `Bs ${n}`;
@@ -44,6 +39,17 @@ const TooltipPie = ({ active, payload }: any) => {
 };
 
 export function GraficoEvolucionVentas({ data }: { data: MesData[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[312px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando evolución de ingresos...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-5">Evolución de ingresos — últimos 6 meses</h3>
@@ -76,6 +82,17 @@ export function GraficoEvolucionVentas({ data }: { data: MesData[] }) {
 }
 
 export function GraficoPedidosMes({ data }: { data: MesData[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[272px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando pedidos por mes...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-5">Pedidos por mes</h3>
@@ -96,6 +113,17 @@ export function GraficoPedidosMes({ data }: { data: MesData[] }) {
 }
 
 export function GraficoEmpresasVentas({ data }: { data: EmpresaData[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[286px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando top empresas...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Top empresas por ventas</h3>
@@ -128,6 +156,17 @@ export function GraficoEmpresasVentas({ data }: { data: EmpresaData[] }) {
 }
 
 export function GraficoCategoriasPie({ data }: { data: CatData[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[272px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando ventas por categoría...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Ventas por categoría</h3>
@@ -161,6 +200,49 @@ export function GraficoCategoriasPie({ data }: { data: CatData[] }) {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+export function GraficoProductosVentas({ data }: { data: ProductoData[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[286px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando top productos...
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
+      <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Top productos vendidos de la empresa</h3>
+      <ResponsiveContainer width="100%" height={220}>
+        <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0e8e4" horizontal={false} />
+          <XAxis type="number" tickFormatter={fmt} tick={{ fontSize: 10, fill: "#7A5260" }} tickLine={false} axisLine={false} />
+          <YAxis
+            type="category"
+            dataKey="nombre"
+            width={110}
+            tick={{ fontSize: 10, fill: "#2A0E18" }}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={(v) => v.length > 16 ? v.slice(0, 15) + "…" : v}
+          />
+          <Tooltip
+            formatter={(v: any) => [`Bs ${Number(v).toLocaleString()}`, "Ingresos"]}
+            contentStyle={{ border: "1px solid #f0e8e4", borderRadius: 12, fontSize: 12 }}
+          />
+          <Bar dataKey="monto" radius={[0, 6, 6, 0]}>
+            {data.map((_, i) => (
+              <Cell key={i} fill={COLORES[i % COLORES.length]} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

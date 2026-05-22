@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useId } from "react";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -14,13 +15,26 @@ interface CatData { nombre: string; monto: number; items: number; pct: number }
 const fmt = (n: number) => n >= 1000 ? `Bs ${(n / 1000).toFixed(1)}k` : `Bs ${n}`;
 
 export function GraficoSemanalGlobal({ data, totalIngresos }: { data: SemanaData[]; totalIngresos: number }) {
+  const uid = useId();
+  const gradId = `gradGlobal-${uid.replace(/:/g, "")}`;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[300px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando gráfico semanal...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-5">Evolución semanal de ingresos</h3>
       <ResponsiveContainer width="100%" height={230}>
         <AreaChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
           <defs>
-            <linearGradient id="gradGlobal" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#8E1B3A" stopOpacity={0.2} />
               <stop offset="95%" stopColor="#8E1B3A" stopOpacity={0} />
             </linearGradient>
@@ -37,7 +51,7 @@ export function GraficoSemanalGlobal({ data, totalIngresos }: { data: SemanaData
             dataKey="monto"
             stroke="#8E1B3A"
             strokeWidth={2.5}
-            fill="url(#gradGlobal)"
+            fill={`url(#${gradId})`}
             dot={{ fill: "#8E1B3A", r: 5, strokeWidth: 0 }}
             activeDot={{ r: 7, fill: "#8E1B3A" }}
           />
@@ -48,11 +62,22 @@ export function GraficoSemanalGlobal({ data, totalIngresos }: { data: SemanaData
 }
 
 export function GraficoEmpresasGlobal({ data, totalIngresos }: { data: EmpresaData[]; totalIngresos: number }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const chartData = data.map((e) => ({
     nombre: e.nombre_negocio.length > 14 ? e.nombre_negocio.slice(0, 13) + "…" : e.nombre_negocio,
     ventas: Number(e.total_vendido || 0),
     pct: totalIngresos > 0 ? Math.round((Number(e.total_vendido || 0) / totalIngresos) * 100) : 0,
   }));
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[300px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando gráfico de empresas...
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
@@ -76,6 +101,17 @@ export function GraficoEmpresasGlobal({ data, totalIngresos }: { data: EmpresaDa
 }
 
 export function GraficoCategoriasGlobal({ data }: { data: CatData[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[272px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando gráfico por categoría...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Desglose por categoría</h3>

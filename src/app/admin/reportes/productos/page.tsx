@@ -4,6 +4,8 @@ import DescargarReporteBtn from "../_components/DescargarReporteBtn";
 import { GraficoTopProductos, GraficoEstadoProductos, GraficoCategorias } from "./ProductosCharts";
 import { Suspense } from "react";
 import EmpresaFilter from "../../_components/EmpresaFilter";
+import ReportSubNav from "../_components/ReportSubNav";
+import ProductosReporteTabla from "./_components/ProductosReporteTabla";
 
 export default async function ReporteProductosPage({
   searchParams,
@@ -33,7 +35,7 @@ export default async function ReporteProductosPage({
       where: { pedidos: { estado: "entregado" }, ...empresaFiltroDetalle },
       select: { producto_id: true, cantidad: true, subtotal: true },
     }),
-    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } })
+    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true, logo_url: true }, orderBy: { nombre_negocio: "asc" } })
   ]);
 
   const totalProductos = productosDB.length;
@@ -64,8 +66,8 @@ export default async function ReporteProductosPage({
     activo: p.activo,
   }));
 
-  const topVendidos = [...productosConVentas].sort((a, b) => b.ingresos - a.ingresos).slice(0, 8);
-  const sinVentas = productosConVentas.filter((p) => p.unidades === 0 && p.activo).slice(0, 6);
+  const topVendidos = [...productosConVentas].sort((a, b) => b.ingresos - a.ingresos);
+  const sinVentas = productosConVentas.filter((p) => p.unidades === 0 && p.activo);
 
   type CatData = { nombre: string; total: number; activos: number; ingresos: number };
   const catMap: Record<string, CatData> = {};
@@ -77,17 +79,15 @@ export default async function ReporteProductosPage({
     catMap[cat].ingresos += p.ingresos;
   });
   const categorias = Object.values(catMap).sort((a, b) => b.ingresos - a.ingresos);
-  const maxCatIngresos = Math.max(...categorias.map((c) => c.ingresos), 1);
 
-  const formatBs = (n: number) =>
-    `Bs ${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   const totalIngresos = productosConVentas.reduce((s, p) => s + p.ingresos, 0);
-  const maxIngresos = Math.max(...topVendidos.map((p) => p.ingresos), 1);
+
+  const empresaNombre = empresaId > 0 ? (empresasLista.find(e => e.id === empresaId)?.nombre_negocio || "") : "";
 
   // Datos para descarga
   const config = {
-    filename: "reporte-productos",
-    titulo: "Reporte de Productos — Emotia",
+    filename: empresaId > 0 ? `reporte-productos-${empresaNombre.toLowerCase().replace(/[^a-z0-9]/g, "-")}` : "reporte-productos",
+    titulo: empresaId > 0 ? `Reporte de Productos — ${empresaNombre}` : "Reporte de Productos — PREPE",
     formatos: ["pdf", "excel"] as ("pdf" | "excel")[],
     kpis: [
       { label: "Total productos", valor: String(totalProductos), color: "#8E1B3A" },
@@ -95,6 +95,7 @@ export default async function ReporteProductosPage({
       { label: "Inactivos", valor: String(productosInactivos), color: "#A32D2D" },
       { label: "Sin ventas", valor: String(sinVentas.length), color: "#8C5E08" },
     ],
+    logoUrl: empresaId > 0 ? (empresasLista.find(e => e.id === empresaId)?.logo_url || undefined) : undefined,
     graficos: [
       { tipo: "dona" as const, titulo: "Estado del catálogo", datos: [
         { nombre: "Activos", valor: productosActivos, color: "#2D7A47" },
@@ -135,29 +136,25 @@ export default async function ReporteProductosPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/admin/reportes"
-            className="p-2 bg-white border border-[#8E1B3A]/10 rounded-xl text-[#7A5260] hover:text-[#8E1B3A] hover:bg-[#FDFBF9] transition-all shadow-sm"
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M12 4l-6 6 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Link>
-          <div>
-            <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Productos</h1>
-        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-          Aquí puedes ver los análisis de los productos más vendidos, visualizaciones del catálogo y la gestión del stock global.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Link href="/admin/reportes" className="text-xs text-[#BC9968] hover:text-[#8E1B3A] font-medium transition-colors">Reportes</Link>
+            <span className="text-[#BC9968]/40 text-xs">/</span>
+            <span className="text-xs text-[#5A0F24] font-medium">Productos</span>
           </div>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Productos</h1>
+          <p className="mt-1 text-sm text-[#7A5260] max-w-2xl leading-relaxed">
+            Catálogo activo, productos más vendidos, inventario por categoría y alertas de stock sin ventas.
+          </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
           <DescargarReporteBtn config={config} />
         </div>
       </div>
+
+      <ReportSubNav />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -180,39 +177,10 @@ export default async function ReporteProductosPage({
         <GraficoCategorias data={categorias} />
       </div>
 
-      <GraficoTopProductos data={topVendidos} totalIngresos={totalIngresos} />
+      <GraficoTopProductos data={topVendidos.slice(0, 8)} totalIngresos={totalIngresos} />
 
-      {/* Productos sin ventas */}
-      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
-        <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">
-          Productos activos sin ventas
-          {sinVentas.length > 0 && (
-            <span className="ml-2 text-xs bg-[#8C5E08]/10 text-[#8C5E08] px-2 py-0.5 rounded-full font-normal">
-              {sinVentas.length} encontrados
-            </span>
-          )}
-        </h3>
-        {sinVentas.length === 0 ? (
-          <div className="py-6 text-center">
-            <p className="text-sm font-medium text-[#2D7A47]">¡Excelente! Todos los productos activos tienen al menos una venta.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {sinVentas.map((p) => (
-              <div key={p.id} className="flex items-center justify-between p-3 rounded-xl bg-[#FDF5E6] border border-[#8C5E08]/10">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-[#2A0E18] truncate">{p.nombre}</p>
-                  <p className="text-xs text-[#7A5260]">{p.categoria}</p>
-                </div>
-                <div className="text-right flex-shrink-0 ml-2">
-                  <p className="text-sm font-semibold text-[#5A0F24]">{formatBs(p.precio)}</p>
-                  <p className="text-[10px] text-[#8C5E08] font-medium">Sin ventas</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Interactive Products Table Component */}
+      <ProductosReporteTabla productos={productosConVentas} />
     </div>
   );
 }
