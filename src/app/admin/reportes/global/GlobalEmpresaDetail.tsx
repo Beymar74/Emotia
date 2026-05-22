@@ -1,6 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useId } from "react";
+import {
+  AreaChart, Area, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from "recharts";
 import {
   Building2,
   User,
@@ -104,9 +108,14 @@ interface Props {
   resenas: ResenaDetalle[];
 }
 
+const COLORES_CHART = ["#8E1B3A", "#BC9968", "#5C3A2E", "#AB3A50", "#185FA5"];
+
 export default function GlobalEmpresaDetail({ empresa, productos, pedidos, resenas }: Props) {
   const [activeTab, setActiveTab] = useState<"perfil" | "catalogo" | "ventas" | "opiniones">("perfil");
-  
+  const [mounted, setMounted] = useState(false);
+  const uid = useId();
+  const gradId = `gradEmpresaDetail-${uid.replace(/:/g, "")}`;
+  useEffect(() => { setMounted(true); }, []);
   // Search states
   const [searchProduct, setSearchProduct] = useState("");
   const [searchPedido, setSearchPedido] = useState("");
@@ -145,6 +154,44 @@ export default function GlobalEmpresaDetail({ empresa, productos, pedidos, resen
   const ratingPromedio = resenas.length > 0
     ? resenas.reduce((acc, curr) => acc + (curr.calificacion || 0), 0) / resenas.length
     : 0;
+
+  // --- Chart data calculations ---
+  // Weekly evolution (last 4 weeks)
+  const semanaData = (() => {
+    const ahora = new Date();
+    const result = [];
+    for (let i = 3; i >= 0; i--) {
+      const inicio = new Date(ahora);
+      inicio.setDate(ahora.getDate() - (i + 1) * 7);
+      const fin = new Date(ahora);
+      fin.setDate(ahora.getDate() - i * 7);
+      const label = `Sem ${4 - i} (${inicio.getDate()}/${inicio.getMonth() + 1})`;
+      const peds = pedidos.filter((p) => {
+        const d = new Date(p.created_at);
+        return p.pedidos.estado === "entregado" && d >= inicio && d < fin;
+      });
+      result.push({
+        periodo: label,
+        monto: peds.reduce((s, p) => s + Number(p.subtotal), 0),
+      });
+    }
+    return result;
+  })();
+
+  // Category distribution from delivered orders
+  const categoriaData = (() => {
+    const catMap: Record<string, number> = {};
+    pedidos
+      .filter((p) => p.pedidos.estado === "entregado")
+      .forEach((d) => {
+        const cat = (d.productos as any)?.categorias?.nombre || "Otros";
+        catMap[cat] = (catMap[cat] || 0) + Number(d.subtotal || 0);
+      });
+    return Object.entries(catMap)
+      .map(([nombre, monto]) => ({ nombre, monto }))
+      .sort((a, b) => b.monto - a.monto)
+      .slice(0, 5);
+  })();
 
   // Filter lists
   const filteredProducts = productos.filter((p) =>
@@ -313,6 +360,97 @@ export default function GlobalEmpresaDetail({ empresa, productos, pedidos, resen
           {/* TAB 1: PERFIL */}
           {activeTab === "perfil" && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Charts row above profile */}
+              <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                {/* Evolución Semanal */}
+                <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+                  <h4 className="font-serif text-sm font-bold text-[#5A0F24] mb-3">Evolución Semanal de Ingresos</h4>
+                  {mounted ? (
+                    <ResponsiveContainer width="100%" height={160}>
+                      <AreaChart data={semanaData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#8E1B3A" stopOpacity={0.2} />
+                            <stop offset="95%" stopColor="#8E1B3A" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0e8e4" />
+                        <XAxis dataKey="periodo" tick={{ fontSize: 9, fill: "#7A5260" }} tickLine={false} axisLine={false} />
+                        <YAxis
+                          tickFormatter={(v: number) => v >= 1000 ? `Bs ${(v/1000).toFixed(1)}k` : `Bs ${v}`}
+                          tick={{ fontSize: 9, fill: "#7A5260" }}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <Tooltip
+                          formatter={(v: any) => [`Bs ${Number(v).toLocaleString()}`, "Ingresos"]}
+                          contentStyle={{ border: "1px solid #f0e8e4", borderRadius: 8, fontSize: 11 }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="monto"
+                          stroke="#8E1B3A"
+                          strokeWidth={2}
+                          fill={`url(#${gradId})`}
+                          dot={{ fill: "#8E1B3A", r: 4, strokeWidth: 0 }}
+                          activeDot={{ r: 6, fill: "#8E1B3A" }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-[160px] flex items-center justify-center text-xs text-gray-400">Cargando gráfico...</div>
+                  )}
+                </div>
+
+                {/* Distribución por Categoría */}
+                <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+                  <h4 className="font-serif text-sm font-bold text-[#5A0F24] mb-3">Ventas por Categoría</h4>
+                  {mounted && categoriaData.length > 0 ? (
+                    <div className="flex items-center gap-4">
+                      <ResponsiveContainer width="50%" height={160}>
+                        <PieChart>
+                          <Pie
+                            data={categoriaData}
+                            dataKey="monto"
+                            nameKey="nombre"
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={35}
+                            outerRadius={65}
+                            paddingAngle={3}
+                          >
+                            {categoriaData.map((_, i) => (
+                              <Cell key={i} fill={COLORES_CHART[i % COLORES_CHART.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            formatter={(v: any, name: any) => [`Bs ${Number(v).toLocaleString()}`, name]}
+                            contentStyle={{ border: "1px solid #f0e8e4", borderRadius: 8, fontSize: 11 }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="flex-1 space-y-1.5">
+                        {categoriaData.map((c, i) => {
+                          const total = categoriaData.reduce((s, x) => s + x.monto, 0);
+                          const pct = total > 0 ? Math.round((c.monto / total) * 100) : 0;
+                          return (
+                            <div key={c.nombre} className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: COLORES_CHART[i % COLORES_CHART.length] }} />
+                              <span className="text-[10px] text-[#2A0E18] flex-1 truncate">{c.nombre}</span>
+                              <span className="text-[10px] font-bold text-[#5A0F24]">{pct}%</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : mounted ? (
+                    <div className="h-[160px] flex items-center justify-center text-xs text-gray-400 italic">Sin datos de ventas por categoría.</div>
+                  ) : (
+                    <div className="h-[160px] flex items-center justify-center text-xs text-gray-400">Cargando gráfico...</div>
+                  )}
+                </div>
+              </div>
+
               {/* Profile Card left */}
               <div className="lg:col-span-1 flex flex-col items-center text-center p-6 bg-gradient-to-b from-gray-50 to-white rounded-xl border border-gray-100">
                 <div className="relative w-28 h-28 rounded-full border-4 border-[#BC9968]/30 overflow-hidden bg-gradient-to-br from-[#5A0F24] to-[#8E1B3A] flex items-center justify-center text-white text-3xl font-bold shadow-md">

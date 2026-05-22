@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -15,6 +15,8 @@ interface CatData { nombre: string; monto: number; items: number; pct: number }
 const fmt = (n: number) => n >= 1000 ? `Bs ${(n / 1000).toFixed(1)}k` : `Bs ${n}`;
 
 export function GraficoSemanalGlobal({ data, totalIngresos }: { data: SemanaData[]; totalIngresos: number }) {
+  const uid = useId();
+  const gradId = `gradGlobal-${uid.replace(/:/g, "")}`;
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
@@ -32,7 +34,7 @@ export function GraficoSemanalGlobal({ data, totalIngresos }: { data: SemanaData
       <ResponsiveContainer width="100%" height={230}>
         <AreaChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
           <defs>
-            <linearGradient id="gradGlobal" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#8E1B3A" stopOpacity={0.2} />
               <stop offset="95%" stopColor="#8E1B3A" stopOpacity={0} />
             </linearGradient>
@@ -49,7 +51,7 @@ export function GraficoSemanalGlobal({ data, totalIngresos }: { data: SemanaData
             dataKey="monto"
             stroke="#8E1B3A"
             strokeWidth={2.5}
-            fill="url(#gradGlobal)"
+            fill={`url(#${gradId})`}
             dot={{ fill: "#8E1B3A", r: 5, strokeWidth: 0 }}
             activeDot={{ r: 7, fill: "#8E1B3A" }}
           />

@@ -317,7 +317,7 @@ export default async function ReportesHubPage() {
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/5 pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
         <div className="relative">
-          <p className="text-xs tracking-widest uppercase text-white/50 font-medium">Sistema PREPE · Centro de Análisis</p>
+          <p className="text-xs tracking-widest uppercase text-white/50 font-medium">SISTEMA PREPE · REPORTES</p>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold mt-1">Inteligencia de Negocio</h1>
           <p className="mt-1 text-white/55 text-sm capitalize">{mesActual} · métricas en tiempo real · {grupos.reduce((s, g) => s + g.reportes.length, 0)} reportes disponibles</p>
 

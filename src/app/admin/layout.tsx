@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useUser } from "@stackframe/stack";
 import Sidebar from "./_components/Sidebar";
 import Topbar from "./_components/Topbar";
 import Breadcrumbs from "./_components/Breadcrumbs";
+import AdminLoadingScreen from "./_components/AdminLoadingScreen";
 
 const LABEL_MAP: Record<string, string> = {
   admin: "Inicio",
@@ -34,8 +36,20 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const user = useUser();
+  const [timerDone, setTimerDone] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    const t = setTimeout(() => setTimerDone(true), 10_000);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (!timerDone) {
+    const displayName = user?.displayName || user?.primaryEmail?.split("@")[0] || null;
+    return <AdminLoadingScreen userName={displayName} />;
+  }
 
   // Generar migas de pan dinámicas
   const segments = pathname.split("/").filter(Boolean);

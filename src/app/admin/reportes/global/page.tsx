@@ -640,8 +640,8 @@ export default async function ReporteGlobalPage({
       ],
       tablas: [
         {
-          nombre: "KPIs de la empresa",
-          columnas: ["Métrica", "Valor"],
+          nombre: "Resumen de Indicadores",
+          columnas: ["Indicador", "Valor"],
           filas: kpisEmpresa.map((k) => [k.label, k.valor]),
         },
         {
@@ -693,8 +693,8 @@ export default async function ReporteGlobalPage({
       ],
       tablas: [
         {
-          nombre: "KPIs Generales",
-          columnas: ["Métrica", "Valor"],
+          nombre: "Resumen de Indicadores del Sistema",
+          columnas: ["Indicador", "Valor"],
           filas: [
             ...kpisGenerales.map((k) => [k.label, k.valor]),
             ["Clientes Registrados", totalUsuarios],

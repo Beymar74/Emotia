@@ -523,7 +523,7 @@ async function generarExcel(config: ReporteConfig) {
   ws.addRow(["", config.titulo]);
   ws.addRow(["", `Generado: ${new Intl.DateTimeFormat("es-BO", { dateStyle: "long" }).format(new Date())}`]);
   ws.addRow([]);
-  ws.addRow(["KPI", "Valor"]);
+  ws.addRow(["Indicador", "Valor"]);
 
   ws.getRow(1).getCell(2).font = { bold: true, size: 14, color: { argb: "FF" + MAROON } };
   ws.getRow(2).getCell(2).font = { size: 9, color: { argb: "FF7A5260" } };
