@@ -22,7 +22,7 @@ interface EmpresaData {
 }
 
 interface Props {
-  empresasReales:     EmpresaData[];
+  empresasReales: EmpresaData[];
   estadoFiltroInicial: string;
 }
 
@@ -47,18 +47,18 @@ function tiempoTranscurrido(fechaStr: string) {
   const seg = Math.floor((Date.now() - new Date(fechaStr).getTime()) / 1000);
   if (seg < 60) return "Hace un momento";
   const min = Math.floor(seg / 60); if (min < 60) return `Hace ${min} min`;
-  const h   = Math.floor(min / 60); if (h   < 24) return `Hace ${h} h`;
-  const d   = Math.floor(h   / 24); return `Hace ${d} día${d > 1 ? "s" : ""}`;
+  const h = Math.floor(min / 60); if (h < 24) return `Hace ${h} h`;
+  const d = Math.floor(h / 24); return `Hace ${d} día${d > 1 ? "s" : ""}`;
 }
 
 export default function ActividadEmpresasClient({ empresasReales, estadoFiltroInicial }: Props) {
-  const router       = useRouter();
-  const pathname     = usePathname();
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  const [modalOpen, setModalOpen]     = useState(false);
-  const [selected, setSelected]       = useState<EmpresaData | null>(null);
-  const [busqueda, setBusqueda]       = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selected, setSelected] = useState<EmpresaData | null>(null);
+  const [busqueda, setBusqueda] = useState("");
 
   const actualizarFiltro = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -68,9 +68,13 @@ export default function ActividadEmpresasClient({ empresasReales, estadoFiltroIn
 
   const confirmarCambioEstado = () => {
     if (!selected) return;
+
     startTransition(async () => {
       await toggleSuspensionProveedor(selected.id, selected.estado);
+
       setModalOpen(false);
+
+      router.refresh();
     });
   };
 
@@ -107,6 +111,7 @@ export default function ActividadEmpresasClient({ empresasReales, estadoFiltroIn
           <option value="">Todos los estados</option>
           <option value="aprobado">Activos</option>
           <option value="suspendido">Suspendidos</option>
+          <option value="pendiente">Pendientes</option>
         </select>
       </div>
 
@@ -128,8 +133,19 @@ export default function ActividadEmpresasClient({ empresasReales, estadoFiltroIn
                       <p className="text-xs text-[#7A5260]">★ {p.calificacion_prom > 0 ? p.calificacion_prom.toFixed(1) : "—"}</p>
                     </div>
                   </div>
-                  <span className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded-full ${p.estado === "aprobado" ? "bg-[#EEF8F0] text-[#2D7A47]" : "bg-[#FBF0F0] text-[#A32D2D]"}`}>
-                    {p.estado === "aprobado" ? "Activo" : "Suspendido"}
+                  <span
+                    className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded-full ${p.estado === "aprobado"
+                      ? "bg-[#EEF8F0] text-[#2D7A47]"
+                      : p.estado === "pendiente"
+                        ? "bg-[#FFF7E8] text-[#BC9968]"
+                        : "bg-[#FBF0F0] text-[#A32D2D]"
+                      }`}
+                  >
+                    {p.estado === "aprobado"
+                      ? "Activo"
+                      : p.estado === "pendiente"
+                        ? "Pendiente"
+                        : "Suspendido"}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-xs text-center">
@@ -150,10 +166,22 @@ export default function ActividadEmpresasClient({ empresasReales, estadoFiltroIn
                   <Link href={`/admin/empresas/actividad/${p.id}`} className="flex-1 flex items-center justify-center text-xs px-3 py-2 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-bold hover:bg-[#8E1B3A]/15">Ver</Link>
                   <Link href={`/admin/empresas/${p.id}/editar`} className="flex-1 flex items-center justify-center text-xs px-3 py-2 rounded-lg bg-[#F1EFE8] text-[#7A5260] font-bold hover:bg-[#E5E3DC]">Editar</Link>
                   <button
-                    onClick={() => { setSelected(p); setModalOpen(true); }}
-                    className={`flex-1 text-xs px-3 py-2 rounded-lg font-bold ${p.estado === "aprobado" ? "bg-[#FBF0F0] text-[#A32D2D]" : "bg-[#EEF8F0] text-[#2D7A47]"}`}
+                    onClick={() => {
+                      setSelected(p);
+                      setModalOpen(true);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${p.estado === "aprobado"
+                      ? "bg-[#FBF0F0] text-[#A32D2D] hover:bg-[#A32D2D] hover:text-white"
+                      : p.estado === "pendiente"
+                        ? "bg-[#FFF7E8] text-[#BC9968] hover:bg-[#BC9968] hover:text-white"
+                        : "bg-[#EEF8F0] text-[#2D7A47] hover:bg-[#2D7A47] hover:text-white"
+                      }`}
                   >
-                    {p.estado === "aprobado" ? "Suspender" : "Activar"}
+                    {p.estado === "aprobado"
+                      ? "Suspender"
+                      : p.estado === "pendiente"
+                        ? "Aprobar"
+                        : "Activar"}
                   </button>
                 </div>
               </div>
@@ -186,8 +214,19 @@ export default function ActividadEmpresasClient({ empresasReales, estadoFiltroIn
                     <td className="px-4 py-3 text-sm font-bold text-[#2D7A47]">{p.pedidosCompletados}</td>
                     <td className="px-4 py-3 text-sm font-bold" style={{ color: p.pedidosCancelados > 0 ? "#A32D2D" : "#2A0E18" }}>{p.pedidosCancelados}</td>
                     <td className="px-4 py-3">
-                      <span className={`text-[10px] font-bold uppercase px-3 py-1 rounded-full ${p.estado === "aprobado" ? "bg-[#EEF8F0] text-[#2D7A47]" : "bg-[#FBF0F0] text-[#A32D2D]"}`}>
-                        {p.estado === "aprobado" ? "Activo" : "Suspendido"}
+                      <span
+                        className={`text-[10px] font-bold uppercase px-3 py-1 rounded-full ${p.estado === "aprobado"
+                          ? "bg-[#EEF8F0] text-[#2D7A47]"
+                          : p.estado === "pendiente"
+                            ? "bg-[#FFF7E8] text-[#BC9968]"
+                            : "bg-[#FBF0F0] text-[#A32D2D]"
+                          }`}
+                      >
+                        {p.estado === "aprobado"
+                          ? "Activo"
+                          : p.estado === "pendiente"
+                            ? "Pendiente"
+                            : "Suspendido"}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs text-[#7A5260]">{tiempoTranscurrido(p.updated_at)}</td>
@@ -196,10 +235,22 @@ export default function ActividadEmpresasClient({ empresasReales, estadoFiltroIn
                         <Link href={`/admin/empresas/actividad/${p.id}`} className="px-3 py-1.5 rounded-lg bg-[#8E1B3A]/5 text-[#8E1B3A] text-xs font-bold hover:bg-[#8E1B3A] hover:text-white transition-all">Ver</Link>
                         <Link href={`/admin/empresas/${p.id}/editar`} className="px-3 py-1.5 rounded-lg bg-[#FAF3EC] text-[#BC9968] text-xs font-bold hover:bg-[#BC9968] hover:text-white transition-all">Editar</Link>
                         <button
-                          onClick={() => { setSelected(p); setModalOpen(true); }}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${p.estado === "aprobado" ? "bg-[#FBF0F0] text-[#A32D2D] hover:bg-[#A32D2D] hover:text-white" : "bg-[#EEF8F0] text-[#2D7A47] hover:bg-[#2D7A47] hover:text-white"}`}
+                          onClick={() => {
+                            setSelected(p);
+                            setModalOpen(true);
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${p.estado === "aprobado"
+                            ? "bg-[#FBF0F0] text-[#A32D2D] hover:bg-[#A32D2D] hover:text-white"
+                            : p.estado === "pendiente"
+                              ? "bg-[#FFF7E8] text-[#BC9968] hover:bg-[#BC9968] hover:text-white"
+                              : "bg-[#EEF8F0] text-[#2D7A47] hover:bg-[#2D7A47] hover:text-white"
+                            }`}
                         >
-                          {p.estado === "aprobado" ? "Suspender" : "Activar"}
+                          {p.estado === "aprobado"
+                            ? "Suspender"
+                            : p.estado === "pendiente"
+                              ? "Aprobar"
+                              : "Activar"}
                         </button>
                       </div>
                     </td>
@@ -215,11 +266,27 @@ export default function ActividadEmpresasClient({ empresasReales, estadoFiltroIn
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onConfirm={confirmarCambioEstado}
-        titulo={selected?.estado === "aprobado" ? "Suspender Empresa" : "Activar Empresa"}
-        mensaje={selected?.estado === "aprobado"
-          ? `¿Estás seguro de que deseas suspender a "${selected?.nombre_negocio}"? No podrá recibir nuevos pedidos.`
-          : `¿Deseas activar nuevamente a "${selected?.nombre_negocio}"? Volverá a estar visible para los clientes.`}
-        confirmText={selected?.estado === "aprobado" ? "Suspender" : "Activar"}
+        titulo={
+          selected?.estado === "aprobado"
+            ? "Suspender Empresa"
+            : selected?.estado === "pendiente"
+              ? "Aprobar Empresa"
+              : "Activar Empresa"
+        }
+        mensaje={
+          selected?.estado === "aprobado"
+            ? `¿Estás seguro de que deseas suspender a "${selected?.nombre_negocio}"? No podrá recibir nuevos pedidos.`
+            : selected?.estado === "pendiente"
+              ? `¿Deseas aprobar a "${selected?.nombre_negocio}"? La empresa será visible para los clientes.`
+              : `¿Deseas activar nuevamente a "${selected?.nombre_negocio}"? Volverá a estar visible para los clientes.`
+        }
+        confirmText={
+          selected?.estado === "aprobado"
+            ? "Suspender"
+            : selected?.estado === "pendiente"
+              ? "Aprobar"
+              : "Activar"
+        }
         isDestructive={selected?.estado === "aprobado"}
       />
     </div>

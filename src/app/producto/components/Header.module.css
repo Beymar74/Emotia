@@ -437,6 +437,14 @@
   background: #ffffff;
   border: 1px solid rgba(230, 136, 92, 0.16);
   box-shadow: 0 22px 44px rgba(92, 58, 46, 0.14);
+  /* 👇 Agrega estas dos líneas 👇 */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 👇 Y agrega este bloque nuevo justo debajo 👇 */
+.notificationMenu::-webkit-scrollbar {
+  display: none;
 }
 
 .mobilePanelOverlay,

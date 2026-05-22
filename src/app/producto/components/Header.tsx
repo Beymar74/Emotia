@@ -76,24 +76,39 @@ function getNotificationIcon(tipo: string) {
     case "pedido":
     case "nuevo_pedido":
     case "pedido_aprobado":
-    case "actualizacion_pedido": // <-- AÑADIDO AQUI PARA LAS NUEVAS FASES
+    case "actualizacion_pedido":
       return PackageSearch;
-
     case "pedido_enviado":
       return Truck;
-
     case "pedido_entregado":
       return CheckCircle2;
-
     case "pedido_cancelado":
       return CircleSlash;
-
     case "promo":
       return Gift;
-
     default:
       return BellRing;
   }
+}
+
+// 👇 NUEVA FUNCIÓN: La paleta de colores de "la inge" 👇
+function getNotificationColor(tipoOEstadoOTitulo: string) {
+  const t = tipoOEstadoOTitulo.toLowerCase();
+
+  if (t.includes("entregado") || t.includes("completado"))
+    return { bg: "bg-[#EEF8F0]", border: "border-[#2D7A47]/40", text: "text-[#2D7A47]", badge: "Entregado" };
+
+  if (t.includes("cancelado") || t.includes("fallido") || t.includes("rechazado"))
+    return { bg: "bg-[#FBF0F0]", border: "border-[#A32D2D]/40", text: "text-[#A32D2D]", badge: "Cancelado" };
+
+  if (t.includes("enviado") || t.includes("listo") || t.includes("camino"))
+    return { bg: "bg-[#E6F3F8]", border: "border-[#1B6A8E]/40", text: "text-[#1B6A8E]", badge: "En camino" };
+
+  if (t.includes("preparacion") || t.includes("actualizacion") || t.includes("confirmacion"))
+    return { bg: "bg-[#FFF7E8]", border: "border-[#BC9968]/40", text: "text-[#BC9968]", badge: "En preparación" };
+
+  // Por defecto (Pendiente / Registrado)
+  return { bg: "bg-[#FDFBF9]", border: "border-[#8E1B3A]/20", text: "text-[#7A5260]", badge: "Registrado" };
 }
 
 export default function Header({
@@ -304,6 +319,13 @@ export default function Header({
   const handleNotificationClick = async (notification: OverviewNotification) => {
     console.log("🚨 1. Clic detectado en la notificación ID:", notification.id);
 
+    // TRUCO MAGICO: Extraemos el ID del pedido desde el título o mensaje si no hay referenciaId
+    let targetOrderId = notification.referenciaId;
+    if (!targetOrderId) {
+      const match = `${notification.titulo} ${notification.mensaje || ""}`.match(/EM-0*(\d+)/);
+      if (match) targetOrderId = parseInt(match[1], 10);
+    }
+
     if (
       notification.tipo === "pedido" ||
       notification.tipo === "nuevo_pedido" ||
@@ -311,10 +333,10 @@ export default function Header({
       notification.tipo === "pedido_enviado" ||
       notification.tipo === "pedido_entregado" ||
       notification.tipo === "pedido_cancelado" ||
-      notification.tipo === "actualizacion_pedido" // <-- AÑADIDO PARA QUE ABRA EL SEGUIMIENTO
+      notification.tipo === "actualizacion_pedido"
     ) {
       const matchingOrder = accountOverview?.orders.find(
-        (order) => order.id === notification.referenciaId
+        (order) => order.id === targetOrderId
       );
 
       if (matchingOrder) {
@@ -371,7 +393,7 @@ export default function Header({
   const unreadCount = accountOverview?.unreadNotifications ?? 0;
   const activeCount = accountOverview?.summary?.activeOrders ?? 0;
 
-const accountMenuContent = isLoggedIn && user ? (
+  const accountMenuContent = isLoggedIn && user ? (
     <>
       <div className={styles.accountInfo}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
@@ -431,7 +453,6 @@ const accountMenuContent = isLoggedIn && user ? (
         return null;
       })()}
 
-      {/* Menú limpio y directo, sin lista de pedidos estorbando */}
       <div className={styles.accountMenuActions} style={{ marginTop: "1rem", borderTop: "1px solid rgba(230, 136, 92, 0.12)", paddingTop: "1rem" }}>
         <button
           className={`${styles.accountMenuButton} ${styles.accountMenuButtonSoft}`}
@@ -450,7 +471,6 @@ const accountMenuContent = isLoggedIn && user ? (
       </div>
     </>
   ) : (
-    // ... el fallback de Invitado se mantiene igual ...
     <>
       <div className={styles.accountInfo}>
         <span className={styles.accountInfoLabel}>Cuenta Emotia</span>
@@ -470,7 +490,8 @@ const accountMenuContent = isLoggedIn && user ? (
     </>
   );
 
-  const notificationMenuContent = (
+  // 👇 AQUÍ SE APLICA EL CÓDIGO DE COLORES Y EL DISEÑO RESCATADO 👇
+const notificationMenuContent = (
     <>
       <div className={styles.notificationHeader}>
         <div>
@@ -487,67 +508,81 @@ const accountMenuContent = isLoggedIn && user ? (
       ) : null}
 
       {accountOverview?.notifications.length ? (
-        <div className={styles.notificationList}>
+        <div className="flex flex-col gap-3 p-4">
           {accountOverview.notifications.map((notification) => {
-            const NotificationIcon = getNotificationIcon(notification.tipo);
-
-            // Cruzamos los datos: Buscamos el pedido al que pertenece esta notificación
+            // Buscamos EM-XXXX para saber qué pedido es
             let targetOrderId = notification.referenciaId;
             if (!targetOrderId) {
               const match = `${notification.titulo} ${notification.mensaje || ""}`.match(/EM-0*(\d+)/);
               if (match) targetOrderId = parseInt(match[1], 10);
             }
+            
             const matchingOrder = targetOrderId ? accountOverview.orders.find(o => o.id === targetOrderId) : null;
-
-            // Limpiamos el título si ya trae el EM- incrustado del backend
-            const cleanTitle = notification.titulo.split(':')[0];
+            const cleanTitle = notification.titulo.split(':')[0].trim();
+            
+            // Leemos el color basado en el pedido, o si no hay pedido, basado en el título de la notificación vieja
+            const colorStyle = getNotificationColor(matchingOrder ? matchingOrder.estado : `${notification.tipo} ${notification.titulo}`);
 
             return (
               <article
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
-                className={`${styles.notificationCard} ${!notification.leida ? styles.notificationCardUnread : ""
-                  } cursor-pointer transition-colors hover:bg-gray-50`}
+                className={`relative p-3 rounded-xl border-2 transition-all cursor-pointer ${
+                  !notification.leida 
+                    ? `${colorStyle.bg} ${colorStyle.border} shadow-sm` 
+                    : `bg-white ${colorStyle.border} opacity-80 hover:opacity-100 hover:${colorStyle.bg}`
+                }`}
               >
-                <div className={styles.notificationIcon}>
-                  <NotificationIcon size={16} strokeWidth={2} />
-                </div>
-                <div className={styles.notificationBody}>
-                  <div className={styles.notificationTitleRow}>
-                    <strong>
-                      {notification.tipo === "pedido_aprobado" && "✅ Pago aprobado"}
-                      {notification.tipo === "pedido_enviado" && "🚚 Pedido en camino"}
-                      {notification.tipo === "pedido_entregado" && "🎉 Pedido entregado"}
-                      {notification.tipo === "pedido_cancelado" && "❌ Pedido cancelado"}
-                      {![
-                        "pedido_aprobado",
-                        "pedido_enviado",
-                        "pedido_entregado",
-                        "pedido_cancelado",
-                      ].includes(notification.tipo) && cleanTitle}
-                    </strong>
-                    {!notification.leida ? <span className={styles.notificationDot} /> : null}
-                  </div>
+                {/* Puntito de no leído */}
+                {!notification.leida && (
+                  <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-[#8E1B3A]" />
+                )}
 
-                  {/* AQUÍ ESTÁ LA MAGIA: Si encuentra el pedido, arma la tarjetita */}
-                  {matchingOrder ? (
-                    <div style={{ marginTop: "4px", display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "#BC9968", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                        Pedido EM-{matchingOrder.id.toString().padStart(4, "0")}
+                {matchingOrder ? (
+                  /* --- DISEÑO DE TARJETA CON PRODUCTO --- */
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between items-start pr-4">
+                      <span className="text-[10px] font-bold text-[#8E1B3A] tracking-widest uppercase">
+                        PEDIDO EM-{matchingOrder.id.toString().padStart(4, "0")}
                       </span>
-                      <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#4a3f39", lineHeight: "1.2" }}>
-                        {matchingOrder.primaryProductName}
-                      </span>
-                      <span style={{ fontSize: "0.75rem", color: "#8a6f62", marginTop: "2px" }}>
-                        {notification.mensaje || "Tienes una nueva novedad."}
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white border ${colorStyle.border} ${colorStyle.text}`}>
+                        {colorStyle.badge}
                       </span>
                     </div>
-                  ) : (
-                    <p>{notification.mensaje || "Tienes una nueva novedad en tu cuenta."}</p>
-                  )}
+                    
+                    <div className="mt-1">
+                      <h4 className="text-sm font-bold text-[#2A0E18] leading-tight">{matchingOrder.primaryProductName}</h4>
+                      <p className="text-[11px] text-[#7A5260] mt-0.5">{matchingOrder.brandName}</p>
+                    </div>
 
-                  <span style={{ marginTop: "6px", display: "block" }}>{formatLongDate(notification.createdAt)}</span>
-                </div>
+                    <div className="flex items-center justify-between text-[11px] text-[#7A5260] mt-2 pt-2 border-t border-black/5">
+                      <div className="flex items-center gap-3">
+                        <span>{formatShortDate(notification.createdAt)}</span>
+                        <span>{matchingOrder.itemCount} item{matchingOrder.itemCount > 1 ? "s" : ""}</span>
+                      </div>
+                      <strong className="text-[#2A0E18]">Bs. {matchingOrder.total.toFixed(2)}</strong>
+                    </div>
+                  </div>
+                ) : (
+                  /* --- DISEÑO DE RESPALDO (Avisos antiguos o del sistema) --- */
+                  <div className="flex flex-col gap-1.5 pr-4">
+                    <div className="flex justify-between items-start">
+                      <span className="text-[10px] font-bold text-[#8E1B3A] tracking-widest uppercase">
+                        Emotia Store
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white border ${colorStyle.border} ${colorStyle.text}`}>
+                        {colorStyle.badge}
+                      </span>
+                    </div>
+                    <div className="mt-1">
+                      <h4 className="text-sm font-bold text-[#2A0E18] leading-tight">{cleanTitle}</h4>
+                      <p className="text-xs text-[#7A5260] mt-1 leading-relaxed">{notification.mensaje}</p>
+                    </div>
+                    <span className="text-[10px] text-[#7A5260] mt-2 pt-2 border-t border-black/5 block">
+                      {formatLongDate(notification.createdAt)}
+                    </span>
+                  </div>
+                )}
               </article>
             );
           })}
