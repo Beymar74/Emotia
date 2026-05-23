@@ -481,6 +481,26 @@
   font-size: 0.96rem;
 }
 
+.personalizationFeatureRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+
+.personalizationFeaturePill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.45rem 0.82rem;
+  border-radius: 999px;
+  border: 1px solid rgba(198, 40, 79, 0.12);
+  background: rgba(255, 255, 255, 0.86);
+  color: #8e3651;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .personalizeButton {
   width: 100%;
   min-height: 56px;
@@ -542,7 +562,7 @@
 
 .personalizationShowcase {
   display: grid;
-  grid-template-columns: minmax(220px, 250px) minmax(220px, 360px);
+  grid-template-columns: minmax(220px, 250px) minmax(220px, 320px) minmax(220px, 1fr);
   gap: 0.9rem;
   align-items: center;
 }
@@ -583,6 +603,39 @@
   line-height: 1.6;
 }
 
+.previewSummaryList {
+  display: grid;
+  gap: 0.7rem;
+  align-content: start;
+}
+
+.previewSummaryCard {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.9rem 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(230, 136, 92, 0.16);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 247, 243, 0.9) 100%);
+  box-shadow: 0 12px 24px rgba(92, 58, 46, 0.05);
+}
+
+.previewSummaryCard span {
+  color: #9a7d70;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.previewSummaryCard strong {
+  color: #5c3a2e;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  font-weight: 800;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .personalizationEmptyState {
   border-radius: 22px;
   border: 1px dashed rgba(198, 40, 79, 0.24);
@@ -591,6 +644,17 @@
   color: #8a6f62;
   text-align: center;
   line-height: 1.65;
+}
+
+.personalizationEmptyTitle {
+  margin: 0 0 0.4rem;
+  color: #5c3a2e;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.personalizationEmptyCopy {
+  margin: 0 0 0.9rem;
 }
 
 .sectionHeader {
@@ -770,6 +834,225 @@
   background: #5c3a2e;
   border-color: #5c3a2e;
   color: #ffffff;
+}
+
+.personalizationOptionSection {
+  margin-top: 0.2rem;
+  padding-top: 0.25rem;
+}
+
+.fieldStack {
+  display: grid;
+  gap: 1rem;
+}
+
+.optionFieldBlock {
+  padding: 1rem;
+  border-radius: 24px;
+  border: 1px solid rgba(230, 136, 92, 0.16);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.optionFieldHead {
+  margin-bottom: 0.85rem;
+}
+
+.optionFieldHead h4 {
+  margin: 0;
+  color: #5c3a2e;
+  font-size: 0.98rem;
+}
+
+.optionFieldHead p {
+  margin: 0.35rem 0 0;
+  color: #8a6f62;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.choiceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.choiceGridVisual {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.85rem;
+}
+
+.choiceGridSwatch {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.8rem;
+}
+
+.choiceButton {
+  border: 1px solid rgba(230, 136, 92, 0.18);
+  background: linear-gradient(180deg, #ffffff 0%, #fff8f3 100%);
+  border-radius: 20px;
+  padding: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.choiceButtonVisual {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.choiceButtonSwatch {
+  padding: 0.72rem;
+  display: grid;
+  gap: 0.62rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 247, 243, 0.92) 100%);
+}
+
+.choiceButtonInlineText {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.9rem 0.8rem;
+}
+
+.choiceButton:hover {
+  transform: translateY(-2px);
+  border-color: rgba(198, 40, 79, 0.3);
+}
+
+.choiceButtonImageOnly:hover {
+  border-color: transparent;
+}
+
+.choiceVisualImageWrap {
+  border-radius: 22px;
+  overflow: hidden;
+  background: transparent;
+  aspect-ratio: 1.24 / 1;
+  border: 1px solid transparent;
+  box-shadow: 0 10px 22px rgba(92, 58, 46, 0.08);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.choiceVisualImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.choiceSwatchPreview {
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  border: 1px solid rgba(230, 136, 92, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 10px 20px rgba(92, 58, 46, 0.08);
+}
+
+.choiceTextBody {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.choiceTextBodyCompact {
+  gap: 0;
+}
+
+.choiceTextBodyCompact strong {
+  font-size: 0.84rem;
+  text-align: center;
+}
+
+.choiceButton strong {
+  display: block;
+  color: #5c3a2e;
+  font-size: 0.92rem;
+}
+
+.choiceButton span {
+  display: block;
+  margin-top: 0.28rem;
+  color: #8a6f62;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.choiceButtonActive {
+  border-color: #c6284f;
+  box-shadow: 0 14px 28px rgba(198, 40, 79, 0.12);
+  background: linear-gradient(180deg, #fff7f8 0%, #fff0f4 100%);
+}
+
+.choiceButtonImageOnly.choiceButtonActive {
+  border-color: transparent;
+  box-shadow: none;
+  background: transparent;
+}
+
+.choiceButtonImageOnly:hover .choiceVisualImageWrap {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(92, 58, 46, 0.12);
+}
+
+.choiceButtonImageOnly.choiceButtonActive .choiceVisualImageWrap {
+  border-color: rgba(198, 40, 79, 0.62);
+  box-shadow: 0 0 0 3px rgba(198, 40, 79, 0.12), 0 16px 32px rgba(198, 40, 79, 0.18);
+}
+
+.choiceButtonImageOnly:focus-visible {
+  outline: none;
+}
+
+.choiceButtonImageOnly:focus-visible .choiceVisualImageWrap {
+  border-color: rgba(198, 40, 79, 0.62);
+  box-shadow: 0 0 0 3px rgba(198, 40, 79, 0.12), 0 16px 32px rgba(198, 40, 79, 0.18);
+}
+
+.choiceButtonSwatch:hover .choiceSwatchPreview {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 14px 26px rgba(92, 58, 46, 0.12);
+}
+
+.choiceButtonSwatch.choiceButtonActive {
+  border-color: rgba(198, 40, 79, 0.5);
+  box-shadow: 0 16px 30px rgba(198, 40, 79, 0.1);
+  background: linear-gradient(180deg, #fffaf8 0%, #fff2f5 100%);
+}
+
+.choiceButtonSwatch.choiceButtonActive .choiceSwatchPreview {
+  border-color: rgba(198, 40, 79, 0.44);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 0 0 3px rgba(198, 40, 79, 0.1),
+    0 14px 28px rgba(198, 40, 79, 0.15);
+}
+
+.inlineTextArea {
+  min-height: 92px;
+  margin-bottom: 0;
+}
+
+.inputField {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid rgba(230, 136, 92, 0.16);
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 0.85rem 1rem;
+  color: #5c3a2e;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.inputField:focus {
+  border-color: rgba(198, 40, 79, 0.42);
+  box-shadow: 0 0 0 4px rgba(198, 40, 79, 0.1);
 }
 
 .livePreview {
@@ -1037,6 +1320,7 @@
 
 .modalLivePreview {
   width: 100%;
+  margin-bottom: 0.9rem;
 }
 
 .modalFooter {
@@ -1128,6 +1412,18 @@
 
   .cardGrid {
     grid-template-columns: 1fr;
+  }
+
+  .choiceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .choiceGridVisual {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .choiceGridSwatch {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .commentsHeader {
@@ -1313,6 +1609,10 @@
 
   .personalizationPreviewBox {
     padding: 0.9rem;
+  }
+
+  .previewSummaryCard {
+    padding: 0.85rem 0.9rem;
   }
 
   .productShowcaseImageWrap,

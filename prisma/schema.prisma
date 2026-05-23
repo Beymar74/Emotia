@@ -303,3 +303,30 @@ model tarjeta_disenos {
   activo        Boolean  @default(true)
   created_at    DateTime @default(now()) @db.Timestamptz(6)
 }
+
+model empaque_disenos {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique @db.VarChar(80)
+  preview_url String
+  descripcion String?  @db.VarChar(180)
+  activo      Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model envoltura_disenos {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique @db.VarChar(80)
+  preview_url String
+  descripcion String?  @db.VarChar(180)
+  activo      Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model liston_disenos {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique @db.VarChar(80)
+  preview_url String
+  descripcion String?  @db.VarChar(180)
+  activo      Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+}

@@ -1,4 +1,5 @@
 import { PrismaClient } from '../../src/generated/prisma/client'
+import { DISENOS_EMPAQUE, DISENOS_ENVOLTURA, DISENOS_LISTON } from '../../src/lib/personalization-designs'
 
 
 const DISENOS_TARJETA = [
@@ -46,6 +47,31 @@ export async function seedPersonalizacion(prisma: PrismaClient) {
     // ── 1. Seedear tarjeta_disenos ──
     for (const diseno of DISENOS_TARJETA) {
         await prisma.tarjeta_disenos.upsert({
+            where: { nombre: diseno.nombre },
+            update: diseno,
+            create: diseno,
+        })
+    }
+
+    // ── 1.1 Seedear catálogos visuales ──
+    for (const diseno of DISENOS_EMPAQUE) {
+        await prisma.empaque_disenos.upsert({
+            where: { nombre: diseno.nombre },
+            update: diseno,
+            create: diseno,
+        })
+    }
+
+    for (const diseno of DISENOS_ENVOLTURA) {
+        await prisma.envoltura_disenos.upsert({
+            where: { nombre: diseno.nombre },
+            update: diseno,
+            create: diseno,
+        })
+    }
+
+    for (const diseno of DISENOS_LISTON) {
+        await prisma.liston_disenos.upsert({
             where: { nombre: diseno.nombre },
             update: diseno,
             create: diseno,
