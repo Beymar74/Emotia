@@ -16,6 +16,8 @@ export type CatalogOrder = {
   brandName: string;
   brandLogoUrl: string | null;
   items: CatalogOrderItem[];
+  fechaEntrega?: string | null;
+  horarioEntrega?: string | null;
 };
 
 export type OrderStatusTone = "pending" | "active" | "success" | "danger";

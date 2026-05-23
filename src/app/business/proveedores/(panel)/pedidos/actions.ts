@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { requireProveedor } from "@/lib/auth-proveedor";
+import { revalidatePath } from "next/cache"; // IMPORTANTE: Agrega esto arriba
 
 const FLUJO_ESTADOS = [
   "pendiente",
@@ -182,7 +183,7 @@ export async function avanzarEstadoPedidoProveedor(pedidoId: number) {
       proveedor_id: proveedor.id,
     },
     include: {
-      pedidos: true,
+      pedidos: true, // Vital para sacar el usuario_id
     },
   });
 
@@ -199,14 +200,53 @@ export async function avanzarEstadoPedidoProveedor(pedidoId: number) {
     };
   }
 
-  await prisma.pedidos.update({
-    where: {
-      id: pedidoId,
+  // 1. Textos adaptados a la experiencia de Emotia
+  const mensajesNotificacion: Record<string, { titulo: string; descripcion: string }> = {
+    en_preparacion: {
+      titulo: "Preparación y confirmación",
+      descripcion: "La empresa aceptó tu pedido y lo deja listo para avanzar.",
     },
-    data: {
-      estado: nuevoEstado,
+    listo: {
+      titulo: "Pedido listo para envío",
+      descripcion: "Tu regalo ya está empaquetado y esperando a ser despachado.",
     },
-  });
+    entregado: {
+      titulo: "Pedido entregado",
+      descripcion: "Tu pedido llegó a su destino. ¡Esperamos que lo disfruten!",
+    },
+  };
+
+  const infoNotificacion = mensajesNotificacion[nuevoEstado] || {
+    titulo: "Actualización de pedido",
+    descripcion: `Tu pedido ha pasado a la fase: ${nuevoEstado}`,
+  };
+
+  // 2. Transacción: Actualiza el pedido y crea la notificación al mismo tiempo
+  await prisma.$transaction([
+    prisma.pedidos.update({
+      where: {
+        id: pedidoId,
+      },
+      data: {
+        estado: nuevoEstado,
+      },
+    }),
+    
+    // Usamos el modelo "notificaciones" exacto de tu schema.prisma
+    prisma.notificaciones.create({
+      data: {
+        usuario_id: detalle.pedidos.usuario_id,
+        tipo: "actualizacion_pedido", // Coincide con tu VarChar(50)
+        titulo: infoNotificacion.titulo,
+        mensaje: infoNotificacion.descripcion,
+        leida: false,
+      },
+    }),
+  ]);
+
+  // 3. Revalidamos la ruta para que la UI del cliente se refresque
+  // Ajusta esta ruta según dónde esté tu layout principal con la campanita
+  revalidatePath("/", "layout"); 
 
   return {
     success: true,

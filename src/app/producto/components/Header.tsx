@@ -46,7 +46,6 @@ type OverviewNotification = {
   mensaje: string | null;
   leida: boolean;
   createdAt: string;
-  // Sugerencia futura: Podrían añadir "referenciaId" a su BD para saber exactamente qué pedido abrir
   referenciaId?: number;
 };
 
@@ -75,12 +74,41 @@ type HeaderProps = {
 function getNotificationIcon(tipo: string) {
   switch (tipo) {
     case "pedido":
+    case "nuevo_pedido":
+    case "pedido_aprobado":
+    case "actualizacion_pedido":
       return PackageSearch;
+    case "pedido_enviado":
+      return Truck;
+    case "pedido_entregado":
+      return CheckCircle2;
+    case "pedido_cancelado":
+      return CircleSlash;
     case "promo":
       return Gift;
     default:
       return BellRing;
   }
+}
+
+// 👇 NUEVA FUNCIÓN: La paleta de colores de "la inge" 👇
+function getNotificationColor(tipoOEstadoOTitulo: string) {
+  const t = tipoOEstadoOTitulo.toLowerCase();
+
+  if (t.includes("entregado") || t.includes("completado"))
+    return { bg: "bg-[#EEF8F0]", border: "border-[#2D7A47]/40", text: "text-[#2D7A47]", badge: "Entregado" };
+
+  if (t.includes("cancelado") || t.includes("fallido") || t.includes("rechazado"))
+    return { bg: "bg-[#FBF0F0]", border: "border-[#A32D2D]/40", text: "text-[#A32D2D]", badge: "Cancelado" };
+
+  if (t.includes("enviado") || t.includes("listo") || t.includes("camino"))
+    return { bg: "bg-[#E6F3F8]", border: "border-[#1B6A8E]/40", text: "text-[#1B6A8E]", badge: "En camino" };
+
+  if (t.includes("preparacion") || t.includes("actualizacion") || t.includes("confirmacion"))
+    return { bg: "bg-[#FFF7E8]", border: "border-[#BC9968]/40", text: "text-[#BC9968]", badge: "En preparación" };
+
+  // Por defecto (Pendiente / Registrado)
+  return { bg: "bg-[#FDFBF9]", border: "border-[#8E1B3A]/20", text: "text-[#7A5260]", badge: "Registrado" };
 }
 
 export default function Header({
@@ -211,39 +239,39 @@ export default function Header({
   }, [isLoggedIn, loadAccountOverview]);
 
   useEffect(() => {
-  let timeoutId: number | undefined;
+    let timeoutId: number | undefined;
 
-  const handleCartHighlight = () => {
-    setIsCartHighlighted(true);
+    const handleCartHighlight = () => {
+      setIsCartHighlighted(true);
 
-    if (timeoutId) {
-      window.clearTimeout(timeoutId);
-    }
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
 
-    timeoutId = window.setTimeout(() => {
-      setIsCartHighlighted(false);
-    }, 700);
-  };
+      timeoutId = window.setTimeout(() => {
+        setIsCartHighlighted(false);
+      }, 700);
+    };
 
-  const handleCartOpen = () => {
-    setIsAccountOpen(false);
-    setIsNotificationsOpen(false);
-    setIsCartOpen(true);
-    handleCartHighlight();
-  };
+    const handleCartOpen = () => {
+      setIsAccountOpen(false);
+      setIsNotificationsOpen(false);
+      setIsCartOpen(true);
+      handleCartHighlight();
+    };
 
-  window.addEventListener("emotia-cart-highlight", handleCartHighlight);
-  window.addEventListener("emotia-cart-open", handleCartOpen);
+    window.addEventListener("emotia-cart-highlight", handleCartHighlight);
+    window.addEventListener("emotia-cart-open", handleCartOpen);
 
-  return () => {
-    window.removeEventListener("emotia-cart-highlight", handleCartHighlight);
-    window.removeEventListener("emotia-cart-open", handleCartOpen);
+    return () => {
+      window.removeEventListener("emotia-cart-highlight", handleCartHighlight);
+      window.removeEventListener("emotia-cart-open", handleCartOpen);
 
-    if (timeoutId) {
-      window.clearTimeout(timeoutId);
-    }
-  };
-}, []);
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, []);
 
   const highlightedOrder = useMemo(() => {
     if (!accountOverview?.orders.length) return null;
@@ -288,18 +316,36 @@ export default function Header({
     setIsNotificationsOpen(false);
   };
 
-  // 👇 NUEVA FUNCIÓN MÁGICA: Manejar clics en notificaciones 👇
   const handleNotificationClick = async (notification: OverviewNotification) => {
     console.log("🚨 1. Clic detectado en la notificación ID:", notification.id);
 
-    // 1. Si es de un pedido, intentamos abrir el modal de rastreo
-    if (notification.tipo === "pedido") {
-      if (highlightedOrder) {
+    // TRUCO MAGICO: Extraemos el ID del pedido desde el título o mensaje si no hay referenciaId
+    let targetOrderId = notification.referenciaId;
+    if (!targetOrderId) {
+      const match = `${notification.titulo} ${notification.mensaje || ""}`.match(/EM-0*(\d+)/);
+      if (match) targetOrderId = parseInt(match[1], 10);
+    }
+
+    if (
+      notification.tipo === "pedido" ||
+      notification.tipo === "nuevo_pedido" ||
+      notification.tipo === "pedido_aprobado" ||
+      notification.tipo === "pedido_enviado" ||
+      notification.tipo === "pedido_entregado" ||
+      notification.tipo === "pedido_cancelado" ||
+      notification.tipo === "actualizacion_pedido"
+    ) {
+      const matchingOrder = accountOverview?.orders.find(
+        (order) => order.id === targetOrderId
+      );
+
+      if (matchingOrder) {
+        openOrderDetail(matchingOrder);
+      } else if (highlightedOrder) {
         openOrderDetail(highlightedOrder);
       }
     }
 
-    // 2. Si ya estaba leída, no hacemos nada más
     if (notification.leida) {
       console.log("🚨 2. La notificación ya estaba leída. Abortando fetch.");
       return;
@@ -352,7 +398,7 @@ export default function Header({
       <div className={styles.accountInfo}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
           <div>
-            <span className={styles.accountInfoLabel}>Sesion activa</span>
+            <span className={styles.accountInfoLabel}>Sesión activa</span>
             <strong style={{ display: "block" }}>{accountOverview?.profile?.shortName || user.name}</strong>
             <span style={{ fontSize: "0.8rem", color: "#8a6f62" }}>{accountOverview?.profile?.email || user.email}</span>
           </div>
@@ -372,7 +418,7 @@ export default function Header({
       {(() => {
         const role = (stackUser?.clientMetadata as any)?.role;
         const isAdmin = role === 'admin' || stackUser?.primaryEmail?.includes('admin@');
-        
+
         if (isAdmin) {
           return (
             <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(230, 136, 92, 0.12)" }}>
@@ -407,79 +453,7 @@ export default function Header({
         return null;
       })()}
 
-      <div className={styles.accountSection}>
-        <div className={styles.accountSectionHeader}>
-          <div>
-            <strong>Mis pedidos</strong>
-            <span>
-              {activeCount > 0
-                ? `${activeCount} pedido${activeCount === 1 ? "" : "s"} en movimiento`
-                : "Revisa tus compras y el estado de cada entrega"}
-            </span>
-          </div>
-          <button
-            type="button"
-            className={styles.accountLinkButton}
-            onClick={() => {
-              setIsAccountOpen(false);
-              router.push("/mis-pedidos");
-            }}
-          >
-            Ver todos
-            <ArrowRight size={14} strokeWidth={2} />
-          </button>
-        </div>
-
-        {isOverviewLoading && !accountOverview ? (
-          <p className={styles.accountEmptyState}>Cargando tus pedidos...</p>
-        ) : null}
-
-        {accountOverview?.orders.length ? (
-          <div className={styles.orderList}>
-            {accountOverview.orders.map((order) => {
-              const statusMeta = getOrderStatusMeta(order.estado);
-
-              return (
-                <article key={order.id} className={styles.orderCard}>
-                  <div className={styles.orderCardTop}>
-                    <div className={styles.orderCardText}>
-                      <span className={styles.orderCode}>Pedido {formatOrderCode(order.id)}</span>
-                      <strong>{order.primaryProductName}</strong>
-                      <span>{order.brandName}</span>
-                    </div>
-                    <span
-                      className={`${styles.orderStatusBadge} ${styles[`orderStatus${statusMeta.tone}`]}`}
-                    >
-                      {statusMeta.label}
-                    </span>
-                  </div>
-
-                  <div className={styles.orderCardMeta}>
-                    <span>{formatShortDate(order.createdAt)}</span>
-                    <span>{order.itemCount} item{order.itemCount === 1 ? "" : "s"}</span>
-                    <strong>Bs. {order.total.toFixed(2)}</strong>
-                  </div>
-
-                  <button
-                    type="button"
-                    className={styles.orderActionButton}
-                    onClick={() => openOrderDetail(order)}
-                  >
-                    {statusMeta.actionLabel}
-                    <ArrowRight size={14} strokeWidth={2} />
-                  </button>
-                </article>
-              );
-            })}
-          </div>
-        ) : !isOverviewLoading ? (
-          <p className={styles.accountEmptyState}>
-            Cuando hagas tu primera compra, aqui veras tus productos y el estado del pedido.
-          </p>
-        ) : null}
-      </div>
-
-      <div className={styles.accountMenuActions}>
+      <div className={styles.accountMenuActions} style={{ marginTop: "1rem", borderTop: "1px solid rgba(230, 136, 92, 0.12)", paddingTop: "1rem" }}>
         <button
           className={`${styles.accountMenuButton} ${styles.accountMenuButtonSoft}`}
           onClick={() => {
@@ -488,11 +462,11 @@ export default function Header({
           }}
         >
           <PackageSearch size={16} strokeWidth={2} />
-          Mis pedidos
+          Ver mis pedidos {activeCount > 0 ? `(${activeCount} activos)` : ""}
         </button>
         <button className={styles.accountMenuButton} onClick={handleLogout} disabled={isLoggingOut}>
           <LogOut size={16} strokeWidth={2} />
-          {isLoggingOut ? "Cerrando..." : "Log out"}
+          {isLoggingOut ? "Cerrando..." : "Cerrar sesión"}
         </button>
       </div>
     </>
@@ -516,7 +490,8 @@ export default function Header({
     </>
   );
 
-  const notificationMenuContent = (
+  // 👇 AQUÍ SE APLICA EL CÓDIGO DE COLORES Y EL DISEÑO RESCATADO 👇
+const notificationMenuContent = (
     <>
       <div className={styles.notificationHeader}>
         <div>
@@ -533,28 +508,81 @@ export default function Header({
       ) : null}
 
       {accountOverview?.notifications.length ? (
-        <div className={styles.notificationList}>
+        <div className="flex flex-col gap-3 p-4">
           {accountOverview.notifications.map((notification) => {
-            const NotificationIcon = getNotificationIcon(notification.tipo);
+            // Buscamos EM-XXXX para saber qué pedido es
+            let targetOrderId = notification.referenciaId;
+            if (!targetOrderId) {
+              const match = `${notification.titulo} ${notification.mensaje || ""}`.match(/EM-0*(\d+)/);
+              if (match) targetOrderId = parseInt(match[1], 10);
+            }
+            
+            const matchingOrder = targetOrderId ? accountOverview.orders.find(o => o.id === targetOrderId) : null;
+            const cleanTitle = notification.titulo.split(':')[0].trim();
+            
+            // Leemos el color basado en el pedido, o si no hay pedido, basado en el título de la notificación vieja
+            const colorStyle = getNotificationColor(matchingOrder ? matchingOrder.estado : `${notification.tipo} ${notification.titulo}`);
 
             return (
               <article
                 key={notification.id}
-                onClick={() => handleNotificationClick(notification)} // 👇 Conectamos el Click aquí
-                className={`${styles.notificationCard} ${!notification.leida ? styles.notificationCardUnread : ""
-                  } cursor-pointer transition-colors hover:bg-gray-50`} // Añadimos cursor pointer para UX
+                onClick={() => handleNotificationClick(notification)}
+                className={`relative p-3 rounded-xl border-2 transition-all cursor-pointer ${
+                  !notification.leida 
+                    ? `${colorStyle.bg} ${colorStyle.border} shadow-sm` 
+                    : `bg-white ${colorStyle.border} opacity-80 hover:opacity-100 hover:${colorStyle.bg}`
+                }`}
               >
-                <div className={styles.notificationIcon}>
-                  <NotificationIcon size={16} strokeWidth={2} />
-                </div>
-                <div className={styles.notificationBody}>
-                  <div className={styles.notificationTitleRow}>
-                    <strong>{notification.titulo}</strong>
-                    {!notification.leida ? <span className={styles.notificationDot} /> : null}
+                {/* Puntito de no leído */}
+                {!notification.leida && (
+                  <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-[#8E1B3A]" />
+                )}
+
+                {matchingOrder ? (
+                  /* --- DISEÑO DE TARJETA CON PRODUCTO --- */
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between items-start pr-4">
+                      <span className="text-[10px] font-bold text-[#8E1B3A] tracking-widest uppercase">
+                        PEDIDO EM-{matchingOrder.id.toString().padStart(4, "0")}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white border ${colorStyle.border} ${colorStyle.text}`}>
+                        {colorStyle.badge}
+                      </span>
+                    </div>
+                    
+                    <div className="mt-1">
+                      <h4 className="text-sm font-bold text-[#2A0E18] leading-tight">{matchingOrder.primaryProductName}</h4>
+                      <p className="text-[11px] text-[#7A5260] mt-0.5">{matchingOrder.brandName}</p>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-[#7A5260] mt-2 pt-2 border-t border-black/5">
+                      <div className="flex items-center gap-3">
+                        <span>{formatShortDate(notification.createdAt)}</span>
+                        <span>{matchingOrder.itemCount} item{matchingOrder.itemCount > 1 ? "s" : ""}</span>
+                      </div>
+                      <strong className="text-[#2A0E18]">Bs. {matchingOrder.total.toFixed(2)}</strong>
+                    </div>
                   </div>
-                  <p>{notification.mensaje || "Tienes una nueva novedad en tu cuenta."}</p>
-                  <span>{formatLongDate(notification.createdAt)}</span>
-                </div>
+                ) : (
+                  /* --- DISEÑO DE RESPALDO (Avisos antiguos o del sistema) --- */
+                  <div className="flex flex-col gap-1.5 pr-4">
+                    <div className="flex justify-between items-start">
+                      <span className="text-[10px] font-bold text-[#8E1B3A] tracking-widest uppercase">
+                        Emotia Store
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white border ${colorStyle.border} ${colorStyle.text}`}>
+                        {colorStyle.badge}
+                      </span>
+                    </div>
+                    <div className="mt-1">
+                      <h4 className="text-sm font-bold text-[#2A0E18] leading-tight">{cleanTitle}</h4>
+                      <p className="text-xs text-[#7A5260] mt-1 leading-relaxed">{notification.mensaje}</p>
+                    </div>
+                    <span className="text-[10px] text-[#7A5260] mt-2 pt-2 border-t border-black/5 block">
+                      {formatLongDate(notification.createdAt)}
+                    </span>
+                  </div>
+                )}
               </article>
             );
           })}
@@ -563,17 +591,6 @@ export default function Header({
         <p className={styles.notificationEmptyState}>
           Cuando un pedido sea aceptado, entregado o cancelado, te avisaremos aqui.
         </p>
-      ) : null}
-
-      {highlightedOrder ? (
-        <button
-          type="button"
-          className={styles.notificationActionButton}
-          onClick={() => openOrderDetail(highlightedOrder)}
-        >
-          Ver seguimiento del ultimo pedido
-          <ArrowRight size={14} strokeWidth={2} />
-        </button>
       ) : null}
     </>
   );
