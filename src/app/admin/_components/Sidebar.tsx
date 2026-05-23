@@ -4,75 +4,53 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useStackApp, useUser } from "@stackframe/stack";
+import Image from "next/image";
 
 const navSections = [
   {
-    label: "Principal",
+    label: "Panel de Control",
     icon: IconDashboard,
     soloAdmin: false,
     items: [
-      { href: "/admin", label: "Dashboard", soloAdmin: false },
+      { href: "/admin", label: "Vista General", soloAdmin: false },
     ],
   },
   {
-    label: "Usuarios & Accesos",
+    label: "Gestión de Cuentas",
     icon: IconUser,
     soloAdmin: true,
     items: [
-      { href: "/admin/usuarios", label: "Gestión de usuarios", soloAdmin: true },
+      { href: "/admin/usuarios", label: "Centro de Cuentas", soloAdmin: true },
     ],
   },
   {
     label: "Empresas",
     icon: IconCheck,
-    soloAdmin: false,
+    soloAdmin: true,
     items: [
-      { href: "/admin/empresas/actividad", label: "Supervisar actividad", soloAdmin: false },
-      { href: "/admin/empresas/rendimiento", label: "Rendimiento", soloAdmin: false },
+      { href: "/admin/empresas/actividad", label: "Supervisar Actividad", soloAdmin: true },
+      { href: "/admin/empresas/rendimiento", label: "Rendimiento", soloAdmin: true },
     ],
   },
   {
-    label: "Catálogo",
+    label: "Productos",
     icon: IconBag,
     soloAdmin: false,
     items: [
-      { href: "/admin/productos", label: "Todos los productos", soloAdmin: false },
+      { href: "/admin/productos", label: "Catálogo", soloAdmin: false },
       { href: "/admin/categorias", label: "Categorías", soloAdmin: false },
+      { href: "/admin/calificaciones", label: "Reseñas de Productos", soloAdmin: false },
+      { href: "/admin/personalizacion", label: "Diseños de Tarjeta", soloAdmin: false },
     ],
   },
   {
-    label: "Personalización",
-    icon: IconBrush,
-    soloAdmin: false,
-    items: [
-      { href: "/admin/personalizacion", label: "Diseños de tarjeta", soloAdmin: false },
-    ],
-  },
-  {
-    label: "Pedidos & Pagos",
+    label: "Pedidos",
     icon: IconBox,
     soloAdmin: false,
     items: [
-      { href: "/admin/pedidos", label: "Todos los pedidos", soloAdmin: false },
-      { href: "/admin/carritos", label: "Carritos activos", soloAdmin: false },
-      { href: "/admin/pagos", label: "Métodos de pago", soloAdmin: false },
-    ],
-  },
-  {
-    label: "Comunicación",
-    icon: IconBell,
-    soloAdmin: false,
-    items: [
-      { href: "/admin/notificaciones", label: "Notificaciones", soloAdmin: false },
-      { href: "/admin/recordatorios", label: "Recordatorios", soloAdmin: false },
-    ],
-  },
-  {
-    label: "Calificaciones",
-    icon: IconStar,
-    soloAdmin: false,
-    items: [
-      { href: "/admin/calificaciones", label: "reseñas de productos", soloAdmin: false },
+      { href: "/admin/pedidos", label: "Todos los Pedidos", soloAdmin: false },
+      { href: "/admin/carritos", label: "Carritos Activos", soloAdmin: false },
+      { href: "/admin/pagos", label: "Métodos de Pago", soloAdmin: false },
     ],
   },
   {
@@ -80,15 +58,17 @@ const navSections = [
     icon: IconReport,
     soloAdmin: false,
     items: [
-      { href: "/admin/reportes", label: "Centro de reportes", soloAdmin: false },
+      { href: "/admin/reportes", label: "Centro de Reportes", soloAdmin: false },
     ],
   },
   {
-    label: "Sistema",
+    label: "Configuración",
     icon: IconSettings,
     soloAdmin: true,
     items: [
-      { href: "/admin/configuracion", label: "Configuración", soloAdmin: true },
+      { href: "/admin/configuracion", label: "Ajustes", soloAdmin: true },
+      { href: "/admin/notificaciones", label: "Notificaciones", soloAdmin: true },
+      { href: "/admin/recordatorios", label: "Recordatorios", soloAdmin: true },
     ],
   },
 ];
@@ -103,6 +83,19 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const user = useUser();
   const role = (user?.clientMetadata as { role?: string } | null)?.role ?? "operador";
   const esAdmin = role === "admin";
+
+  const displayName = user?.displayName || user?.primaryEmail?.split("@")[0] || (esAdmin ? "Administrador" : "Operador");
+  const emailAddress = user?.primaryEmail || "prepe@example.com";
+  const profileImageUrl = user?.profileImageUrl;
+
+  const initials = (() => {
+    if (!displayName) return esAdmin ? "AD" : "OP";
+    const parts = displayName.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return parts[0].slice(0, 2).toUpperCase();
+  })();
 
   const seccionesVisibles = navSections
     .filter((s) => esAdmin || !s.soloAdmin)
@@ -137,23 +130,21 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
       <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#BC9968]/40 to-transparent" />
 
       {/* Header */}
-      <div className="px-5 py-6 border-b border-[#BC9968]/20 flex items-start justify-between">
-        <div>
-          <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium mb-1">
-            Sistema PREPE
-          </p>
-          <h1 className="font-serif text-3xl font-bold text-[#F5E6D0] leading-none">
-            Emotia
-          </h1>
-          <p className="text-xs text-[#F5E6D0]/50 mt-1.5">
-            Panel de Administración Total
-          </p>
+      <div className="bg-white px-4 h-14 sm:h-16 border-b border-[#BC9968]/20 flex items-center justify-center relative flex-shrink-0">
+        <div className="w-full h-11 sm:h-13 relative">
+          <Image
+            src="/logo/prepe.png"
+            alt="PREPE - Plataforma de Regalos y Experiencias"
+            fill
+            className="object-contain"
+            priority
+          />
         </div>
         {/* Botón cerrar en mobile */}
         {onClose && (
           <button
             onClick={onClose}
-            className="lg:hidden text-[#F5E6D0]/60 hover:text-[#F5E6D0] p-1 -mr-1 -mt-1 transition-colors"
+            className="absolute top-1/2 -translate-y-1/2 right-4 lg:hidden text-[#5A0F24]/60 hover:text-[#5A0F24] p-1 flex-shrink-0 transition-colors"
             aria-label="Cerrar menú"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -232,19 +223,31 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-4 border-t border-[#BC9968]/18 space-y-3">
+      <div className="px-4 py-4 border-t border-[#BC9968]/18 space-y-3 flex-shrink-0">
         {/* Perfil */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] flex items-center justify-center text-xs font-bold text-[#F5E6D0] flex-shrink-0">
-            {esAdmin ? "SA" : "OP"}
-          </div>
-          <div>
-            <p className="text-sm text-[#F5E6D0] font-medium">
-              {esAdmin ? "Super Admin" : "Operador"}
+        <div className="flex items-center gap-3 min-w-0">
+          {profileImageUrl ? (
+            <div className="w-9 h-9 rounded-full overflow-hidden border border-[#BC9968]/30 flex-shrink-0">
+              <img
+                src={profileImageUrl}
+                alt={displayName}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] flex items-center justify-center text-xs font-bold text-[#F5E6D0] flex-shrink-0 border border-[#BC9968]/20">
+              {initials}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="text-sm text-[#F5E6D0] font-medium truncate" title={displayName}>
+              {displayName}
             </p>
-            <p className="text-xs text-[#BC9968]">PREPE · Emotia</p>
-            <span className="inline-block text-xs bg-[#BC9968]/25 text-[#BC9968] px-2 py-0.5 rounded-full tracking-wide uppercase mt-1">
-              {esAdmin ? "Acceso total" : "Acceso limitado"}
+            <p className="text-[10px] text-[#BC9968] truncate" title={emailAddress}>
+              {emailAddress}
+            </p>
+            <span className="inline-block text-[9px] bg-[#BC9968]/25 text-[#BC9968] px-2 py-0.5 rounded-full tracking-wide uppercase mt-1 font-semibold">
+              {esAdmin ? "Administrador General PREPE" : "Operador PREPE"}
             </span>
           </div>
         </div>

@@ -140,7 +140,9 @@ export default function PedidosClient({
             defaultValue={busquedaInicial}
             onChange={(e) => {
               const v = e.target.value;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               clearTimeout((window as any).__pedBusq);
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               (window as any).__pedBusq = setTimeout(() => {
                 startTransition(() => {
                   const params = new URLSearchParams(searchParams.toString());
@@ -156,7 +158,7 @@ export default function PedidosClient({
         <table className="w-full border-collapse min-w-[800px]">
           <thead>
             <tr>
-              {["ID", "Cliente", "Proveedor", "Producto", "Monto", "Fecha", "Estado", "Acciones"].map((h) => (
+              {["ID", "Cliente", "Representante", "Producto", "Monto", "Fecha", "Estado", "Acciones"].map((h) => (
                 <th
                   key={h}
                   className="text-left px-4 py-3 text-xs tracking-widest uppercase text-[#7A5260] font-medium border-b border-[#8E1B3A]/10"

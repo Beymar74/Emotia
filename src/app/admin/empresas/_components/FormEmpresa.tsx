@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Store, Mail, Phone, Lock, FileText, ChevronRight, ImageIcon } from "lucide-react";
-import { crearProveedorAction, actualizarProveedorAction, actualizarLogoProveedor } from "../actions";
+import { Loader2, Store, Mail, Phone, Lock, FileText, ChevronRight, ImageIcon, MapPin, User } from "lucide-react";
+import { crearEmpresaAction } from "../actions";
+import { editarProveedorAction, actualizarLogoProveedor } from "@/app/admin/proveedores/acciones";
 import AvatarUploader from "@/components/AvatarUploader";
 
 interface FormEmpresaProps {
@@ -23,8 +24,8 @@ export default function FormEmpresa({ proveedor }: FormEmpresaProps) {
 
     const formData = new FormData(e.currentTarget);
     const result = isEditing
-      ? await actualizarProveedorAction(formData)
-      : await crearProveedorAction(formData);
+      ? await editarProveedorAction(formData)
+      : await crearEmpresaAction(formData);
 
     if (result?.error) {
       setError(result.error);
@@ -37,6 +38,7 @@ export default function FormEmpresa({ proveedor }: FormEmpresaProps) {
 
   return (
     <div className="space-y-6">
+      {/* Logo — solo al editar */}
       {isEditing && (
         <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm p-6">
           <h3 className="text-xs font-bold text-[#BC9968] uppercase tracking-widest flex items-center gap-2 mb-5">
@@ -49,12 +51,8 @@ export default function FormEmpresa({ proveedor }: FormEmpresaProps) {
               label="Logo de la empresa"
               shape="square"
               uploadPreset="emotia_preset"
-              onSave={async (url) => {
-                await actualizarLogoProveedor(proveedor.id, url);
-              }}
-              onRemove={async () => {
-                await actualizarLogoProveedor(proveedor.id, null);
-              }}
+              onSave={async (url) => { await actualizarLogoProveedor(proveedor.id, url); }}
+              onRemove={async () => { await actualizarLogoProveedor(proveedor.id, null); }}
             />
           </div>
         </div>
@@ -69,87 +67,167 @@ export default function FormEmpresa({ proveedor }: FormEmpresaProps) {
 
         {isEditing && <input type="hidden" name="id" value={proveedor.id} />}
 
-        <div className="space-y-6">
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold text-[#BC9968] uppercase tracking-widest flex items-center gap-2">
-              <span className="w-6 h-[1px] bg-[#BC9968]/30"></span>
-              Información del Negocio
-            </h3>
+        {/* Información del Negocio */}
+        <div className="space-y-4">
+          <h3 className="text-xs font-bold text-[#BC9968] uppercase tracking-widest flex items-center gap-2">
+            <span className="w-6 h-[1px] bg-[#BC9968]/30" />
+            Información del Negocio
+          </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
-                  <Store size={14} /> Nombre del Negocio *
-                </label>
-                <input
-                  required
-                  name="nombre_negocio"
-                  defaultValue={proveedor?.nombre_negocio}
-                  type="text"
-                  placeholder="Ej. Florería Rosalía"
-                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
-                  <Mail size={14} /> Correo Electrónico *
-                </label>
-                <input
-                  required
-                  name="email"
-                  defaultValue={proveedor?.email}
-                  type="email"
-                  placeholder="empresa@ejemplo.com"
-                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
-                  <Phone size={14} /> Teléfono / WhatsApp
-                </label>
-                <input
-                  name="telefono"
-                  defaultValue={proveedor?.telefono}
-                  type="text"
-                  placeholder="+591 ..."
-                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
-                  <Lock size={14} /> {isEditing ? "Nueva Contraseña (opcional)" : "Contraseña de Acceso *"}
-                </label>
-                <input
-                  required={!isEditing}
-                  name="password"
-                  type="password"
-                  placeholder={isEditing ? "Dejar en blanco para mantener" : "Mínimo 8 caracteres"}
-                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4 pt-2">
-            <h3 className="text-xs font-bold text-[#BC9968] uppercase tracking-widest flex items-center gap-2">
-              <span className="w-6 h-[1px] bg-[#BC9968]/30"></span>
-              Descripción del Perfil
-            </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
-                <FileText size={14} /> Resumen del Negocio
+                <Store size={14} /> Nombre del Negocio *
               </label>
-              <textarea
-                name="descripcion"
-                defaultValue={proveedor?.descripcion || ""}
-                rows={4}
-                placeholder="Describe lo que ofrece esta empresa..."
-                className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all resize-none font-medium text-[#2A0E18]"
+              <input
+                required
+                name="nombre_negocio"
+                defaultValue={proveedor?.nombre_negocio}
+                placeholder="Ej. Florería Rosalía"
+                className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
+                <Mail size={14} /> Correo Electrónico *
+              </label>
+              <input
+                required
+                name="email"
+                type="email"
+                defaultValue={proveedor?.email}
+                placeholder="empresa@ejemplo.com"
+                className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
+                <Phone size={14} /> Teléfono / WhatsApp
+              </label>
+              <input
+                name="telefono"
+                defaultValue={proveedor?.telefono}
+                placeholder="+591 ..."
+                className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
+                <MapPin size={14} /> Dirección
+              </label>
+              <input
+                name="direccion"
+                defaultValue={proveedor?.direccion}
+                placeholder="Ej. Av. 6 de Agosto #123, La Paz"
+                className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
+              />
+            </div>
+
+            {/* Contraseña solo al crear */}
+            {!isEditing && (
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
+                  <Lock size={14} /> Contraseña de Acceso *
+                </label>
+                <input
+                  required
+                  name="password"
+                  type="password"
+                  placeholder="Mínimo 8 caracteres"
+                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all font-medium text-[#2A0E18]"
+                />
+              </div>
+            )}
+
+            {isEditing && (
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider">Estado</label>
+                <select
+                  name="estado"
+                  defaultValue={proveedor?.estado ?? "aprobado"}
+                  className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 font-medium text-[#2A0E18]"
+                >
+                  <option value="aprobado">Aprobado</option>
+                  <option value="suspendido">Suspendido</option>
+                  <option value="pendiente">Pendiente</option>
+                </select>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
+              <FileText size={14} /> Descripción del Negocio
+            </label>
+            <textarea
+              name="descripcion"
+              defaultValue={proveedor?.descripcion || ""}
+              rows={3}
+              placeholder="Describe lo que ofrece esta empresa..."
+              className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all resize-none font-medium text-[#2A0E18]"
+            />
+          </div>
+        </div>
+
+        {/* Datos del Representante */}
+        <div className="space-y-4 pt-2">
+          <h3 className="text-xs font-bold text-[#5C3A2E] uppercase tracking-widest flex items-center gap-2">
+            <span className="w-6 h-[1px] bg-[#5C3A2E]/30" />
+            Representante {!isEditing && <span className="text-red-500">*</span>}
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1 md:col-span-2">
+              <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
+                <User size={14} /> Nombre completo {!isEditing && "*"}
+              </label>
+              <input
+                required={!isEditing}
+                name="rep_nombre"
+                defaultValue={proveedor?.rep_nombre}
+                placeholder="Ej. Juan Pérez"
+                className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#5C3A2E]/20 transition-all font-medium text-[#2A0E18]"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
+                <Mail size={14} /> Email personal
+              </label>
+              <input
+                name="rep_email"
+                type="email"
+                defaultValue={proveedor?.rep_email}
+                placeholder="rep@email.com"
+                className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#5C3A2E]/20 transition-all font-medium text-[#2A0E18]"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider flex items-center gap-2">
+                <Phone size={14} /> Teléfono
+              </label>
+              <input
+                name="rep_telefono"
+                defaultValue={proveedor?.rep_telefono}
+                placeholder="70000000"
+                className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#5C3A2E]/20 transition-all font-medium text-[#2A0E18]"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-[#7A5260] uppercase tracking-wider">Año de nacimiento</label>
+              <input
+                name="rep_anio_nacimiento"
+                type="number"
+                min={1940}
+                max={2010}
+                defaultValue={proveedor?.rep_anio_nacimiento ?? ""}
+                placeholder="Ej. 1985"
+                className="w-full bg-[#FDFBF9] border border-[#8E1B3A]/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#5C3A2E]/20 transition-all font-medium text-[#2A0E18]"
               />
             </div>
           </div>

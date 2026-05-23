@@ -6,6 +6,7 @@ import { AnimatePresence } from "framer-motion";
 import { ShieldCheck, Building2, User, Check } from "lucide-react";
 
 import { registrarProveedorDB } from "./actions";
+import FooterB2B from "@/app/business/components/FooterB2B";
 import {
   PasoEmpresa,
   PasoRepresentante,
@@ -350,6 +351,8 @@ const validarPaso2 = () => {
           </div>
         </div>
       </main>
+
+      <FooterB2B />
     </div>
   );
 }

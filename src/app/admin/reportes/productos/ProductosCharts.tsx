@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   BarChart, Bar, Cell, PieChart, Pie,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -11,12 +12,23 @@ interface CatData { nombre: string; total: number; activos: number; ingresos: nu
 const fmt = (n: number) => n >= 1000 ? `Bs ${(n / 1000).toFixed(1)}k` : `Bs ${n}`;
 
 export function GraficoTopProductos({ data, totalIngresos }: { data: ProdVenta[]; totalIngresos: number }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const chartData = data.map((p) => ({
     nombre: p.nombre.length > 20 ? p.nombre.slice(0, 18) + "…" : p.nombre,
     ingresos: p.ingresos,
     unidades: p.unidades,
     pct: totalIngresos > 0 ? Math.round((p.ingresos / totalIngresos) * 100) : 0,
   }));
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[352px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando top productos...
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
@@ -52,10 +64,22 @@ export function GraficoTopProductos({ data, totalIngresos }: { data: ProdVenta[]
 }
 
 export function GraficoEstadoProductos({ activos, inactivos }: { activos: number; inactivos: number }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const data = [
     { name: "Activos", value: activos, color: "#2D7A47" },
     { name: "Inactivos", value: inactivos, color: "#A32D2D" },
   ];
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[252px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando estado del catálogo...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Estado del catálogo</h3>
@@ -93,6 +117,17 @@ export function GraficoEstadoProductos({ activos, inactivos }: { activos: number
 }
 
 export function GraficoCategorias({ data }: { data: CatData[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 h-[292px] flex items-center justify-center text-xs text-[#7A5260]">
+        Cargando ingresos por categoría...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
       <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-5">Ingresos por categoría</h3>

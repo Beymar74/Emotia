@@ -8,6 +8,7 @@ import {
   Loader2, Store, HelpCircle, AlertCircle, CheckCircle2
 } from "lucide-react";
 import { validarLogin } from "./actions";
+import FooterB2B from "@/app/business/components/FooterB2B";
 
 const P = {
   bordoNegro: "#3D0A1A", bordoOscuro: "#5A0F24", granate: "#8E1B3A",
@@ -130,6 +131,8 @@ export default function LoginProductorPage() {
           </div>
         </div>
       </main>
+
+      <FooterB2B />
     </div>
   );
 }

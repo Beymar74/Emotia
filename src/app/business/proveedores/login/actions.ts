@@ -69,10 +69,24 @@ export async function validarLogin(formData: FormData) {
     // VALIDAR ESTADO
     // =========================
 
+    if (proveedor.estado === "pendiente") {
+      return {
+        error:
+          "Tu cuenta aún está pendiente de aprobación. Te avisaremos cuando sea revisada.",
+      };
+    }
+
     if (proveedor.estado === "suspendido") {
       return {
         error:
-          "Tu cuenta se encuentra suspendida.",
+          "Tu cuenta se encuentra suspendida. Contacta con soporte para más información.",
+      };
+    }
+
+    if (proveedor.estado !== "aprobado") {
+      return {
+        error:
+          "Tu cuenta no está habilitada para ingresar al panel Business.",
       };
     }
 

@@ -1,24 +1,36 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Loader2, Search } from "lucide-react";
-import { toggleSuspensionProveedor } from "../../actions";
-import ModalConfirmacion from "@/app/admin/productos/_components/ModalConfirmacion";
+
+import {
+  Search,
+  Package,
+  Star,
+  TrendingUp,
+  CheckCircle,
+  XCircle,
+  Clock,
+  ChevronDown,
+} from "lucide-react";
 
 interface EmpresaData {
   id: number;
   nombre_negocio: string;
   logo_url: string | null;
   email: string;
+  telefono: string | null;
+  categorias: string[];
   estado: string;
   calificacion_prom: number;
   total_vendido: number;
   updated_at: string;
+  created_at: string;
   pedidosCompletados: number;
   pedidosCancelados: number;
+  productosActivos: number;
 }
 
 interface Props {
@@ -26,269 +38,568 @@ interface Props {
   estadoFiltroInicial: string;
 }
 
-function EmpresaAvatar({ nombre, logoUrl, size = "md" }: { nombre: string; logoUrl?: string | null; size?: "sm" | "md" }) {
-  const dim = size === "sm" ? "w-8 h-8" : "w-9 h-9";
-  const initials = nombre ? nombre.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() : "EM";
+function EmpresaAvatar({
+  nombre,
+  logoUrl,
+  size = "md",
+}: {
+  nombre: string;
+  logoUrl?: string | null;
+  size?: "sm" | "md";
+}) {
+  const initials = nombre
+    ? nombre
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "EM";
+
+  const dimensions =
+    size === "sm" ? "w-10 h-10" : "w-14 h-14";
+
   if (logoUrl) {
     return (
-      <div className={`${dim} rounded-lg overflow-hidden flex-shrink-0 relative`}>
-        <Image src={logoUrl} alt={nombre} fill className="object-cover" sizes="40px" />
+      <div
+        className={`${dimensions} rounded-xl overflow-hidden flex-shrink-0 relative border border-[#8E1B3A]/10`}
+      >
+        <Image
+          src={logoUrl}
+          alt={nombre}
+          fill
+          className="object-cover"
+          sizes={size === "sm" ? "40px" : "56px"}
+        />
       </div>
     );
   }
+
   return (
-    <div className={`${dim} rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-xs font-bold text-white flex-shrink-0`}>
+    <div
+      className={`${dimensions} rounded-xl bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-base font-bold text-white flex-shrink-0`}
+    >
       {initials}
     </div>
   );
 }
 
 function tiempoTranscurrido(fechaStr: string) {
-  const seg = Math.floor((Date.now() - new Date(fechaStr).getTime()) / 1000);
+  const seg = Math.floor(
+    (Date.now() - new Date(fechaStr).getTime()) / 1000
+  );
+
   if (seg < 60) return "Hace un momento";
-  const min = Math.floor(seg / 60); if (min < 60) return `Hace ${min} min`;
-  const h = Math.floor(min / 60); if (h < 24) return `Hace ${h} h`;
-  const d = Math.floor(h / 24); return `Hace ${d} día${d > 1 ? "s" : ""}`;
+
+  const min = Math.floor(seg / 60);
+  if (min < 60) return `Hace ${min} min`;
+
+  const h = Math.floor(min / 60);
+  if (h < 24) return `Hace ${h}h`;
+
+  const d = Math.floor(h / 24);
+  return `Hace ${d} día${d > 1 ? "s" : ""}`;
 }
 
-export default function ActividadEmpresasClient({ empresasReales, estadoFiltroInicial }: Props) {
+function BarraExito({
+  completados,
+  cancelados,
+}: {
+  completados: number;
+  cancelados: number;
+}) {
+  const total = completados + cancelados;
+
+  if (total === 0) {
+    return (
+      <div className="space-y-1">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-[#7A5260]">Tasa de éxito</span>
+          <span className="text-[#7A5260] italic">
+            Sin pedidos
+          </span>
+        </div>
+
+        <div className="h-1.5 rounded-full bg-[#F0EAE8]" />
+      </div>
+    );
+  }
+
+  const tasa = Math.round((completados / total) * 100);
+
+  const color =
+    tasa >= 80
+      ? "#2D7A47"
+      : tasa >= 60
+        ? "#BC9968"
+        : "#A32D2D";
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-[#7A5260]">
+          Tasa de éxito
+        </span>
+
+        <span className="font-bold" style={{ color }}>
+          {tasa}%
+        </span>
+      </div>
+
+      <div className="h-1.5 rounded-full bg-[#F0EAE8] overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${tasa}%`,
+            background: color,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function formatMonto(n: number) {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+
+  return n.toFixed(0);
+}
+
+export default function ActividadEmpresasClient({
+  empresasReales,
+  estadoFiltroInicial,
+}: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selected, setSelected] = useState<EmpresaData | null>(null);
-  const [busqueda, setBusqueda] = useState("");
 
-  const actualizarFiltro = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) params.set(key, value); else params.delete(key);
+  const [busqueda, setBusqueda] = useState("");
+  const [orden, setOrden] = useState("reciente");
+
+  const actualizarFiltro = (
+    key: string,
+    value: string
+  ) => {
+    const params = new URLSearchParams(
+      searchParams.toString()
+    );
+
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const confirmarCambioEstado = () => {
-    if (!selected) return;
+  const filtradas = empresasReales
+    .filter(
+      (e) =>
+        e.nombre_negocio
+          .toLowerCase()
+          .includes(busqueda.toLowerCase()) ||
+        e.email
+          .toLowerCase()
+          .includes(busqueda.toLowerCase()) ||
+        e.categorias.some((c) =>
+          c.toLowerCase().includes(busqueda.toLowerCase())
+        )
+    )
+    .sort((a, b) => {
+      if (orden === "ventas") {
+        return b.total_vendido - a.total_vendido;
+      }
 
-    startTransition(async () => {
-      await toggleSuspensionProveedor(selected.id, selected.estado);
+      if (orden === "calificacion") {
+        return (
+          b.calificacion_prom - a.calificacion_prom
+        );
+      }
 
-      setModalOpen(false);
+      if (orden === "pedidos") {
+        return (
+          b.pedidosCompletados +
+          b.pedidosCancelados -
+          (a.pedidosCompletados +
+            a.pedidosCancelados)
+        );
+      }
 
-      router.refresh();
+      return (
+        new Date(b.updated_at).getTime() -
+        new Date(a.updated_at).getTime()
+      );
     });
-  };
-
-  const filtradas = empresasReales.filter((e) =>
-    e.nombre_negocio.toLowerCase().includes(busqueda.toLowerCase()) ||
-    e.email.toLowerCase().includes(busqueda.toLowerCase())
-  );
 
   return (
-    <div className="relative space-y-4">
-      {isPending && (
-        <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center rounded-xl">
-          <Loader2 className="w-8 h-8 animate-spin text-[#8E1B3A]" />
-        </div>
-      )}
+    <div className="space-y-4">
+      {/* Barra de controles */}
+      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-4">
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Búsqueda */}
+          <div className="relative flex-1">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7A5260]/50"
+              size={15}
+            />
 
-      {/* Barra de búsqueda y filtro */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7A5260]/50" size={16} />
-          <input
-            type="text"
-            placeholder="Buscar empresa o email…"
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full bg-white text-sm border border-[#8E1B3A]/10 rounded-xl pl-9 pr-4 py-2 outline-none focus:ring-2 focus:ring-[#8E1B3A]/20"
-          />
+            <input
+              type="text"
+              placeholder="Buscar por nombre, email o categoría…"
+              value={busqueda}
+              onChange={(e) =>
+                setBusqueda(e.target.value)
+              }
+              className="w-full bg-[#FDFBF9] text-sm border border-[#8E1B3A]/10 rounded-xl pl-9 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 focus:border-[#8E1B3A]/30"
+            />
+          </div>
+
+          {/* Filtro estado */}
+          <div className="relative">
+            <select
+              defaultValue={estadoFiltroInicial}
+              onChange={(e) =>
+                actualizarFiltro(
+                  "estado",
+                  e.target.value
+                )
+              }
+              className="appearance-none text-xs font-semibold border border-[#8E1B3A]/10 rounded-xl pl-4 pr-8 py-2.5 outline-none text-[#7A5260] bg-[#FDFBF9] cursor-pointer hover:border-[#8E1B3A]/30"
+            >
+              <option value="">
+                Todos los estados
+              </option>
+
+              <option value="aprobado">
+                Solo activas
+              </option>
+
+              <option value="suspendido">
+                Solo suspendidas
+              </option>
+
+              <option value="pendiente">
+                Pendientes
+              </option>
+            </select>
+
+            <ChevronDown
+              size={13}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#7A5260] pointer-events-none"
+            />
+          </div>
+
+          {/* Orden */}
+          <div className="relative">
+            <select
+              value={orden}
+              onChange={(e) =>
+                setOrden(e.target.value)
+              }
+              className="appearance-none text-xs font-semibold border border-[#8E1B3A]/10 rounded-xl pl-4 pr-8 py-2.5 outline-none text-[#7A5260] bg-[#FDFBF9] cursor-pointer hover:border-[#8E1B3A]/30"
+            >
+              <option value="reciente">
+                Más reciente
+              </option>
+
+              <option value="ventas">
+                Mayor facturación
+              </option>
+
+              <option value="calificacion">
+                Mejor calificación
+              </option>
+
+              <option value="pedidos">
+                Más pedidos
+              </option>
+            </select>
+
+            <ChevronDown
+              size={13}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#7A5260] pointer-events-none"
+            />
+          </div>
         </div>
-        <select
-          defaultValue={estadoFiltroInicial}
-          onChange={(e) => actualizarFiltro("estado", e.target.value)}
-          className="text-xs font-semibold border border-[#8E1B3A]/10 rounded-xl px-4 py-2 outline-none text-[#7A5260] bg-white cursor-pointer hover:border-[#8E1B3A]/30"
-        >
-          <option value="">Todos los estados</option>
-          <option value="aprobado">Activos</option>
-          <option value="suspendido">Suspendidos</option>
-          <option value="pendiente">Pendientes</option>
-        </select>
+
+        {busqueda && (
+          <p className="text-xs text-[#7A5260] mt-2.5">
+            {filtradas.length} resultado
+            {filtradas.length !== 1 ? "s" : ""} para
+            &quot;{busqueda}&quot;
+          </p>
+        )}
       </div>
 
+      {/* Sin resultados */}
       {filtradas.length === 0 ? (
-        <div className="py-12 text-center text-[#7A5260] text-sm italic">
-          No se encontraron empresas con esa búsqueda.
+        <div className="bg-white rounded-xl border border-[#8E1B3A]/10 py-20 text-center">
+          <p className="text-[#7A5260] text-sm">
+            No se encontraron empresas.
+          </p>
+
+          {busqueda && (
+            <button
+              onClick={() => setBusqueda("")}
+              className="mt-3 text-xs text-[#8E1B3A] font-semibold hover:underline"
+            >
+              Limpiar búsqueda
+            </button>
+          )}
         </div>
       ) : (
         <>
-          {/* Mobile: cards */}
-          <div className="block lg:hidden space-y-3">
-            {filtradas.map((p) => (
-              <div key={p.id} className="border border-[#8E1B3A]/8 rounded-xl p-4 space-y-3 bg-white">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <EmpresaAvatar nombre={p.nombre_negocio} logoUrl={p.logo_url} />
-                    <div>
-                      <p className="text-sm font-medium text-[#2A0E18]">{p.nombre_negocio}</p>
-                      <p className="text-xs text-[#7A5260]">★ {p.calificacion_prom > 0 ? p.calificacion_prom.toFixed(1) : "—"}</p>
+          <p className="text-xs text-[#7A5260] px-1">
+            {filtradas.length} empresa
+            {filtradas.length !== 1 ? "s" : ""}
+          </p>
+
+          {/* Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filtradas.map((empresa) => {
+              const isActivo =
+                empresa.estado === "aprobado";
+
+              const totalPedidos =
+                empresa.pedidosCompletados +
+                empresa.pedidosCancelados;
+
+              return (
+                <div
+                  key={empresa.id}
+                  className="bg-white rounded-xl border border-[#8E1B3A]/10 overflow-hidden hover:shadow-lg hover:border-[#8E1B3A]/20 transition-all duration-200"
+                >
+                  {/* Banda superior */}
+                  <div
+                    className="h-1"
+                    style={{
+                      background: isActivo
+                        ? "#2D7A47"
+                        : empresa.estado === "pendiente"
+                          ? "#BC9968"
+                          : "#A32D2D",
+                    }}
+                  />
+
+                  <div className="p-5 space-y-4">
+                    {/* Header */}
+                    <div className="flex items-start gap-3">
+                      <EmpresaAvatar
+                        nombre={
+                          empresa.nombre_negocio
+                        }
+                        logoUrl={empresa.logo_url}
+                      />
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-semibold text-[#2A0E18] text-sm leading-tight">
+                            {empresa.nombre_negocio}
+                          </h3>
+
+                          <span
+                            className={`flex-shrink-0 text-[9px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                              empresa.estado ===
+                              "aprobado"
+                                ? "bg-[#EEF8F0] text-[#2D7A47]"
+                                : empresa.estado ===
+                                    "pendiente"
+                                  ? "bg-[#FFF7E8] text-[#BC9968]"
+                                  : "bg-[#FBF0F0] text-[#A32D2D]"
+                            }`}
+                          >
+                            {empresa.estado ===
+                            "aprobado"
+                              ? "Activa"
+                              : empresa.estado ===
+                                  "pendiente"
+                                ? "Pendiente"
+                                : "Suspendida"}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-[#7A5260] mt-0.5 truncate">
+                          {empresa.email}
+                        </p>
+
+                        {/* Categorías */}
+                        {empresa.categorias.length >
+                          0 && (
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {empresa.categorias
+                              .slice(0, 3)
+                              .map((cat) => (
+                                <span
+                                  key={cat}
+                                  className="text-[9px] font-medium px-1.5 py-0.5 rounded-md bg-[#FAF3EC] text-[#BC9968] border border-[#BC9968]/20"
+                                >
+                                  {cat}
+                                </span>
+                              ))}
+
+                            {empresa.categorias
+                              .length > 3 && (
+                              <span className="text-[9px] text-[#7A5260] self-center">
+                                +
+                                {empresa
+                                  .categorias
+                                  .length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Barra éxito */}
+                    <BarraExito
+                      completados={
+                        empresa.pedidosCompletados
+                      }
+                      cancelados={
+                        empresa.pedidosCancelados
+                      }
+                    />
+
+                    {/* Métricas */}
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="rounded-lg bg-[#FDFBF9] border border-[#8E1B3A]/6 p-2.5 text-center">
+                        <div className="flex items-center justify-center gap-1 mb-0.5">
+                          <TrendingUp
+                            size={11}
+                            className="text-[#BC9968]"
+                          />
+
+                          <span className="text-xs font-bold text-[#2A0E18]">
+                            Bs.
+                            {formatMonto(
+                              empresa.total_vendido
+                            )}
+                          </span>
+                        </div>
+
+                        <p className="text-[9px] text-[#7A5260]">
+                          Facturado
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg bg-[#FDFBF9] border border-[#8E1B3A]/6 p-2.5 text-center">
+                        <div className="flex items-center justify-center gap-1 mb-0.5">
+                          <Star
+                            size={11}
+                            className="text-[#BC9968]"
+                          />
+
+                          <span className="text-xs font-bold text-[#2A0E18]">
+                            {empresa.calificacion_prom >
+                            0
+                              ? empresa.calificacion_prom.toFixed(
+                                  1
+                                )
+                              : "—"}
+                          </span>
+                        </div>
+
+                        <p className="text-[9px] text-[#7A5260]">
+                          Calificación
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg bg-[#FDFBF9] border border-[#8E1B3A]/6 p-2.5 text-center">
+                        <div className="flex items-center justify-center gap-1 mb-0.5">
+                          <Package
+                            size={11}
+                            className="text-[#BC9968]"
+                          />
+
+                          <span className="text-xs font-bold text-[#2A0E18]">
+                            {
+                              empresa.productosActivos
+                            }
+                          </span>
+                        </div>
+
+                        <p className="text-[9px] text-[#7A5260]">
+                          Productos
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Pedidos */}
+                    <div className="flex items-center gap-3 bg-[#FDFBF9] rounded-lg px-3 py-2 border border-[#8E1B3A]/6">
+                      <div className="flex items-center gap-1.5 text-[#2D7A47] flex-1">
+                        <CheckCircle size={13} />
+
+                        <span className="text-xs font-bold">
+                          {
+                            empresa.pedidosCompletados
+                          }
+                        </span>
+
+                        <span className="text-[10px] text-[#7A5260]">
+                          completados
+                        </span>
+                      </div>
+
+                      <div className="w-px h-4 bg-[#8E1B3A]/10 flex-shrink-0" />
+
+                      <div
+                        className={`flex items-center gap-1.5 flex-1 ${
+                          empresa.pedidosCancelados >
+                          0
+                            ? "text-[#A32D2D]"
+                            : "text-[#7A5260]"
+                        }`}
+                      >
+                        <XCircle size={13} />
+
+                        <span className="text-xs font-bold">
+                          {
+                            empresa.pedidosCancelados
+                          }
+                        </span>
+
+                        <span className="text-[10px] text-[#7A5260]">
+                          cancelados
+                        </span>
+                      </div>
+
+                      {totalPedidos > 0 && (
+                        <>
+                          <div className="w-px h-4 bg-[#8E1B3A]/10 flex-shrink-0" />
+
+                          <span className="text-[10px] text-[#7A5260]">
+                            {totalPedidos} total
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-0.5">
+                      <div className="flex items-center gap-1 text-[10px] text-[#7A5260]">
+                        <Clock size={11} />
+                        {tiempoTranscurrido(
+                          empresa.updated_at
+                        )}
+                      </div>
+
+                      <Link
+                        href={`/admin/empresas/actividad/${empresa.id}`}
+                        className="text-xs font-bold px-3 py-1.5 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] hover:bg-[#8E1B3A] hover:text-white transition-all"
+                      >
+                        Ver detalle →
+                      </Link>
                     </div>
                   </div>
-                  <span
-                    className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded-full ${p.estado === "aprobado"
-                      ? "bg-[#EEF8F0] text-[#2D7A47]"
-                      : p.estado === "pendiente"
-                        ? "bg-[#FFF7E8] text-[#BC9968]"
-                        : "bg-[#FBF0F0] text-[#A32D2D]"
-                      }`}
-                  >
-                    {p.estado === "aprobado"
-                      ? "Activo"
-                      : p.estado === "pendiente"
-                        ? "Pendiente"
-                        : "Suspendido"}
-                  </span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-xs text-center">
-                  <div className="bg-[#FAF3EC] rounded-lg p-2">
-                    <p className="font-semibold text-[#5A0F24] text-base">{p.pedidosCompletados + p.pedidosCancelados}</p>
-                    <p className="text-[#7A5260]">Recibidos</p>
-                  </div>
-                  <div className="bg-[#EEF8F0] rounded-lg p-2">
-                    <p className="font-semibold text-[#2D7A47] text-base">{p.pedidosCompletados}</p>
-                    <p className="text-[#7A5260]">Completados</p>
-                  </div>
-                  <div className="bg-[#FBF0F0] rounded-lg p-2">
-                    <p className={`font-semibold text-base ${p.pedidosCancelados > 0 ? "text-[#A32D2D]" : "text-[#2A0E18]"}`}>{p.pedidosCancelados}</p>
-                    <p className="text-[#7A5260]">Cancelados</p>
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <Link href={`/admin/empresas/actividad/${p.id}`} className="flex-1 flex items-center justify-center text-xs px-3 py-2 rounded-lg bg-[#8E1B3A]/8 text-[#8E1B3A] font-bold hover:bg-[#8E1B3A]/15">Ver</Link>
-                  <Link href={`/admin/empresas/${p.id}/editar`} className="flex-1 flex items-center justify-center text-xs px-3 py-2 rounded-lg bg-[#F1EFE8] text-[#7A5260] font-bold hover:bg-[#E5E3DC]">Editar</Link>
-                  <button
-                    onClick={() => {
-                      setSelected(p);
-                      setModalOpen(true);
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${p.estado === "aprobado"
-                      ? "bg-[#FBF0F0] text-[#A32D2D] hover:bg-[#A32D2D] hover:text-white"
-                      : p.estado === "pendiente"
-                        ? "bg-[#FFF7E8] text-[#BC9968] hover:bg-[#BC9968] hover:text-white"
-                        : "bg-[#EEF8F0] text-[#2D7A47] hover:bg-[#2D7A47] hover:text-white"
-                      }`}
-                  >
-                    {p.estado === "aprobado"
-                      ? "Suspender"
-                      : p.estado === "pendiente"
-                        ? "Aprobar"
-                        : "Activar"}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Desktop: tabla */}
-          <div className="hidden lg:block overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-[#FDFBF9]/30">
-                  {["Empresa", "Recibidos", "Completados", "Cancelados", "Estado", "Última actividad", "Acciones"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-xs tracking-widest uppercase text-[#7A5260] font-bold border-b border-[#8E1B3A]/10">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#8E1B3A]/5">
-                {filtradas.map((p) => (
-                  <tr key={p.id} className="hover:bg-[#FAF3EC]/50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <EmpresaAvatar nombre={p.nombre_negocio} logoUrl={p.logo_url} size="sm" />
-                        <div>
-                          <span className="text-sm font-medium text-[#2A0E18]">{p.nombre_negocio}</span>
-                          <p className="text-xs text-[#7A5260]">{p.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm font-bold text-[#2A0E18]">{p.pedidosCompletados + p.pedidosCancelados}</td>
-                    <td className="px-4 py-3 text-sm font-bold text-[#2D7A47]">{p.pedidosCompletados}</td>
-                    <td className="px-4 py-3 text-sm font-bold" style={{ color: p.pedidosCancelados > 0 ? "#A32D2D" : "#2A0E18" }}>{p.pedidosCancelados}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-[10px] font-bold uppercase px-3 py-1 rounded-full ${p.estado === "aprobado"
-                          ? "bg-[#EEF8F0] text-[#2D7A47]"
-                          : p.estado === "pendiente"
-                            ? "bg-[#FFF7E8] text-[#BC9968]"
-                            : "bg-[#FBF0F0] text-[#A32D2D]"
-                          }`}
-                      >
-                        {p.estado === "aprobado"
-                          ? "Activo"
-                          : p.estado === "pendiente"
-                            ? "Pendiente"
-                            : "Suspendido"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-[#7A5260]">{tiempoTranscurrido(p.updated_at)}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <Link href={`/admin/empresas/actividad/${p.id}`} className="px-3 py-1.5 rounded-lg bg-[#8E1B3A]/5 text-[#8E1B3A] text-xs font-bold hover:bg-[#8E1B3A] hover:text-white transition-all">Ver</Link>
-                        <Link href={`/admin/empresas/${p.id}/editar`} className="px-3 py-1.5 rounded-lg bg-[#FAF3EC] text-[#BC9968] text-xs font-bold hover:bg-[#BC9968] hover:text-white transition-all">Editar</Link>
-                        <button
-                          onClick={() => {
-                            setSelected(p);
-                            setModalOpen(true);
-                          }}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${p.estado === "aprobado"
-                            ? "bg-[#FBF0F0] text-[#A32D2D] hover:bg-[#A32D2D] hover:text-white"
-                            : p.estado === "pendiente"
-                              ? "bg-[#FFF7E8] text-[#BC9968] hover:bg-[#BC9968] hover:text-white"
-                              : "bg-[#EEF8F0] text-[#2D7A47] hover:bg-[#2D7A47] hover:text-white"
-                            }`}
-                        >
-                          {p.estado === "aprobado"
-                            ? "Suspender"
-                            : p.estado === "pendiente"
-                              ? "Aprobar"
-                              : "Activar"}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              );
+            })}
           </div>
         </>
       )}
-
-      <ModalConfirmacion
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onConfirm={confirmarCambioEstado}
-        titulo={
-          selected?.estado === "aprobado"
-            ? "Suspender Empresa"
-            : selected?.estado === "pendiente"
-              ? "Aprobar Empresa"
-              : "Activar Empresa"
-        }
-        mensaje={
-          selected?.estado === "aprobado"
-            ? `¿Estás seguro de que deseas suspender a "${selected?.nombre_negocio}"? No podrá recibir nuevos pedidos.`
-            : selected?.estado === "pendiente"
-              ? `¿Deseas aprobar a "${selected?.nombre_negocio}"? La empresa será visible para los clientes.`
-              : `¿Deseas activar nuevamente a "${selected?.nombre_negocio}"? Volverá a estar visible para los clientes.`
-        }
-        confirmText={
-          selected?.estado === "aprobado"
-            ? "Suspender"
-            : selected?.estado === "pendiente"
-              ? "Aprobar"
-              : "Activar"
-        }
-        isDestructive={selected?.estado === "aprobado"}
-      />
     </div>
   );
 }

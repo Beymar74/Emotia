@@ -87,7 +87,7 @@ export default async function DetalleProductoPage({ params }: { params: Promise<
             <div className="flex items-center gap-3 text-[#2A0E18]">
               <div className="p-2 bg-[#8E1B3A]/5 rounded-lg text-[#8E1B3A]"><Store size={18} /></div>
               <div>
-                <p className="text-xs text-[#7A5260]">Proveedor</p>
+                <p className="text-xs text-[#7A5260]">Representante</p>
                 <p className="font-medium">{producto.proveedores?.nombre_negocio || "N/A"}</p>
               </div>
             </div>

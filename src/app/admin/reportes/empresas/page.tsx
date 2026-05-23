@@ -3,6 +3,8 @@ import prisma from "@/lib/prisma";
 import DescargarReporteBtn from "../_components/DescargarReporteBtn";
 import { Suspense } from "react";
 import EmpresaFilter from "../../_components/EmpresaFilter";
+import ReportSubNav from "../_components/ReportSubNav";
+import EmpresasCharts from "./EmpresasCharts";
 
 export default async function ReporteEmpresasPage({
   searchParams,
@@ -25,7 +27,7 @@ export default async function ReporteEmpresasPage({
       where: { pedidos: { estado: 'entregado' }, ...empresaFiltroDetalle },
       select: { proveedor_id: true, subtotal: true, cantidad: true },
     }),
-    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true }, orderBy: { nombre_negocio: "asc" } })
+    prisma.proveedores.findMany({ select: { id: true, nombre_negocio: true, logo_url: true }, orderBy: { nombre_negocio: "asc" } })
   ]);
 
   const totalEmpresas = empresasDB.length;
@@ -56,6 +58,7 @@ export default async function ReporteEmpresasPage({
     despachos: number;
     calificacion: number;
     pct: number;
+    logo_url?: string | null;
   };
 
   const empresasRows: EmpresaRow[] = empresasDB.map((e: any) => {
@@ -71,6 +74,7 @@ export default async function ReporteEmpresasPage({
       despachos: e._count.detalle_pedidos,
       calificacion: Number(e.calificacion_prom || 0),
       pct,
+      logo_url: e.logo_url,
     };
   });
 
@@ -88,8 +92,8 @@ export default async function ReporteEmpresasPage({
   };
 
   const config = {
-    filename: "reporte-empresas",
-    titulo: "Reporte de Empresas — Emotia",
+    filename: empresaId > 0 ? `reporte-empresas-${(empresasRows[0]?.nombre || "").toLowerCase().replace(/[^a-z0-9]/g, "-")}` : "reporte-empresas",
+    titulo: empresaId > 0 ? `Reporte de Empresa: ${empresasRows[0]?.nombre || ""} — PREPE` : "Reporte de Empresas — PREPE",
     formatos: ["pdf", "excel"] as ("pdf" | "excel")[],
     kpis: [
       { label: "Total empresas", valor: String(totalEmpresas), color: "#8E1B3A" },
@@ -97,6 +101,7 @@ export default async function ReporteEmpresasPage({
       { label: "Suspendidas", valor: String(suspendidas), color: "#A32D2D" },
       { label: "Pendientes", valor: String(pendientes), color: "#8C5E08" },
     ],
+    logoUrl: empresaId > 0 ? (empresasRows[0]?.logo_url || undefined) : undefined,
     graficos: [
       { tipo: "dona" as const, titulo: "Estado de empresas", datos: [
         { nombre: "Activas", valor: activas, color: "#2D7A47" },
@@ -125,24 +130,25 @@ export default async function ReporteEmpresasPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link href="/admin/reportes" className="p-2 bg-white border border-[#8E1B3A]/10 rounded-xl text-[#7A5260] hover:text-[#8E1B3A] hover:bg-[#FDFBF9] transition-all shadow-sm">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </Link>
-          <div>
-            <p className="text-xs tracking-widest uppercase text-[#BC9968] font-medium">Reportes</p>
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Empresas</h1>
-        <p className="mt-2 text-sm text-[#7A5260] max-w-3xl leading-relaxed">
-          Aquí puedes examinar las métricas de afiliación de nuevas empresas, su distribución y nivel de actividad dentro del marketplace.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Link href="/admin/reportes" className="text-xs text-[#BC9968] hover:text-[#8E1B3A] font-medium transition-colors">Reportes</Link>
+            <span className="text-[#BC9968]/40 text-xs">/</span>
+            <span className="text-xs text-[#5A0F24] font-medium">Empresas</span>
           </div>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#5A0F24]">Reporte de Empresas</h1>
+          <p className="mt-1 text-sm text-[#7A5260] max-w-2xl leading-relaxed">
+            Afiliación, distribución por estado, ingresos generados y actividad de cada empresa en el marketplace.
+          </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Suspense><EmpresaFilter empresas={empresasLista} /></Suspense>
           <DescargarReporteBtn config={config} />
         </div>
       </div>
+
+      <ReportSubNav />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -160,47 +166,16 @@ export default async function ReporteEmpresasPage({
         ))}
       </div>
 
-      {/* Top empresas por ventas */}
-      <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
-        <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Participación por empresa</h3>
-        {empresasRows.filter(e => e.estado === 'aprobado').length === 0 ? (
-          <p className="text-sm text-[#7A5260] text-center py-4">Sin datos de ventas.</p>
-        ) : (
-          <div className="space-y-4">
-            {empresasRows
-              .filter(e => e.estado === 'aprobado')
-              .slice(0, 8)
-              .map((e, i) => {
-                const barPct = maxIngresos > 0 ? Math.round((e.ingresos / maxIngresos) * 100) : 0;
-                return (
-                  <div key={e.id}>
-                    <div className="flex justify-between text-sm mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">
-                          {i + 1}
-                        </span>
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
-                          {e.initials}
-                        </div>
-                        <div>
-                          <p className="font-medium text-[#2A0E18]">{e.nombre}</p>
-                          <p className="text-[10px] text-[#7A5260]">⭐ {e.calificacion.toFixed(1)} · {e.productos} prods · {e.despachos} despachos</p>
-                        </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="font-semibold text-[#5A0F24]">{formatBs(e.ingresos)}</p>
-                        <p className="text-[10px] text-[#7A5260]">{e.pct}% del total</p>
-                      </div>
-                    </div>
-                    <div className="h-2.5 bg-[#8E1B3A]/8 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${barPct}%`, background: "linear-gradient(90deg,#8E1B3A,#BC9968)" }} />
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-        )}
-      </div>
+      {/* Gráficas */}
+      <EmpresasCharts
+        estados={[
+          { nombre: "Activas", valor: activas, color: "#2D7A47" },
+          { nombre: "Pendientes", valor: pendientes, color: "#BC9968" },
+          { nombre: "Suspendidas", valor: suspendidas, color: "#A32D2D" },
+        ]}
+        empresas={empresasRows}
+        maxIngresos={maxIngresos}
+      />
 
       {/* Tabla completa */}
       <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 overflow-x-auto">
@@ -217,8 +192,26 @@ export default async function ReporteEmpresasPage({
             {empresasRows.map((e) => (
               <tr key={e.id} className="border-b border-[#8E1B3A]/5 last:border-0 hover:bg-[#FAF3EC]/50">
                 <td className="px-3 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                  <div className="flex items-center gap-3">
+                    {e.logo_url ? (
+                      <img
+                        src={e.logo_url}
+                        alt={e.nombre}
+                        className="w-8 h-8 rounded-lg object-cover border border-[#BC9968]/20 bg-white flex-shrink-0"
+                        onError={(evt) => {
+                          const img = evt.currentTarget;
+                          img.style.display = "none";
+                          const fallback = img.nextElementSibling;
+                          if (fallback) {
+                            (fallback as HTMLElement).style.display = "flex";
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <div 
+                      className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                      style={e.logo_url ? { display: "none" } : undefined}
+                    >
                       {e.initials}
                     </div>
                     <span className="text-sm font-medium text-[#2A0E18]">{e.nombre}</span>

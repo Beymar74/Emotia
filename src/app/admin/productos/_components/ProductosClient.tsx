@@ -122,11 +122,13 @@ export default function ProductosClient({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7A5260]/50" size={18} />
           <input
             type="text"
-            placeholder="Buscar por producto o proveedor..."
+            placeholder="Buscar por producto o representante..."
             defaultValue={busquedaInicial}
             onChange={(e) => {
               const v = e.target.value;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               clearTimeout((window as any).__prodBusq);
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               (window as any).__prodBusq = setTimeout(() => actualizarFiltro("q", v), 400);
             }}
             className="w-full bg-white text-sm border border-[#8E1B3A]/10 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-[#8E1B3A]/20 transition-all"
@@ -240,7 +242,7 @@ export default function ProductosClient({
                         onChange={handleToggleAll}
                       />
                     </th>
-                    {["Producto", "Proveedor", "Categoría", "Precio", "Stock", "Cal.", "Estado", "Acciones"].map((h) => (
+                    {["Producto", "Representante", "Categoría", "Precio", "Stock", "Cal.", "Estado", "Acciones"].map((h) => (
                       <th key={h} className="px-5 py-3 text-[10px] tracking-[2px] uppercase text-[#7A5260] font-bold border-b border-[#8E1B3A]/5">{h}</th>
                     ))}
                   </tr>
