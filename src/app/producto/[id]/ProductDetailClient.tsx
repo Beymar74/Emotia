@@ -9,6 +9,7 @@ import AuthModal from "../components/AuthModal";
 import { useCart } from "../components/cart/useCart";
 import { useSession } from "../components/auth/useSession";
 import type { DetailProduct, ProductComment } from "../product-data";
+import { DISENOS_EMPAQUE, DISENOS_ENVOLTURA, DISENOS_LISTON } from "@/lib/personalization-designs";
 import styles from "./detalle.module.css";
 import { getTarjetasActivas } from "./actions";
 
@@ -41,16 +42,27 @@ type TarjetaDB = {
   ornamento: string;
 };
 
+type VisualDesignDB = {
+  id: number;
+  nombre: string;
+  preview_url: string;
+  descripcion: string | null;
+};
+
 type PersonalizationSelection = {
   selectedCard: string;
   selectedFont: string;
-  message: string;
+  cardMessage: string;
+  fieldValues: Record<string, string>;
 };
 
 type ProductDetailClientProps = {
   producto: DetailProduct;
   comentariosIniciales: ProductComment[];
   tarjetasDB: TarjetaDB[];
+  empaquesDB: VisualDesignDB[];
+  envolturasDB: VisualDesignDB[];
+  listonesDB: VisualDesignDB[];
 };
 
 type FlyingCartAnimation = {
@@ -71,10 +83,90 @@ type CardPreviewProps = {
   contentClassName?: string;
 };
 
+type PersonalizationChoice = {
+  id: string;
+  label: string;
+  description?: string;
+  imageUrl?: string;
+  swatchColors?: string[];
+  textOnly?: boolean;
+};
+
+type PersonalizationDependency = {
+  fieldId: string;
+  equals?: string[];
+  notEquals?: string[];
+};
+
+type ChoiceField = {
+  id: string;
+  type: "choice";
+  label: string;
+  helper: string;
+  defaultValue?: string;
+  summaryLabel?: string;
+  dependsOn?: PersonalizationDependency;
+  choices: PersonalizationChoice[];
+  resolveChoices?: (fieldValues: Record<string, string>) => PersonalizationChoice[];
+};
+
+type TextField = {
+  id: string;
+  type: "text";
+  label: string;
+  helper: string;
+  placeholder: string;
+  defaultValue?: string;
+  summaryLabel?: string;
+  dependsOn?: PersonalizationDependency;
+  rows?: number;
+};
+
+type NumberField = {
+  id: string;
+  type: "number";
+  label: string;
+  helper: string;
+  placeholder: string;
+  defaultValue?: string;
+  summaryLabel?: string;
+  dependsOn?: PersonalizationDependency;
+  min?: number;
+  max?: number;
+};
+
+type PersonalizationField = ChoiceField | TextField | NumberField;
+
+type PersonalizationSection = {
+  id: string;
+  title: string;
+  description: string;
+  fields: PersonalizationField[];
+};
+
+type PersonalizationSummaryItem = {
+  label: string;
+  value: string;
+};
+
+type ProductPersonalizationConfig = {
+  availabilityLabel: string;
+  lead: string;
+  features: string[];
+  sections: PersonalizationSection[];
+};
+
+type VisualChoiceCatalog = {
+  packaging: PersonalizationChoice[];
+  wrapping: PersonalizationChoice[];
+  ribbon: PersonalizationChoice[];
+};
+
 type PersonalizationModalProps = {
   isOpen: boolean;
   initialSelection: PersonalizationSelection;
   tarjetas: CardTemplate[];
+  config: ProductPersonalizationConfig;
   onClose: () => void;
   onApply: (selection: PersonalizationSelection) => void;
 };
@@ -82,12 +174,25 @@ type PersonalizationModalProps = {
 const DEFAULT_MESSAGE = "Para ti, con mucho cariño y un detalle pensado especialmente para este momento.";
 const EMPTY_MESSAGE = "Tu mensaje aparecerá aquí cuando personalices la tarjeta.";
 const CART_HIGHLIGHT_EVENT = "emotia-cart-highlight";
+const DEFAULT_CARD_ID = "t-fallback";
 
 const fuentes: FontOption[] = [
   { id: "playfair", label: "Elegante", family: "'Georgia', 'Times New Roman', serif" },
   { id: "dmSans", label: "Moderna", family: "'Inter', 'Arial', sans-serif" },
   { id: "cursive", label: "Manuscrita", family: "'Brush Script MT', 'Segoe Script', cursive" },
 ];
+
+const fallbackCardTemplate: CardTemplate = {
+  id: DEFAULT_CARD_ID,
+  name: "Tarjeta clasica",
+  accent: "#E6885C",
+  accentSoft: "#FFF7F3",
+  frame: "#E6B09A",
+  designUrl: "",
+  messageColor: "#5C3A2E",
+  sourceLabel: "Tarjeta clasica",
+  sourceUrl: "",
+};
 
 /** Mapea un registro de tarjeta_disenos de la BD al formato CardTemplate del componente. */
 function mapTarjetaDB(t: TarjetaDB): CardTemplate {
@@ -104,6 +209,540 @@ function mapTarjetaDB(t: TarjetaDB): CardTemplate {
   };
 }
 
+function normalizeProductText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function toChoiceId(value: string) {
+  return normalizeProductText(value)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function mapVisualDesignChoice(entry: { nombre: string; preview_url: string; descripcion?: string | null }): PersonalizationChoice {
+  return {
+    id: toChoiceId(entry.nombre),
+    label: entry.nombre,
+    description: entry.descripcion ?? undefined,
+    imageUrl: entry.preview_url,
+  };
+}
+
+function getChoiceFieldChoices(field: ChoiceField, fieldValues: Record<string, string>) {
+  return field.resolveChoices ? field.resolveChoices(fieldValues) : field.choices;
+}
+
+function buildChoiceSwatchBackground(colors: string[]) {
+  if (colors.length === 0) {
+    return "linear-gradient(135deg, #f7d9d7 0%, #f3e7e1 100%)";
+  }
+
+  if (colors.length === 1) {
+    return `linear-gradient(135deg, ${colors[0]} 0%, ${colors[0]} 100%)`;
+  }
+
+  const step = 100 / (colors.length - 1);
+  const gradientStops = colors.map((color, index) => `${color} ${Math.round(index * step)}%`).join(", ");
+  return `linear-gradient(135deg, ${gradientStops})`;
+}
+
+function createChoiceAlias(baseChoice: PersonalizationChoice | undefined, id: string, label: string, description: string): PersonalizationChoice {
+  return {
+    id,
+    label,
+    description,
+    imageUrl: baseChoice?.imageUrl,
+    swatchColors: baseChoice?.imageUrl ? undefined : ["#fffaf4", "#f2e5d8", "#e7d4c7"],
+  };
+}
+
+function buildVisualChoiceCatalog(
+  empaquesDB: VisualDesignDB[],
+  envolturasDB: VisualDesignDB[],
+  listonesDB: VisualDesignDB[]
+): VisualChoiceCatalog {
+  const fallbackPackaging = DISENOS_EMPAQUE.map(mapVisualDesignChoice);
+  const fallbackWrapping = DISENOS_ENVOLTURA.map(mapVisualDesignChoice);
+  const fallbackRibbon = DISENOS_LISTON.map(mapVisualDesignChoice);
+
+  return {
+    packaging: empaquesDB.length > 0 ? empaquesDB.map(mapVisualDesignChoice) : fallbackPackaging,
+    wrapping: envolturasDB.length > 0 ? envolturasDB.map(mapVisualDesignChoice) : fallbackWrapping,
+    ribbon: listonesDB.length > 0 ? listonesDB.map(mapVisualDesignChoice) : fallbackRibbon,
+  };
+}
+
+function inferProductKind(producto: DetailProduct) {
+  const fingerprint = normalizeProductText(`${producto.baseCategory} ${producto.name} ${producto.description}`);
+
+  if (
+    fingerprint.includes("flor") ||
+    fingerprint.includes("ramo") ||
+    fingerprint.includes("rosa") ||
+    fingerprint.includes("bouquet") ||
+    fingerprint.includes("tulipan") ||
+    fingerprint.includes("girasol") ||
+    fingerprint.includes("orquidea")
+  ) {
+    return "flowers";
+  }
+
+  if (
+    fingerprint.includes("pastel") ||
+    fingerprint.includes("torta") ||
+    fingerprint.includes("cake") ||
+    fingerprint.includes("cupcake")
+  ) {
+    return "cake";
+  }
+
+  if (
+    fingerprint.includes("chocolate") ||
+    fingerprint.includes("desayuno") ||
+    fingerprint.includes("gourmet") ||
+    fingerprint.includes("bebida") ||
+    fingerprint.includes("snack") ||
+    fingerprint.includes("postre") ||
+    fingerprint.includes("galleta") ||
+    fingerprint.includes("fruta") ||
+    fingerprint.includes("helado")
+  ) {
+    return "food";
+  }
+
+  return "generic";
+}
+
+function inferSpecificFlowerType(fingerprint: string) {
+  if (
+    fingerprint.includes("mixto") ||
+    fingerprint.includes("combin") ||
+    fingerprint.includes("surtid") ||
+    fingerprint.includes("varias flores")
+  ) {
+    return "mixto";
+  }
+  if (fingerprint.includes("rosa")) return "rosas";
+  if (fingerprint.includes("tulipan")) return "tulipanes";
+  if (fingerprint.includes("girasol")) return "girasoles";
+  if (fingerprint.includes("orquidea")) return "orquideas";
+  if (fingerprint.includes("lilium") || fingerprint.includes("lirio")) return "lirios";
+  return "";
+}
+
+function inferFlowerQuantity(fingerprint: string) {
+  const match = fingerprint.match(/(\d+)\s*(rosa|rosas|flor|flores|tulipan|tulipanes|girasol|girasoles|orquidea|orquideas)/);
+  return match?.[1] ?? "";
+}
+
+function buildFlowerColorChoices(flowerType: string): PersonalizationChoice[] {
+  const roseChoices: PersonalizationChoice[] = [
+    {
+      id: "original",
+      label: "Original",
+      description: "Mantener los tonos del arreglo tal como fue diseñado.",
+      swatchColors: ["#fff8f0", "#f1e0d2", "#e4c7bb"],
+    },
+    {
+      id: "rojo",
+      label: "Rojo vino",
+      description: "Inspirado en rosas borgona y petalos aterciopelados.",
+      swatchColors: ["#8f3d4f", "#c96a73", "#f1d3d0"],
+    },
+    {
+      id: "rosado",
+      label: "Rosado peonia",
+      description: "Suave, romantico y parecido a flores en tonos blush.",
+      swatchColors: ["#f4c7d5", "#e8a9bf", "#fff0f4"],
+    },
+    {
+      id: "blanco",
+      label: "Marfil",
+      description: "Elegante, limpio y cercano a rosas crema y gardenias.",
+      swatchColors: ["#f7f1e5", "#efe2cf", "#fffaf2"],
+    },
+    {
+      id: "amarillo",
+      label: "Amarillo mantequilla",
+      description: "Calido y luminoso, como rosas crema dorada.",
+      swatchColors: ["#f6dc8c", "#f1c76a", "#fff2cb"],
+    },
+  ];
+
+  const mixedChoice: PersonalizationChoice = {
+    id: "mixto",
+    label: "Mixto floral",
+    description: "Combinacion delicada de varios tonos florales.",
+    textOnly: true,
+  };
+
+  const softChoices: PersonalizationChoice[] = [
+    roseChoices[0],
+    roseChoices[2],
+    roseChoices[3],
+    {
+      id: "lila",
+      label: "Lila suave",
+      description: "Tono floral delicado para arreglos frescos y elegantes.",
+      swatchColors: ["#d9c7eb", "#bda2d7", "#f3edfb"],
+    },
+    {
+      id: "durazno",
+      label: "Durazno",
+      description: "Calido y suave, ideal para un look primaveral.",
+      swatchColors: ["#f4c6ab", "#efb28a", "#fff0e3"],
+    },
+  ];
+
+  if (flowerType === "mixto") {
+    return [...roseChoices, mixedChoice];
+  }
+
+  if (flowerType === "girasoles") {
+    return [];
+  }
+
+  if (flowerType === "rosas") {
+    return roseChoices;
+  }
+
+  if (flowerType === "tulipanes" || flowerType === "orquideas" || flowerType === "lirios") {
+    return softChoices;
+  }
+
+  return [];
+}
+
+function buildPersonalizationConfig(producto: DetailProduct, visualCatalog: VisualChoiceCatalog): ProductPersonalizationConfig {
+  const kind = inferProductKind(producto);
+  const fingerprint = normalizeProductText(`${producto.baseCategory} ${producto.name} ${producto.description}`);
+  const categoryFingerprint = normalizeProductText(`${producto.baseCategory} ${producto.category}`);
+  const isSurpriseCategory = categoryFingerprint.includes("sorpresa");
+  const inferredFlowerType = inferSpecificFlowerType(fingerprint);
+  const inferredFlowerQuantity = inferFlowerQuantity(fingerprint);
+  const defaultPackagingChoiceId = visualCatalog.packaging[0]?.id ?? "";
+  const packagingNoneChoice =
+    visualCatalog.packaging.find((choice) => normalizeProductText(choice.label).includes("sin empaque")) ??
+    mapVisualDesignChoice(DISENOS_EMPAQUE.find((choice) => normalizeProductText(choice.nombre).includes("sin empaque")) ?? DISENOS_EMPAQUE[0]);
+  const packagingNoneChoiceId = packagingNoneChoice?.id ?? "sin-empaque";
+  const wrappingChoices = [
+    createChoiceAlias(packagingNoneChoice, "sin-envoltura", "Ninguna", "Sin envoltura adicional."),
+    ...visualCatalog.wrapping,
+  ];
+  const ribbonChoices = [
+    createChoiceAlias(packagingNoneChoice, "sin-liston", "Ninguno", "Sin liston decorativo."),
+    ...visualCatalog.ribbon,
+  ];
+  const defaultWrappingChoiceId = wrappingChoices[0]?.id ?? "";
+  const defaultRibbonChoiceId = ribbonChoices[0]?.id ?? "";
+  const flowerTypeChoices: PersonalizationChoice[] = [
+    { id: "mixto", label: "Mixto", description: "Combinacion variada y armoniosa." },
+    { id: "rosas", label: "Rosas", description: "Mas clasico y romantico." },
+    { id: "girasoles", label: "Girasoles", description: "Mas alegre y vibrante." },
+    { id: "tulipanes", label: "Tulipanes", description: "Mas delicado y moderno." },
+    { id: "orquideas", label: "Orquideas", description: "Mas fino y sofisticado." },
+    { id: "lirios", label: "Lirios", description: "Presencia elegante y fresca." },
+  ];
+  const resolvedFlowerType = inferredFlowerType || "mixto";
+  const sections: PersonalizationSection[] = [];
+  const features = ["Tarjeta"];
+
+  if (isSurpriseCategory) {
+    return {
+      availabilityLabel: "Tarjeta incluida",
+      lead: "Este producto ya viene armado, por lo que la personalización disponible se concentra solo en la tarjeta.",
+      features,
+      sections,
+    };
+  }
+
+  if (producto.allowsPackaging) {
+    sections.push({
+      id: "packaging",
+      title: "Empaque y envoltura",
+      description: "Define si llevará empaque y cómo quieres presentarlo.",
+      fields: [
+        {
+          id: "packagingType",
+          type: "choice",
+          label: "Tipo de empaque",
+          helper: "Escoge caja, sombrerera, bolsa o marca que prefieres sin empaque.",
+          defaultValue: defaultPackagingChoiceId,
+          summaryLabel: "Empaque",
+          choices: visualCatalog.packaging,
+        },
+        {
+          id: "wrappingDesign",
+          type: "choice",
+          label: "Diseño de la envoltura",
+          helper: "Aqui ya se define el color y el estilo visual de la envoltura.",
+          defaultValue: defaultWrappingChoiceId,
+          summaryLabel: "Envoltura",
+          dependsOn: { fieldId: "packagingType", notEquals: [packagingNoneChoiceId] },
+          choices: wrappingChoices,
+        },
+      ],
+    });
+    features.push("Empaque");
+  }
+
+  if (kind === "flowers") {
+    sections.push({
+      id: "flowers",
+      title: "Detalles florales",
+      description: "Ajusta acabados propios de arreglos y ramos.",
+      fields: [
+        ...(inferredFlowerType
+          ? []
+          : [
+              {
+                id: "flowerType",
+                type: "choice",
+                label: "Tipo de flores",
+                helper: "Como este producto no especifica una flor dominante, puedes elegirla.",
+                defaultValue: "mixto",
+                summaryLabel: "Tipo flor",
+                choices: flowerTypeChoices,
+              },
+            ]),
+        {
+          id: "flowerColor",
+          type: "choice",
+          label: "Color de las flores",
+          helper: "Elige el tono principal cuando el tipo de flor lo permita.",
+          defaultValue: buildFlowerColorChoices(resolvedFlowerType)[0]?.id ?? "",
+          summaryLabel: "Color flores",
+          choices: buildFlowerColorChoices(resolvedFlowerType),
+          resolveChoices: (fieldValues) => buildFlowerColorChoices(inferredFlowerType || fieldValues.flowerType || "mixto"),
+        },
+        ...(inferredFlowerQuantity
+          ? []
+          : [
+              {
+                id: "flowerQuantity",
+                type: "number",
+                label: "Cantidad de flores",
+                helper: "Si este producto no define cuantas flores llevara, aqui puedes indicarlo.",
+                placeholder: "Ej. 12",
+                defaultValue: "",
+                summaryLabel: "Cantidad flores",
+                min: 1,
+                max: 300,
+              } satisfies NumberField,
+            ]),
+        {
+          id: "ribbonDesign",
+          type: "choice",
+          label: "Diseño del liston",
+          helper: "Elige el estilo visual del liston o deja ninguno si no lo necesitas.",
+          defaultValue: defaultRibbonChoiceId,
+          summaryLabel: "Liston",
+          choices: ribbonChoices,
+        },
+      ],
+    });
+    features.push("Flores");
+    features.push("Liston");
+  }
+
+  if (kind === "cake") {
+    sections.push({
+      id: "cake",
+      title: "Detalle de la torta",
+      description: "Define si llevara escritura y que dira.",
+      fields: [
+        {
+          id: "cakeWritingMode",
+          type: "choice",
+          label: "Escritura en la torta",
+          helper: "Tambien puedes dejar la torta sin escritura.",
+          defaultValue: "none",
+          summaryLabel: "Escritura",
+          choices: [
+            { id: "none", label: "Sin escritura", description: "La torta ira sin texto." },
+            { id: "short", label: "Con escritura", description: "Agregar dedicatoria corta." },
+          ],
+        },
+        {
+          id: "cakeWritingText",
+          type: "text",
+          label: "Texto para la torta",
+          helper: "Escribe una frase corta para la superficie del pastel.",
+          placeholder: "Ejemplo: Feliz cumple, Ana",
+          defaultValue: "",
+          summaryLabel: "Texto torta",
+          dependsOn: { fieldId: "cakeWritingMode", equals: ["short"] },
+          rows: 3,
+        },
+      ],
+    });
+    features.push("Escritura en torta");
+  }
+
+  if (kind === "cake" || kind === "food") {
+    sections.push({
+      id: "food-notes",
+      title: "Alergias e indicaciones",
+      description: "Ayuda a definir restricciones o cuidados alimentarios.",
+      fields: [
+        {
+          id: "hasAllergies",
+          type: "choice",
+          label: "¿Hay alergias alimentarias?",
+          helper: "Si la respuesta es no, no hace falta completar nada mas.",
+          defaultValue: "no",
+          summaryLabel: "Alergias",
+          choices: [
+            { id: "no", label: "No", description: "Sin restricciones indicadas." },
+            { id: "si", label: "Si", description: "Hay ingredientes o trazas a evitar." },
+          ],
+        },
+        {
+          id: "allergiesDetail",
+          type: "text",
+          label: "¿Cuales alergias o ingredientes evitar?",
+          helper: "Ejemplo: sin frutos secos, sin lactosa, evitar gluten.",
+          placeholder: "Ejemplo: alergia a mani, nueces y lactosa",
+          defaultValue: "",
+          summaryLabel: "Detalle alergias",
+          dependsOn: { fieldId: "hasAllergies", equals: ["si"] },
+          rows: 3,
+        },
+      ],
+    });
+    features.push("Alergias");
+  }
+
+  if (kind === "generic" && !producto.allowsPackaging) {
+    sections.push({
+      id: "generic",
+      title: "Indicaciones del producto",
+      description: "Por ahora este producto permite una personalizacion mas simple.",
+      fields: [
+        {
+          id: "productNote",
+          type: "text",
+          label: "Indicacion adicional",
+          helper: "Si no deseas agregar nada extra, dejalo vacio.",
+          placeholder: "Ejemplo: presentacion sobria, tonos suaves, sin detalles extra",
+          defaultValue: "",
+          summaryLabel: "Indicacion",
+          rows: 3,
+        },
+      ],
+    });
+    features.push("Indicaciones");
+  }
+
+  return {
+    availabilityLabel: features.length > 1 ? `${features.length} areas personalizables` : "Tarjeta incluida",
+    lead:
+      kind === "flowers"
+        ? "Personaliza la tarjeta, las flores, el empaque y los acabados del ramo antes de agregarlo a la bolsa."
+        : kind === "cake"
+          ? "Personaliza la tarjeta, la presentacion, la escritura y las indicaciones alimentarias de la torta."
+          : kind === "food"
+            ? "Personaliza la tarjeta, la presentacion y las indicaciones alimentarias de este producto."
+            : "Personaliza la tarjeta y los detalles disponibles de este producto antes de comprar.",
+    features,
+    sections,
+  };
+}
+
+function createDefaultFieldValues(sections: PersonalizationSection[]) {
+  return sections.reduce<Record<string, string>>((acc, section) => {
+    section.fields.forEach((field) => {
+      if (field.defaultValue !== undefined) {
+        if (field.type === "choice") {
+          const availableChoices = getChoiceFieldChoices(field, acc);
+          acc[field.id] =
+            availableChoices.find((choice) => choice.id === field.defaultValue)?.id ??
+            availableChoices[0]?.id ??
+            field.defaultValue;
+        } else {
+          acc[field.id] = field.defaultValue;
+        }
+      } else if (field.type === "choice") {
+        acc[field.id] = getChoiceFieldChoices(field, acc)[0]?.id ?? "";
+      } else {
+        acc[field.id] = "";
+      }
+    });
+    return acc;
+  }, {});
+}
+
+function isFieldVisible(field: PersonalizationField, fieldValues: Record<string, string>) {
+  if (!field.dependsOn) return true;
+
+  const currentValue = fieldValues[field.dependsOn.fieldId] ?? "";
+  const matchesEquals = field.dependsOn.equals ? field.dependsOn.equals.includes(currentValue) : true;
+  const matchesNotEquals = field.dependsOn.notEquals ? !field.dependsOn.notEquals.includes(currentValue) : true;
+
+  return matchesEquals && matchesNotEquals;
+}
+
+function getChoiceLabel(field: ChoiceField, value: string, fieldValues: Record<string, string>) {
+  return getChoiceFieldChoices(field, fieldValues).find((choice) => choice.id === value)?.label ?? value;
+}
+
+function buildPersonalizationSummary(
+  selection: PersonalizationSelection,
+  sections: PersonalizationSection[],
+  tarjetas: CardTemplate[]
+) {
+  const summary: PersonalizationSummaryItem[] = [];
+  const tarjetaActiva = tarjetas.find((tarjeta) => tarjeta.id === selection.selectedCard) ?? tarjetas[0] ?? fallbackCardTemplate;
+  const fuenteActiva = fuentes.find((fuente) => fuente.id === selection.selectedFont) ?? fuentes[0];
+
+  summary.push({ label: "Tarjeta", value: tarjetaActiva.name });
+  summary.push({ label: "Letra", value: fuenteActiva.label });
+
+  if (selection.cardMessage.trim()) {
+    summary.push({ label: "Mensaje", value: selection.cardMessage.trim() });
+  }
+
+  sections.forEach((section) => {
+    section.fields.forEach((field) => {
+      if (!isFieldVisible(field, selection.fieldValues)) return;
+
+      const rawValue = selection.fieldValues[field.id] ?? "";
+      if (!rawValue.trim()) return;
+
+      if (field.type === "choice") {
+        const availableChoices = getChoiceFieldChoices(field, selection.fieldValues);
+        if (availableChoices.length === 0) return;
+        if (!availableChoices.some((choice) => choice.id === rawValue)) return;
+
+        summary.push({
+          label: field.summaryLabel ?? field.label,
+          value: getChoiceLabel(field, rawValue, selection.fieldValues),
+        });
+        return;
+      }
+
+      summary.push({
+        label: field.summaryLabel ?? field.label,
+        value: rawValue.trim(),
+      });
+    });
+  });
+
+  return summary;
+}
+
+function buildCartSubtitle(summary: PersonalizationSummaryItem[], fallback: string) {
+  const compact = summary
+    .filter((item) => !["Mensaje", "Texto torta", "Indicacion", "Detalle alergias"].includes(item.label))
+    .slice(0, 4)
+    .map((item) => `${item.label}: ${item.value}`);
+
+  return compact.length > 0 ? compact.join(" · ") : fallback;
+}
+
 function CardPreview({ tarjeta, fuente, message, className, messageClassName, contentClassName }: CardPreviewProps) {
   const displayMessage = message.trim() || EMPTY_MESSAGE;
 
@@ -112,7 +751,7 @@ function CardPreview({ tarjeta, fuente, message, className, messageClassName, co
       className={className}
       style={{
         borderColor: tarjeta.frame,
-        backgroundImage: `url(${tarjeta.designUrl})`,
+        backgroundImage: tarjeta.designUrl ? `url(${tarjeta.designUrl})` : undefined,
         backgroundColor: tarjeta.accentSoft,
       }}
     >
@@ -125,18 +764,33 @@ function CardPreview({ tarjeta, fuente, message, className, messageClassName, co
   );
 }
 
-function PersonalizationModal({ isOpen, initialSelection, tarjetas, onClose, onApply }: PersonalizationModalProps) {
+function PersonalizationModal({ isOpen, initialSelection, tarjetas, config, onClose, onApply }: PersonalizationModalProps) {
   const [draftSelectedCard, setDraftSelectedCard] = useState(initialSelection.selectedCard);
   const [draftSelectedFont, setDraftSelectedFont] = useState(initialSelection.selectedFont);
-  const [draftMessage, setDraftMessage] = useState(initialSelection.message);
+  const [draftCardMessage, setDraftCardMessage] = useState(initialSelection.cardMessage);
+  const [draftFieldValues, setDraftFieldValues] = useState<Record<string, string>>(initialSelection.fieldValues);
 
   const tarjetaActiva = useMemo(
-    () => tarjetas.find((tarjeta) => tarjeta.id === draftSelectedCard) || tarjetas[0],
+    () => tarjetas.find((tarjeta) => tarjeta.id === draftSelectedCard) || tarjetas[0] || fallbackCardTemplate,
     [draftSelectedCard, tarjetas]
   );
   const fuenteActiva = useMemo(
     () => fuentes.find((fuente) => fuente.id === draftSelectedFont) || fuentes[0],
     [draftSelectedFont]
+  );
+  const summaryItems = useMemo(
+    () =>
+      buildPersonalizationSummary(
+        {
+          selectedCard: draftSelectedCard,
+          selectedFont: draftSelectedFont,
+          cardMessage: draftCardMessage,
+          fieldValues: draftFieldValues,
+        },
+        config.sections,
+        tarjetas
+      ),
+    [config.sections, draftCardMessage, draftFieldValues, draftSelectedCard, draftSelectedFont, tarjetas]
   );
 
   useEffect(() => {
@@ -144,6 +798,37 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, onClose, onA
       setDraftSelectedCard(tarjetas[0].id);
     }
   }, [tarjetas, draftSelectedCard]);
+
+  useEffect(() => {
+    setDraftFieldValues((prev) => {
+      let next = prev;
+      let changed = false;
+
+      config.sections.forEach((section) => {
+        section.fields.forEach((field) => {
+          if (field.type !== "choice") return;
+
+          const availableChoices = getChoiceFieldChoices(field, next);
+          const currentValue = next[field.id] ?? "";
+
+          if (availableChoices.length === 0) {
+            if (currentValue !== "") {
+              next = { ...next, [field.id]: "" };
+              changed = true;
+            }
+            return;
+          }
+
+          if (!availableChoices.some((choice) => choice.id === currentValue)) {
+            next = { ...next, [field.id]: availableChoices[0]?.id ?? "" };
+            changed = true;
+          }
+        });
+      });
+
+      return changed ? next : prev;
+    });
+  }, [config.sections, draftFieldValues]);
 
   if (!isOpen) return null;
 
@@ -156,7 +841,7 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, onClose, onA
             <h2 id="personalizacion-producto" className={styles.modalTitle}>
               Personaliza este producto
             </h2>
-            <p className={styles.modalDescription}>Elige la tarjeta, escribe tu mensaje y revisa cómo se verá antes de guardarlo.</p>
+            <p className={styles.modalDescription}>{config.lead}</p>
           </div>
 
           <button type="button" className={styles.modalCloseButton} onClick={onClose} aria-label="Cerrar personalización">
@@ -169,6 +854,7 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, onClose, onA
             <div className={styles.modalFormColumn}>
               <div className={styles.sectionHeader}>
                 <h3>1. Elige una tarjeta</h3>
+                <span>Siempre disponible</span>
               </div>
 
               <div className={styles.cardGrid}>
@@ -186,7 +872,7 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, onClose, onA
                       <CardPreview
                         tarjeta={tarjeta}
                         fuente={cardFont}
-                        message={draftMessage}
+                        message={draftCardMessage}
                         className={styles.templatePreview}
                         contentClassName={styles.templatePreviewContent}
                         messageClassName={styles.templatePreviewMessage}
@@ -205,8 +891,8 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, onClose, onA
               </div>
 
               <textarea
-                value={draftMessage}
-                onChange={(event) => setDraftMessage(event.target.value)}
+                value={draftCardMessage}
+                onChange={(event) => setDraftCardMessage(event.target.value)}
                 className={styles.textArea}
                 placeholder="Escribe aquí el mensaje para la tarjeta..."
               />
@@ -229,19 +915,168 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, onClose, onA
                   </button>
                 ))}
               </div>
+
+              {config.sections.map((section, sectionIndex) => (
+                <section key={section.id} className={styles.personalizationOptionSection}>
+                  <div className={styles.sectionHeader}>
+                    <h3>{sectionIndex + 4}. {section.title}</h3>
+                    <span>{section.description}</span>
+                  </div>
+
+                  <div className={styles.fieldStack}>
+                    {section.fields.map((field) => {
+                      if (!isFieldVisible(field, draftFieldValues)) {
+                        return null;
+                      }
+
+                      if (field.type === "choice") {
+                        const choices = getChoiceFieldChoices(field, draftFieldValues);
+                        if (choices.length === 0) {
+                          return null;
+                        }
+
+                        const visualChoices = choices.some(
+                          (choice) =>
+                            (!choice.textOnly && Boolean(choice.imageUrl)) ||
+                            (!choice.textOnly && Array.isArray(choice.swatchColors) && choice.swatchColors.length > 0)
+                        );
+
+                        return (
+                          <div key={field.id} className={styles.optionFieldBlock}>
+                            <div className={styles.optionFieldHead}>
+                              <h4>{field.label}</h4>
+                              <p>{field.helper}</p>
+                            </div>
+
+                            <div
+                              className={`${styles.choiceGrid} ${visualChoices ? styles.choiceGridVisual : ""} ${!choices.some((choice) => choice.imageUrl) && visualChoices ? styles.choiceGridSwatch : ""}`}
+                            >
+                              {choices.map((choice) => {
+                                const isActive = (draftFieldValues[field.id] ?? "") === choice.id;
+                                const visualChoiceLabel = choice.description
+                                  ? `${choice.label}. ${choice.description}`
+                                  : choice.label;
+                                const isImageChoice = !choice.textOnly && Boolean(choice.imageUrl);
+                                const isSwatchChoice = !choice.textOnly && Boolean(choice.swatchColors?.length);
+                                const isTextOnlyChoice = Boolean(choice.textOnly);
+
+                                return (
+                                  <button
+                                    key={choice.id}
+                                    type="button"
+                                    onClick={() =>
+                                      setDraftFieldValues((prev) => ({
+                                        ...prev,
+                                        [field.id]: choice.id,
+                                      }))
+                                    }
+                                    className={`${styles.choiceButton} ${isImageChoice ? styles.choiceButtonVisual : ""} ${isImageChoice ? styles.choiceButtonImageOnly : ""} ${isSwatchChoice ? styles.choiceButtonSwatch : ""} ${isTextOnlyChoice && visualChoices ? styles.choiceButtonInlineText : ""} ${isActive ? styles.choiceButtonActive : ""}`}
+                                    aria-label={isImageChoice || isSwatchChoice ? visualChoiceLabel : undefined}
+                                    title={isImageChoice || isSwatchChoice ? choice.label : undefined}
+                                  >
+                                    {isImageChoice ? (
+                                      <div className={styles.choiceVisualImageWrap}>
+                                        <img src={choice.imageUrl} alt={choice.label} className={styles.choiceVisualImage} />
+                                      </div>
+                                    ) : isSwatchChoice ? (
+                                      <div
+                                        className={styles.choiceSwatchPreview}
+                                        aria-hidden="true"
+                                        style={{ backgroundImage: buildChoiceSwatchBackground(choice.swatchColors ?? []) }}
+                                      />
+                                    ) : null}
+                                    {isImageChoice ? null : isSwatchChoice ? (
+                                      <div className={`${styles.choiceTextBody} ${styles.choiceTextBodyCompact}`}>
+                                        <strong>{choice.label}</strong>
+                                      </div>
+                                    ) : (
+                                      <div className={styles.choiceTextBody}>
+                                        <strong>{choice.label}</strong>
+                                        {choice.description ? <span>{choice.description}</span> : null}
+                                      </div>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (field.type === "number") {
+                        return (
+                          <div key={field.id} className={styles.optionFieldBlock}>
+                            <div className={styles.optionFieldHead}>
+                              <h4>{field.label}</h4>
+                              <p>{field.helper}</p>
+                            </div>
+
+                            <input
+                              type="number"
+                              min={field.min}
+                              max={field.max}
+                              value={draftFieldValues[field.id] ?? ""}
+                              onChange={(event) =>
+                                setDraftFieldValues((prev) => ({
+                                  ...prev,
+                                  [field.id]: event.target.value,
+                                }))
+                              }
+                              className={styles.inputField}
+                              placeholder={field.placeholder}
+                            />
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div key={field.id} className={styles.optionFieldBlock}>
+                          <div className={styles.optionFieldHead}>
+                            <h4>{field.label}</h4>
+                            <p>{field.helper}</p>
+                          </div>
+
+                          <textarea
+                            value={draftFieldValues[field.id] ?? ""}
+                            onChange={(event) =>
+                              setDraftFieldValues((prev) => ({
+                                ...prev,
+                                [field.id]: event.target.value,
+                              }))
+                            }
+                            className={`${styles.textArea} ${styles.inlineTextArea}`}
+                            placeholder={field.placeholder}
+                            rows={field.rows ?? 3}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
             </div>
 
             <aside className={styles.modalPreviewColumn}>
               <div className={styles.modalPreviewPanel}>
                 <p className={styles.modalPreviewEyebrow}>Vista previa</p>
-                <h3 className={styles.modalPreviewTitle}>Así quedará tu tarjeta</h3>
+                <h3 className={styles.modalPreviewTitle}>Resumen de tu personalización</h3>
+                <p className={styles.modalPreviewText}>Revisa la tarjeta y los detalles elegidos antes de guardarlos.</p>
 
                 <CardPreview
                   tarjeta={tarjetaActiva}
                   fuente={fuenteActiva}
-                  message={draftMessage}
+                  message={draftCardMessage}
                   className={`${styles.livePreview} ${styles.modalLivePreview}`}
                 />
+
+                <div className={styles.previewSummaryList}>
+                  {summaryItems.map((item) => (
+                    <div key={`${item.label}-${item.value}`} className={styles.previewSummaryCard}>
+                      <span>{item.label}</span>
+                      <strong>{item.value}</strong>
+                    </div>
+                  ))}
+                </div>
               </div>
             </aside>
           </div>
@@ -258,7 +1093,8 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, onClose, onA
               onApply({
                 selectedCard: draftSelectedCard,
                 selectedFont: draftSelectedFont,
-                message: draftMessage,
+                cardMessage: draftCardMessage,
+                fieldValues: draftFieldValues,
               })
             }
           >
@@ -270,18 +1106,37 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, onClose, onA
   );
 }
 
-export default function ProductDetailClient({ producto, comentariosIniciales, tarjetasDB }: ProductDetailClientProps) {
+export default function ProductDetailClient({
+  producto,
+  comentariosIniciales,
+  tarjetasDB,
+  empaquesDB,
+  envolturasDB,
+  listonesDB,
+}: ProductDetailClientProps) {
   const { addItem } = useCart();
   const { user, isLoggedIn } = useSession();
 
   const [liveTarjetasDB, setLiveTarjetasDB] = useState<TarjetaDB[]>(tarjetasDB);
+  const visualChoiceCatalog = useMemo(
+    () => buildVisualChoiceCatalog(empaquesDB, envolturasDB, listonesDB),
+    [empaquesDB, envolturasDB, listonesDB]
+  );
+  const personalizationConfig = useMemo(
+    () => buildPersonalizationConfig(producto, visualChoiceCatalog),
+    [producto, visualChoiceCatalog]
+  );
 
   // Mapear los diseños de tarjeta que vienen de la BD
-  const tarjetas = useMemo(() => liveTarjetasDB.map(mapTarjetaDB), [liveTarjetasDB]);
+  const tarjetas = useMemo(() => {
+    const mapped = liveTarjetasDB.map(mapTarjetaDB);
+    return mapped.length > 0 ? mapped : [fallbackCardTemplate];
+  }, [liveTarjetasDB]);
 
-  const [selectedCard, setSelectedCard] = useState(() => tarjetas[0]?.id ?? "t1");
+  const [selectedCard, setSelectedCard] = useState(() => tarjetas[0]?.id ?? DEFAULT_CARD_ID);
   const [selectedFont, setSelectedFont] = useState("playfair");
-  const [message, setMessage] = useState(DEFAULT_MESSAGE);
+  const [cardMessage, setCardMessage] = useState(DEFAULT_MESSAGE);
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>(() => createDefaultFieldValues(personalizationConfig.sections));
   const [isPersonalizationOpen, setIsPersonalizationOpen] = useState(false);
   const [hasSavedPersonalization, setHasSavedPersonalization] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -309,17 +1164,32 @@ export default function ProductDetailClient({ producto, comentariosIniciales, ta
     }
   }, [tarjetas, selectedCard]);
 
+  useEffect(() => {
+    setFieldValues((prev) => ({
+      ...createDefaultFieldValues(personalizationConfig.sections),
+      ...prev,
+    }));
+  }, [personalizationConfig.sections]);
+
   const commentStorageKey = useMemo(
     () => `emotia-product-comment-${producto.id}-${user?.email ?? "guest"}`,
     [producto.id, user?.email]
   );
   const tarjetaActiva = useMemo(
-    () => tarjetas.find((tarjeta) => tarjeta.id === selectedCard) || tarjetas[0],
+    () => tarjetas.find((tarjeta) => tarjeta.id === selectedCard) || tarjetas[0] || fallbackCardTemplate,
     [selectedCard, tarjetas]
   );
   const fuenteActiva = useMemo(
     () => fuentes.find((fuente) => fuente.id === selectedFont) || fuentes[0],
     [selectedFont]
+  );
+  const savedPersonalization = useMemo(
+    () => ({ selectedCard, selectedFont, cardMessage, fieldValues }),
+    [cardMessage, fieldValues, selectedCard, selectedFont]
+  );
+  const personalizationSummary = useMemo(
+    () => buildPersonalizationSummary(savedPersonalization, personalizationConfig.sections, tarjetas),
+    [personalizationConfig.sections, savedPersonalization, tarjetas]
   );
 
   const commentsWithStored = useMemo(() => {
@@ -376,7 +1246,8 @@ export default function ProductDetailClient({ producto, comentariosIniciales, ta
   const handleApplyPersonalization = (selection: PersonalizationSelection) => {
     setSelectedCard(selection.selectedCard);
     setSelectedFont(selection.selectedFont);
-    setMessage(selection.message);
+    setCardMessage(selection.cardMessage);
+    setFieldValues(selection.fieldValues);
     setHasSavedPersonalization(true);
     setIsPersonalizationOpen(false);
   };
@@ -416,7 +1287,7 @@ export default function ProductDetailClient({ producto, comentariosIniciales, ta
       brand: producto.brand,
       price: producto.price,
       imageUrl: producto.gallery[0]?.imageUrl,
-      subtitle: hasSavedPersonalization ? `${tarjetaActiva.name} / ${fuenteActiva.label}` : producto.subtitle,
+      subtitle: hasSavedPersonalization ? buildCartSubtitle(personalizationSummary, producto.subtitle) : producto.subtitle,
     });
 
     triggerAddToCartAnimation(button);
@@ -507,12 +1378,20 @@ export default function ProductDetailClient({ producto, comentariosIniciales, ta
           <div className={styles.customCardPanel}>
             <div className={styles.sectionHeader}>
               <h3>Personalización</h3>
-              <span>Tarjeta incluida</span>
+              <span>{personalizationConfig.availabilityLabel}</span>
             </div>
 
             <p className={styles.personalizationLead}>
-              Abre la personalización para elegir la tarjeta, escribir tu mensaje y ver cómo acompañará al producto.
+              {personalizationConfig.lead}
             </p>
+
+            <div className={styles.personalizationFeatureRow}>
+              {personalizationConfig.features.map((feature) => (
+                <span key={feature} className={styles.personalizationFeaturePill}>
+                  {feature}
+                </span>
+              ))}
+            </div>
 
             <button type="button" className={styles.personalizeButton} onClick={() => setIsPersonalizationOpen(true)}>
               <Sparkles size={18} strokeWidth={2.1} />
@@ -523,7 +1402,7 @@ export default function ProductDetailClient({ producto, comentariosIniciales, ta
               <div className={styles.personalizationPreviewHeader}>
                 <div>
                   <p className={styles.personalizationPreviewEyebrow}>Vista previa</p>
-                  <h4 className={styles.personalizationPreviewTitle}>Así se verá tu tarjeta junto al producto</h4>
+                  <h4 className={styles.personalizationPreviewTitle}>Así se verá la personalización de este producto</h4>
                 </div>
                 <span className={styles.personalizationPreviewState}>
                   {hasSavedPersonalization ? "Personalización guardada" : "Pendiente de personalizar"}
@@ -541,14 +1420,33 @@ export default function ProductDetailClient({ producto, comentariosIniciales, ta
                   <CardPreview
                     tarjeta={tarjetaActiva}
                     fuente={fuenteActiva}
-                    message={message}
+                    message={cardMessage}
                     className={`${styles.livePreview} ${styles.showcaseCardPreview}`}
                     messageClassName={styles.showcaseCardMessage}
                   />
+
+                  <div className={styles.previewSummaryList}>
+                    {personalizationSummary.map((item) => (
+                      <div key={`${item.label}-${item.value}`} className={styles.previewSummaryCard}>
+                        <span>{item.label}</span>
+                        <strong>{item.value}</strong>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className={styles.personalizationEmptyState}>
-                  Tu vista previa aparecerá aquí cuando guardes la personalización de la tarjeta.
+                  <p className={styles.personalizationEmptyTitle}>Todavia no configuraste este producto.</p>
+                  <p className={styles.personalizationEmptyCopy}>
+                    Cuando guardes la personalización aquí verás la tarjeta, el empaque y los detalles especiales elegidos.
+                  </p>
+                  <div className={styles.personalizationFeatureRow}>
+                    {personalizationConfig.features.map((feature) => (
+                      <span key={feature} className={styles.personalizationFeaturePill}>
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -661,8 +1559,9 @@ export default function ProductDetailClient({ producto, comentariosIniciales, ta
       {isPersonalizationOpen ? (
         <PersonalizationModal
           isOpen={isPersonalizationOpen}
-          initialSelection={{ selectedCard, selectedFont, message }}
+          initialSelection={{ selectedCard, selectedFont, cardMessage, fieldValues }}
           tarjetas={tarjetas}
+          config={personalizationConfig}
           onClose={() => setIsPersonalizationOpen(false)}
           onApply={handleApplyPersonalization}
         />

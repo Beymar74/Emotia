@@ -44,6 +44,7 @@ export type BrandProfileSummary = {
 
 export type DetailProduct = {
   id: number;
+  baseCategory: string;
   category: string;
   name: string;
   brand: string;
@@ -53,6 +54,8 @@ export type DetailProduct = {
   description: string;
   tag: string;
   subtitle: string;
+  allowsMessage: boolean;
+  allowsPackaging: boolean;
   gallery: DetailGalleryItem[];
   brandProfile: BrandProfileSummary;
 };
@@ -311,6 +314,7 @@ export function mapDetailProduct(product: ProductBaseRecord): DetailProduct {
 
   return {
     id: product.id,
+    baseCategory: categoria,
     category: `${categoria} / ${ocasion}`,
     name: product.nombre,
     brand: product.proveedores?.nombre_negocio || "Marca Emotia",
@@ -320,6 +324,8 @@ export function mapDetailProduct(product: ProductBaseRecord): DetailProduct {
     description: product.descripcion || "Producto disponible en el catalogo de Emotia.",
     tag: toTitleCase(categoria),
     subtitle: buildSubtitle(product),
+    allowsMessage: product.permite_mensaje,
+    allowsPackaging: product.permite_empaque,
     gallery: buildGallery(product),
     brandProfile: buildBrandProfile(product),
   };
