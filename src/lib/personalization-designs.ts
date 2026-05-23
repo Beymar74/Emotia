@@ -1,11 +1,12 @@
-export type SeedVisualDesign = {
-  nombre: string;
-  preview_url: string;
-  descripcion: string;
-};
+import type { Prisma } from '@/generated/prisma/client'
+
+export type SeedVisualDesign =
+  | Prisma.empaque_disenosCreateInput
+  | Prisma.envoltura_disenosCreateInput
+  | Prisma.liston_disenosCreateInput
 
 
-export const DISENOS_EMPAQUE: SeedVisualDesign[] = [
+export const DISENOS_EMPAQUE: Prisma.empaque_disenosCreateInput[] = [
   {
     nombre: "Caja clasica",
     preview_url: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1779391718/caja_1_enhtxm.png",
@@ -28,7 +29,7 @@ export const DISENOS_EMPAQUE: SeedVisualDesign[] = [
   },
 ];
 
-export const DISENOS_ENVOLTURA: SeedVisualDesign[] = [
+export const DISENOS_ENVOLTURA: Prisma.envoltura_disenosCreateInput[] = [
   {
     nombre: "Niños",
     preview_url: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1779390814/envoltura_3_phmyvk.jpg",
@@ -51,7 +52,7 @@ export const DISENOS_ENVOLTURA: SeedVisualDesign[] = [
   },
 ];
 
-export const DISENOS_LISTON: SeedVisualDesign[] = [
+export const DISENOS_LISTON: Prisma.liston_disenosCreateInput[] = [
   {
     nombre: "Diseño 1",
     preview_url: "https://res.cloudinary.com/dcq7xfyyn/image/upload/v1779389905/mo%C3%B1o_8_srygp5.png",
