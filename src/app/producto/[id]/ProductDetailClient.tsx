@@ -506,7 +506,7 @@ function buildPersonalizationConfig(producto: DetailProduct, visualCatalog: Visu
                 defaultValue: "mixto",
                 summaryLabel: "Tipo flor",
                 choices: flowerTypeChoices,
-              },
+              } as ChoiceField,
             ]),
         {
           id: "flowerColor",
