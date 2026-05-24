@@ -19,6 +19,7 @@ type ChatMessage = {
   text: string;
 };
 
+
 const INITIAL_INTENT: GiftRecommendationInput = {
   destinatario: "",
   ocasion: "",
@@ -32,7 +33,8 @@ const INITIAL_INTENT: GiftRecommendationInput = {
 export default function GiftChatbot({ productos }: GiftChatbotProps) {
   const router = useRouter();
   const { addItem } = useCart();
-
+  const [recomendacionId, setRecomendacionId] = useState<number | null>(null);
+  const [syncedRecommendationIds, setSyncedRecommendationIds] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
@@ -43,7 +45,7 @@ export default function GiftChatbot({ productos }: GiftChatbotProps) {
     {
       id: "welcome",
       role: "bot",
-      text: "Hola, soy el asistente de regalos de Emotia. Cuéntame para quién es el regalo, la ocasión y tu presupuesto.",
+      text: "Hola, soy el asistente IA de Emotia. Cuéntame para quién es el regalo, la ocasión, el estilo que buscas y tu presupuesto. Con eso te mostraré sugerencias reales dentro del catálogo.",
     },
   ]);
 
@@ -52,6 +54,62 @@ export default function GiftChatbot({ productos }: GiftChatbotProps) {
     return recommendGifts(productos, intent, 4);
   }, [hasRecommended, intent, productos]);
 
+const actualizarRecomendacionIA = async (
+  recomendacionIdActual: number | null,
+  data: {
+    productosSugeridos?: number[];
+    productoElegido?: number;
+    convertidaEnCompra?: boolean;
+  }
+) => {
+  if (!recomendacionIdActual) {
+    console.warn("No hay recomendacionId para actualizar:", data);
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/producto/recomendaciones", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        recomendacionId: recomendacionIdActual,
+        ...data,
+      }),
+    });
+
+    const rawText = await response.text();
+
+    let result: any = null;
+
+    try {
+      result = rawText ? JSON.parse(rawText) : null;
+    } catch {
+      result = {
+        success: false,
+        error: "La respuesta del servidor no fue JSON.",
+        rawText,
+      };
+    }
+
+    console.log("PATCH recomendación IA:", {
+      status: response.status,
+      ok: response.ok,
+      body: result,
+    });
+
+    if (!response.ok) {
+  console.warn("No se pudo actualizar recomendación IA:", {
+    status: response.status,
+    statusText: response.statusText,
+    body: result,
+  });
+}
+  } catch (error) {
+    console.error("Error actualizando recomendación IA:", error);
+  }
+};
   const sendMessage = async () => {
     const prompt = input.trim();
 
@@ -85,21 +143,36 @@ export default function GiftChatbot({ productos }: GiftChatbotProps) {
           {
             id: `bot-error-${Date.now()}`,
             role: "bot",
-            text: result.error || "No pude interpretar bien tu solicitud. Prueba mencionando destinatario, ocasión y presupuesto.",
+            text: result.error || "No pude interpretar bien tu solicitud. Intenta escribir algo como: “Quiero un regalo elegante para mi mamá por menos de 250 Bs”.",
           },
         ]);
         return;
       }
 
-      setIntent(result.intent);
+      const nextIntent = result.intent as GiftRecommendationInput;
+      const nextRecomendacionId =
+        typeof result.recomendacionId === "number" ? result.recomendacionId : null;
+
+      const nextRecommendations = recommendGifts(productos, nextIntent, 4);
+      const nextProductIds = nextRecommendations.map(({ producto }) => producto.id);
+
+      setIntent(nextIntent);
       setHasRecommended(true);
+      setRecomendacionId(nextRecomendacionId);
+      setSyncedRecommendationIds(nextProductIds.join(","));
+
+      if (nextRecomendacionId && nextProductIds.length > 0) {
+        await actualizarRecomendacionIA(nextRecomendacionId, {
+          productosSugeridos: nextProductIds,
+        });
+      }
 
       setMessages((prev) => [
         ...prev,
         {
           id: `bot-${Date.now()}`,
           role: "bot",
-          text: "Listo. Analicé tu idea y encontré estas opciones reales del catálogo.",
+          text: "Perfecto. Tomé en cuenta lo que buscas y seleccioné regalos que encajan con la ocasión, el presupuesto y el estilo que mencionaste. Estas son opciones reales disponibles en el catálogo de Emotia.",
         },
       ]);
     } catch (error) {
@@ -118,6 +191,14 @@ export default function GiftChatbot({ productos }: GiftChatbotProps) {
     }
   };
 
+  const verDetalleProducto = async (producto: CatalogProduct) => {
+    await actualizarRecomendacionIA(recomendacionId, {
+      productoElegido: producto.id,
+      convertidaEnCompra: false,
+    });
+
+    router.push(`/producto/${producto.id}`);
+  };
   const agregarAlCarrito = (producto: CatalogProduct) => {
     addItem({
       id: producto.id,
@@ -130,6 +211,11 @@ export default function GiftChatbot({ productos }: GiftChatbotProps) {
 
     setAddedProductName(producto.nombre);
     window.dispatchEvent(new CustomEvent("emotia-cart-highlight"));
+
+    void actualizarRecomendacionIA(recomendacionId, {
+      productoElegido: producto.id,
+      convertidaEnCompra: false,
+    });
 
     window.setTimeout(() => {
       setAddedProductName(null);
@@ -211,15 +297,16 @@ export default function GiftChatbot({ productos }: GiftChatbotProps) {
                 <div className={styles.chatbotMessageBot}>
                   <span className={styles.chatbotThinking}>
                     <Loader2 size={15} className={styles.chatbotSpin} />
-                    Interpretando tu idea...
+                    Analizando tu solicitud y buscando opciones dentro del catálogo...
                   </span>
                 </div>
               )}
 
               {addedProductName && (
                 <div className={styles.chatbotAddedNotice}>
-                  <strong>Agregado al carrito</strong>
+                  <strong>Producto agregado</strong>
                   <span>{addedProductName}</span>
+                  <p>Lo guardé en tu carrito. Puedes seguir viendo recomendaciones o revisar tu compra.</p>
                   <button type="button" onClick={abrirCarrito}>
                     Ver carrito
                   </button>
@@ -233,7 +320,7 @@ export default function GiftChatbot({ productos }: GiftChatbotProps) {
                       <button
                         type="button"
                         className={styles.chatbotProductImage}
-                        onClick={() => router.push(`/producto/${producto.id}`)}
+                        onClick={() => void verDetalleProducto(producto)}
                       >
                         {producto.imageUrl ? (
                           <img src={producto.imageUrl} alt={producto.nombre} />
@@ -251,7 +338,7 @@ export default function GiftChatbot({ productos }: GiftChatbotProps) {
                         <div className={styles.chatbotProductActions}>
                           <button
                             type="button"
-                            onClick={() => router.push(`/producto/${producto.id}`)}
+                            onClick={() => void verDetalleProducto(producto)}
                           >
                             Ver
                           </button>
@@ -272,7 +359,7 @@ export default function GiftChatbot({ productos }: GiftChatbotProps) {
 
               {hasRecommended && recomendaciones.length === 0 && !isThinking && (
                 <div className={styles.chatbotMessageBot}>
-                  No encontré coincidencias fuertes. Prueba con otro presupuesto, ocasión o estilo.
+                  No encontré una coincidencia clara con esos datos. Puedes probar con un presupuesto diferente, una ocasión más específica o un estilo como romántico, elegante o divertido.
                 </div>
               )}
             </div>
@@ -287,7 +374,7 @@ export default function GiftChatbot({ productos }: GiftChatbotProps) {
                     void sendMessage();
                   }
                 }}
-                placeholder="Ej: Quiero algo romántico para mi novia, máximo 300 Bs"
+                placeholder="Ej: Quiero algo romántico para mi novia por nuestro aniversario, máximo 300 Bs"
                 rows={2}
               />
 

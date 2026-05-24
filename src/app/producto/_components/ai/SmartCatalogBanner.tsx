@@ -26,7 +26,8 @@ const INITIAL_FORM: GiftRecommendationInput = {
 export default function SmartCatalogBanner({ productos }: SmartCatalogBannerProps) {
   const router = useRouter();
   const { addItem } = useCart();
-
+   const [recomendacionId, setRecomendacionId] = useState<number | null>(null);
+  const [syncedRecommendationIds, setSyncedRecommendationIds] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [form, setForm] = useState<GiftRecommendationInput>(INITIAL_FORM);
   const [hasSearched, setHasSearched] = useState(false);
@@ -40,9 +41,110 @@ export default function SmartCatalogBanner({ productos }: SmartCatalogBannerProp
     return recommendGifts(productos, form, 6);
   }, [form, hasSearched, productos]);
 
-  const buscarRecomendaciones = () => {
+
+const actualizarRecomendacionIA = async (
+  recomendacionIdActual: number | null,
+  data: {
+    productosSugeridos?: number[];
+    productoElegido?: number;
+    convertidaEnCompra?: boolean;
+  }
+) => {
+  if (!recomendacionIdActual) {
+    console.warn("No hay recomendacionId para actualizar:", data);
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/producto/recomendaciones", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        recomendacionId: recomendacionIdActual,
+        ...data,
+      }),
+    });
+
+    const rawText = await response.text();
+
+    let result: any = null;
+
+    try {
+      result = rawText ? JSON.parse(rawText) : null;
+    } catch {
+      result = {
+        success: false,
+        error: "La respuesta del servidor no fue JSON.",
+        rawText,
+      };
+    }
+
+    console.log("PATCH recomendación IA catálogo inteligente:", {
+      status: response.status,
+      ok: response.ok,
+      body: result,
+    });
+
+    if (!response.ok) {
+  console.warn("No se pudo actualizar recomendación IA:", {
+    status: response.status,
+    statusText: response.statusText,
+    body: result,
+  });
+}
+  } catch (error) {
+    console.error("Error actualizando recomendación IA:", error);
+  }
+};
+  const buscarRecomendaciones = async () => {
   setIsSearching(true);
   setHasSearched(false);
+  setAiError("");
+
+  const nextResults = recommendGifts(productos, form, 6);
+  const nextProductIds = nextResults.map(({ producto }) => producto.id);
+
+  try {
+    const response = await fetch("/api/producto/recomendaciones", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        intent: form,
+        productosSugeridos: nextProductIds,
+      }),
+    });
+
+    const rawText = await response.text();
+
+    let result: any = null;
+
+    try {
+      result = rawText ? JSON.parse(rawText) : null;
+    } catch {
+      result = null;
+    }
+
+    if (response.ok && result?.success) {
+      setRecomendacionId(
+        typeof result.recomendacionId === "number"
+          ? result.recomendacionId
+          : null
+      );
+
+      setSyncedRecommendationIds(nextProductIds.join(","));
+    } else {
+      console.warn("No se pudo registrar recomendación manual:", {
+        status: response.status,
+        result,
+      });
+    }
+  } catch (error) {
+    console.warn("Error registrando recomendación manual:", error);
+  }
 
   window.setTimeout(() => {
     setHasSearched(true);
@@ -76,9 +178,24 @@ const interpretarConIA = async () => {
       return;
     }
 
-    setForm(result.intent);
+    const nextForm = result.intent as GiftRecommendationInput;
+    const nextRecomendacionId =
+      typeof result.recomendacionId === "number" ? result.recomendacionId : null;
+
+    const nextResults = recommendGifts(productos, nextForm, 6);
+    const nextProductIds = nextResults.map(({ producto }) => producto.id);
+
+    setForm(nextForm);
+    setRecomendacionId(nextRecomendacionId);
+    setSyncedRecommendationIds(nextProductIds.join(","));
     setHasSearched(false);
     setIsSearching(true);
+
+    if (nextRecomendacionId && nextProductIds.length > 0) {
+      await actualizarRecomendacionIA(nextRecomendacionId, {
+        productosSugeridos: nextProductIds,
+      });
+    }
 
     window.setTimeout(() => {
       setHasSearched(true);
@@ -100,6 +217,15 @@ const interpretarConIA = async () => {
   setAiError("");
 };
 
+  const verDetalleProducto = async (producto: CatalogProduct) => {
+    await actualizarRecomendacionIA(recomendacionId, {
+      productoElegido: producto.id,
+      convertidaEnCompra: false,
+    });
+
+    router.push(`/producto/${producto.id}`);
+  };
+
   const agregarAlCarrito = (producto: CatalogProduct) => {
   addItem({
     id: producto.id,
@@ -113,6 +239,10 @@ const interpretarConIA = async () => {
   setAddedProductName(producto.nombre);
 
   window.dispatchEvent(new CustomEvent("emotia-cart-highlight"));
+  void actualizarRecomendacionIA(recomendacionId, {
+    productoElegido: producto.id,
+    convertidaEnCompra: false,
+  });
 
   window.setTimeout(() => {
     setAddedProductName(null);
@@ -151,7 +281,7 @@ const abrirCarrito = () => {
             <div className={styles.smartModalHeader}>
               <div>
                 <p className={styles.smartEyebrow}>Asistente de regalos</p>
-                <h3 className={styles.smartModalTitle}>Encuentra el detalle ideal</h3>
+                <h3 className={styles.smartModalTitle}>Encuentra recomendaciones pensadas para tu ocasión</h3>
               </div>
 
               <button
@@ -179,11 +309,11 @@ const abrirCarrito = () => {
               <div className={styles.smartForm}>
               <div className={styles.smartAiBox}>
                 <label>
-                  <span>Describe tu regalo ideal</span>
+                  <span>Cuéntanos qué regalo estás buscando</span>
                   <textarea
                     value={freeText}
                     onChange={(event) => setFreeText(event.target.value)}
-                    placeholder="Ej: Quiero un regalo para mi mamá, elegante, por menos de 250 Bs"
+                    placeholder="Ej: Quiero un regalo elegante para mi mamá por el Día de la Madre, por menos de 250 Bs"
                     rows={4}
                   />
                 </label>
@@ -196,7 +326,7 @@ const abrirCarrito = () => {
                   onClick={interpretarConIA}
                   disabled={isInterpreting}
                 >
-                  {isInterpreting ? "Interpretando..." : "Interpretar con IA"}
+                  {isInterpreting ? "Analizando..." : "Buscar recomendaciones con IA"}
                 </button>
               </div>
                 <label>
@@ -315,19 +445,19 @@ const abrirCarrito = () => {
                 {isSearching ? (
                     <div className={styles.smartEmpty}>
                     <div className={styles.smartLoader} />
-                    <p>Analizando el catálogo y buscando las mejores opciones...</p>
+                    <p>Analizando tu idea y comparando productos reales del catálogo...</p>
                     </div>
                 ) : !hasSearched ? (
                     <div className={styles.smartEmpty}>
                     <Sparkles size={34} />
                     <p>
-                      Completa los datos y te mostraremos recomendaciones reales del catálogo.
+                      Escribe una idea o completa los campos para recibir recomendaciones según ocasión, estilo y presupuesto.
                     </p>
                   </div>
                 ) : resultados.length === 0 ? (
                   <div className={styles.smartEmpty}>
                     <p>
-                      No encontramos coincidencias fuertes. Prueba con otro presupuesto, ocasión o estilo.
+                      No encontramos una coincidencia clara. Prueba ajustando el presupuesto, la ocasión o el estilo del regalo.
                     </p>
                   </div>
                 ) : (
@@ -336,7 +466,7 @@ const abrirCarrito = () => {
                       <button
                         type="button"
                         className={styles.smartProductImage}
-                        onClick={() => router.push(`/producto/${producto.id}`)}
+                        onClick={() => void verDetalleProducto(producto)}
                       >
                         {producto.imageUrl ? (
                           <img src={producto.imageUrl} alt={producto.nombre} />
@@ -357,7 +487,7 @@ const abrirCarrito = () => {
                         <div className={styles.smartProductActions}>
                           <button
                             type="button"
-                            onClick={() => router.push(`/producto/${producto.id}`)}
+                            onClick={() => void verDetalleProducto(producto)}
                           >
                             Ver detalle
                           </button>

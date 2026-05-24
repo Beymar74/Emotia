@@ -1495,7 +1495,13 @@
   font-size: 0.78rem;
   font-weight: 700;
 }
-
+.chatbotAddedNotice p {
+  margin: 0.2rem 0 0;
+  color: #7a5260;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  font-weight: 650;
+}
 .chatbotAddedNotice button {
   margin-top: 0.45rem;
   min-height: 2.25rem;

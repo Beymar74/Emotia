@@ -17,6 +17,9 @@ export default async function ReporteRecomendacionesPage() {
       personalidad: true,
       presupuesto_min: true,
       presupuesto_max: true,
+      productos_sugeridos: true,
+      productos_elegidos: true,
+      producto_elegido: true,
       convertida_en_compra: true,
       created_at: true,
       destinatario_rel: true,
@@ -69,7 +72,103 @@ export default async function ReporteRecomendacionesPage() {
     destinatarioMap[d] = (destinatarioMap[d] || 0) + 1;
   });
   const topDestinatario = Object.entries(destinatarioMap).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+  const productosSugeridosIds = recomendacionesDB.flatMap(
+  (r) => r.productos_sugeridos || []
+);
 
+const productosElegidosIds = recomendacionesDB.flatMap((r) => {
+  const elegidos = r.productos_elegidos || [];
+
+  if (elegidos.length > 0) {
+    return elegidos;
+  }
+
+  return r.producto_elegido ? [r.producto_elegido] : [];
+});
+
+const totalProductosSugeridos = productosSugeridosIds.length;
+const totalProductosElegidos = productosElegidosIds.length;
+
+const tasaEleccion =
+  totalProductosSugeridos > 0
+    ? Math.round((totalProductosElegidos / totalProductosSugeridos) * 100)
+    : 0;
+
+const contarIds = (ids: number[]) =>
+  ids.reduce<Record<number, number>>((acc, id) => {
+    acc[id] = (acc[id] || 0) + 1;
+    return acc;
+  }, {});
+
+const sugeridosCount = contarIds(productosSugeridosIds);
+const elegidosCount = contarIds(productosElegidosIds);
+
+const productoIds = Array.from(
+  new Set([...productosSugeridosIds, ...productosElegidosIds])
+);
+
+const productosDB =
+  productoIds.length > 0
+    ? await prisma.productos.findMany({
+        where: {
+          id: {
+            in: productoIds,
+          },
+        },
+        select: {
+          id: true,
+          nombre: true,
+          precio_venta: true,
+          imagen_url: true,
+          categorias: {
+            select: {
+              nombre: true,
+            },
+          },
+          proveedores: {
+            select: {
+              nombre_negocio: true,
+            },
+          },
+        },
+      })
+    : [];
+
+const productosMap = new Map(productosDB.map((producto) => [producto.id, producto]));
+
+const productosMasSugeridos = Object.entries(sugeridosCount)
+  .map(([id, total]) => {
+    const producto = productosMap.get(Number(id));
+
+    return {
+      id: Number(id),
+      nombre: producto?.nombre || `Producto #${id}`,
+      categoria: producto?.categorias?.nombre || "Sin categoría",
+      proveedor: producto?.proveedores?.nombre_negocio || "Sin proveedor",
+      precio: Number(producto?.precio_venta || 0),
+      imagen: producto?.imagen_url || null,
+      total,
+    };
+  })
+  .sort((a, b) => b.total - a.total)
+  .slice(0, 6);
+
+const productosMasElegidos = Object.entries(elegidosCount)
+  .map(([id, total]) => {
+    const producto = productosMap.get(Number(id));
+
+    return {
+      id: Number(id),
+      nombre: producto?.nombre || `Producto #${id}`,
+      categoria: producto?.categorias?.nombre || "Sin categoría",
+      proveedor: producto?.proveedores?.nombre_negocio || "Sin proveedor",
+      precio: Number(producto?.precio_venta || 0),
+      imagen: producto?.imagen_url || null,
+      total,
+    };
+  })
+  .sort((a, b) => b.total - a.total)
+  .slice(0, 6);
   const config = {
     filename: "reporte-recomendaciones",
     titulo: "Reporte de Recomendaciones IA — PREPE",
@@ -79,6 +178,7 @@ export default async function ReporteRecomendacionesPage() {
       { label: "Convertidas en compra", valor: String(convertidas), color: "#8E1B3A" },
       { label: "Tasa de conversión", valor: `${tasaConversion}%`, color: "#BC9968" },
       { label: "Presupuesto promedio", valor: fmtBs(presupuestoPromedio), color: "#185FA5" },
+      { label: "Tasa de elección IA", valor: `${tasaEleccion}%`, color: "#5C3A2E" },
     ],
     graficos: [
       {
@@ -97,17 +197,42 @@ export default async function ReporteRecomendacionesPage() {
       },
     ],
     tablas: [
-      {
-        nombre: "Ocasiones más buscadas",
-        columnas: ["Ocasión", "Total búsquedas", "Convertidas", "Tasa"],
-        filas: ocasiones.map((o) => [o.ocasion, o.total, o.convertidas, o.total > 0 ? Math.round((o.convertidas / o.total) * 100) + "%" : "0%"]),
-      },
-      {
-        nombre: "Personalidades más pedidas",
-        columnas: ["Personalidad", "Veces solicitada"],
-        filas: personalidades.map((p) => [p.nombre, p.total]),
-      },
-    ],
+  {
+    nombre: "Ocasiones más buscadas",
+    columnas: ["Ocasión", "Total búsquedas", "Convertidas", "Tasa"],
+    filas: ocasiones.map((o) => [
+      o.ocasion,
+      o.total,
+      o.convertidas,
+      o.total > 0 ? Math.round((o.convertidas / o.total) * 100) + "%" : "0%",
+    ]),
+  },
+  {
+    nombre: "Personalidades más pedidas",
+    columnas: ["Personalidad", "Veces solicitada"],
+    filas: personalidades.map((p) => [p.nombre, p.total]),
+  },
+  {
+    nombre: "Productos más sugeridos por IA",
+    columnas: ["Producto", "Categoría", "Proveedor", "Veces sugerido"],
+    filas: productosMasSugeridos.map((p) => [
+      p.nombre,
+      p.categoria,
+      p.proveedor,
+      p.total,
+    ]),
+  },
+  {
+    nombre: "Productos más elegidos desde IA",
+    columnas: ["Producto", "Categoría", "Proveedor", "Veces elegido"],
+    filas: productosMasElegidos.map((p) => [
+      p.nombre,
+      p.categoria,
+      p.proveedor,
+      p.total,
+    ]),
+  },
+],
   };
 
   return (
@@ -133,12 +258,13 @@ export default async function ReporteRecomendacionesPage() {
       <ReportSubNav />
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
         {[
           { label: "Total recomendaciones", valor: String(total), color: "#2D7A47", sub: "Generadas por IA" },
           { label: "Convertidas en compra", valor: String(convertidas), color: "#8E1B3A", sub: "Pedidos realizados" },
           { label: "Tasa de conversión", valor: `${tasaConversion}%`, color: "#BC9968", sub: "IA → Compra" },
           { label: "Presupuesto promedio", valor: fmtBs(presupuestoPromedio), color: "#185FA5", sub: "Máximo solicitado" },
+          { label: "Tasa de elección IA", valor: `${tasaEleccion}%`, color: "#5C3A2E", sub: "Elegidos / sugeridos" },
         ].map((k) => (
           <div key={k.label} className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: k.color }} />
@@ -180,7 +306,90 @@ export default async function ReporteRecomendacionesPage() {
           </div>
         )}
       </div>
+            {/* Productos IA */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
+          <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-1">
+            Productos más sugeridos por IA
+          </h3>
+          <p className="text-xs text-[#7A5260] mb-4">
+            Productos que aparecen con más frecuencia en las recomendaciones generadas.
+          </p>
 
+          {productosMasSugeridos.length === 0 ? (
+            <p className="text-sm text-[#7A5260] text-center py-4">
+              Todavía no hay productos sugeridos registrados.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {productosMasSugeridos.map((p, index) => (
+                <div
+                  key={p.id}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-[#8E1B3A]/10 bg-[#FDFBF9]/60"
+                >
+                  <div className="w-8 h-8 rounded-full bg-[#BC9968] text-white text-xs font-bold flex items-center justify-center shrink-0">
+                    {index + 1}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#2A0E18] truncate">
+                      {p.nombre}
+                    </p>
+                    <p className="text-xs text-[#7A5260] truncate">
+                      {p.categoria} · {p.proveedor}
+                    </p>
+                  </div>
+
+                  <span className="text-xs font-bold text-[#8E1B3A] bg-[#8E1B3A]/10 px-2 py-1 rounded-lg">
+                    {p.total}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5">
+          <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-1">
+            Productos más elegidos desde IA
+          </h3>
+          <p className="text-xs text-[#7A5260] mb-4">
+            Productos que los usuarios abrieron o agregaron al carrito después de una recomendación.
+          </p>
+
+          {productosMasElegidos.length === 0 ? (
+            <p className="text-sm text-[#7A5260] text-center py-4">
+              Todavía no hay productos elegidos desde recomendaciones.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {productosMasElegidos.map((p, index) => (
+                <div
+                  key={p.id}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-[#8E1B3A]/10 bg-[#FDFBF9]/60"
+                >
+                  <div className="w-8 h-8 rounded-full bg-[#2D7A47] text-white text-xs font-bold flex items-center justify-center shrink-0">
+                    {index + 1}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#2A0E18] truncate">
+                      {p.nombre}
+                    </p>
+                    <p className="text-xs text-[#7A5260] truncate">
+                      {p.categoria} · {p.proveedor}
+                    </p>
+                  </div>
+
+                  <span className="text-xs font-bold text-[#2D7A47] bg-[#2D7A47]/10 px-2 py-1 rounded-lg">
+                    {p.total}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
       {/* Tabla ocasiones */}
       <div className="bg-white rounded-xl border border-[#8E1B3A]/10 p-5 overflow-x-auto">
         <h3 className="font-serif text-xl font-semibold text-[#5A0F24] mb-4">Detalle por ocasión</h3>
