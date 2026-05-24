@@ -179,6 +179,17 @@ export default function CatalogoClient({
     shouldScrollToResultsRef.current = false;
   }, [hasActiveFilters, productosFiltrados.length]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("q") || params.get("query");
+      if (q) {
+        setQuery(q);
+        shouldScrollToResultsRef.current = true;
+      }
+    }
+  }, []);
+
   const productSections = useMemo<ProductSection[]>(() => {
     if (productosFiltrados.length === 0) return [];
 

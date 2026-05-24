@@ -298,3 +298,67 @@ Hacer que el Reporte Global del Sistema (cuando no tiene filtros aplicados por e
 4. **Validación**:
    - Correr pruebas de linter y compilación estática (`npm run lint` & `npm run build`).
 
+---
+
+## Integración del Ecosistema de Marcas en la Landing Page Principal (Conversación Actual)
+
+### Objetivo
+Añadir una sección informativa y visualmente impactante en la página de inicio principal (B2C) que presente y explique detalladamente la composición del ecosistema de marcas: **Emotia**, **Emotia Business** y **Emotia Store**, permitiendo a los visitantes entender la amplitud de la plataforma y navegar fácilmente hacia sus respectivas secciones.
+
+### Plan y Pasos de Ejecución
+1. **Crear el Componente `EcosystemSection.tsx`**:
+   - Diseñar una sección premium con una grilla de dos tarjetas interactivas representando a **Emotia Business** (Portal para que proveedores y empresas se registren y ofrezcan sus productos) y **Emotia Store** (Tienda virtual y catálogo de cara al cliente final para ver y comprar regalos).
+   - Integrar los logotipos correspondientes (`/logo/logo-business.png`, `/logo/logo-store.png`) con descripciones alineadas a estos roles y CTAs dirigidos a sus portales específicos (`/business` y `/producto`).
+2. **Integrar en el Layout Principal (`HomeClientWrapper.tsx`)**:
+   - Importar y renderizar el componente `EcosystemSection` justo debajo de `HeroSection`, introduciendo el ecosistema antes de mostrar los productos destacados.
+3. **Validación y Linter**:
+   - Asegurar compilación limpia y visualización responsiva a dos columnas.
+
+---
+
+## Reordenamiento y Ajustes del Ecosistema y Catálogo (Conversación Actual)
+
+### Objetivo
+Optimizar el flujo de la página de inicio reubicando la sección del Ecosistema de Marcas al final del recorrido (antes del footer), actualizar los logotipos a sus versiones expandidas y centradas, conectar el carrusel de productos ("Los más deseados") y el carrusel de marcas aliadas con datos reales de la base de datos (PostgreSQL), pausar el desplazamiento del carrusel de productos al colocar el cursor y permitir redirigir directamente al detalle del producto individual.
+
+### Plan y Pasos de Ejecución
+1. **Reordenar Layout (`HomeClientWrapper.tsx` y `page.tsx`)**:
+   - Mover la sección `EcosystemSection` (y su contenedor `#unete`) al final de la página de inicio, justo arriba del `<Footer />`.
+   - Modificar `src/app/page.tsx` para consultar los nombres de negocios aprobados (`proveedores` con `estado = "aprobado"`) y pasarlos a `HomeClientWrapper` como `initialBrands`.
+2. **Actualizar Logotipos y Centrado (`EcosystemSection.tsx`)**:
+   - Cambiar los logotipos a `/logo/logo-business-expandido.png` y `/logo/logo-store-expandido.png`.
+   - Centrar los logos en cada tarjeta aplicando `justify-content: center` y un tamaño proporcional más grande.
+3. **Conectar Datos Reales y Efecto Hover (`ProductsSection.tsx`)**:
+   - Utilizar el arreglo de marcas aliadas (`initialBrands`) provenientes de la base de datos para el carrusel de marcas (aliados).
+   - Añadir la regla CSS `.marquee-track:hover { animation-play-state: paused; }` para pausar el carrusel en hover.
+   - Actualizar el enlace de clic de cada tarjeta de producto para que use `router.push("/producto/" + p.id)` en lugar de redirigir al catálogo genérico.
+4. **Validación**:
+   - Asegurar compilación correcta de TypeScript.
+
+---
+
+## Ajuste de Identidad y Eslogan en Hero (Conversación Actual)
+
+### Objetivo
+Destacar la identidad de marca de Emotia mediante su eslogan oficial **"Regala emociones, personaliza momentos"** e invitar a explorar el catálogo de forma directa y elegante.
+
+### Cambios Completados
+1. **Pill Badge**: Modificado a `"Emotia • Regalos Exclusivos"` con el icono de un regalo en vez de la IA.
+2. **Encabezado y Mensaje Principal**: Reemplazado por el eslogan oficial de la marca: **"Regala emociones, personaliza momentos."**.
+3. **Descripción**: Se enfatiza el valor de conectar con los mejores artesanos y marcas de Bolivia para diseñar regalos exclusivos.
+4. **Llamadas a la Acción (CTAs)**: Removida la barra de búsqueda y las sugerencias. Implementados dos botones premium:
+   - **Explorar Catálogo**: Enlace directo a `/producto`.
+   - **Conocer ecosistema**: Desplazamiento suave a la sección del ecosistema (`#unete`).
+5. **Limpieza Visual**: Removida la burbuja de chat / tarjeta de dedicatoria sobre la imagen para mantener la visualización limpia y despejada del hero.
+
+
+---
+
+## Carrusel de marcas continuo (Conversación Actual)
+
+### Objetivo
+Hacer que la marquesina o carrusel de la sección **"Trabajamos con las mejores marcas y artesanos"** se desplace de forma constante sin detenerse o pausarse cuando el usuario posiciona el cursor encima.
+
+### Cambios Completados
+1. **Clase CSS Específica**: Se creó la clase CSS `.marquee-track-partners` en [ProductsSection.tsx](file:///c:/Users/Beymar/Desktop/emotia/Emotia/src/app/home/ProductsSection.tsx) que hereda la animación lenta de 50 segundos del carrusel, pero excluye a esta clase de la regla `:hover { animation-play-state: paused; }`.
+2. **Asociación en UI**: Se asignó la clase `.marquee-track-partners` al carrusel de logos/nombres de marcas aliadas, asegurando que las marcas se muevan de forma constante e ininterrumpida. El carrusel de productos ("Los más deseados") mantiene su comportamiento interactivo de pausa en hover para facilitar la selección.
