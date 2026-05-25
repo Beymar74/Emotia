@@ -53,6 +53,7 @@ type PedidoAgrupado = {
   personalizacion: string | null;
   imagen: string | null;
   producto: string;
+  comprobante_url?: string | null; // <--- AGREGAR ESTA LÍNEA
   productos: {
     detalleId: number;
     nombre: string;
@@ -107,17 +108,16 @@ export async function obtenerPedidosProveedor() {
 
     const direccion = detalle.pedidos.direcciones
       ? [
-          detalle.pedidos.direcciones.calle,
-          detalle.pedidos.direcciones.zona,
-          detalle.pedidos.direcciones.ciudad,
-        ]
-          .filter(Boolean)
-          .join(", ")
+        detalle.pedidos.direcciones.calle,
+        detalle.pedidos.direcciones.zona,
+        detalle.pedidos.direcciones.ciudad,
+      ]
+        .filter(Boolean)
+        .join(", ")
       : "Dirección no registrada";
 
-    const cliente = `${detalle.pedidos.usuarios.nombre} ${
-      detalle.pedidos.usuarios.apellido || ""
-    }`.trim();
+    const cliente = `${detalle.pedidos.usuarios.nombre} ${detalle.pedidos.usuarios.apellido || ""
+      }`.trim();
 
     const productoDetalle = {
       detalleId: detalle.id,
@@ -142,6 +142,7 @@ export async function obtenerPedidosProveedor() {
         personalizacion: detalle.mensaje_personal || null,
         imagen: detalle.productos.imagen_url,
         producto: detalle.productos.nombre,
+        comprobante_url: detalle.pedidos.comprobante_url, // <--- AGREGAR ESTA LÍNEA
         productos: [productoDetalle],
       });
 
@@ -231,7 +232,7 @@ export async function avanzarEstadoPedidoProveedor(pedidoId: number) {
         estado: nuevoEstado,
       },
     }),
-    
+
     // Usamos el modelo "notificaciones" exacto de tu schema.prisma
     prisma.notificaciones.create({
       data: {
@@ -246,10 +247,26 @@ export async function avanzarEstadoPedidoProveedor(pedidoId: number) {
 
   // 3. Revalidamos la ruta para que la UI del cliente se refresque
   // Ajusta esta ruta según dónde esté tu layout principal con la campanita
-  revalidatePath("/", "layout"); 
+  revalidatePath("/", "layout");
 
   return {
     success: true,
     nuevoEstado,
   };
+}
+// Agrega esta función al final de tu archivo actions.ts del proveedor
+export async function rechazarPagoProveedor(pedidoId: number, motivo: string) {
+  try {
+    await prisma.pedidos.update({
+      where: { id: pedidoId },
+      data: {
+        estado: "cancelado",
+        motivo_rechazo: motivo
+      },
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error al rechazar pago:", error);
+    return { success: false, message: "No se pudo rechazar el pedido." };
+  }
 }

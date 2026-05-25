@@ -45,6 +45,16 @@ const zonasEntrega: Array<{ id: ZonaEntrega; label: string; eta: string; extra: 
   { id: "miraflores", label: "Miraflores / Sopocachi", eta: "Entrega estimada hoy en 2 a 3 horas", extra: 5 },
 ];
 
+// 👇 NUEVA FUNCIÓN: Convierte la imagen a texto (Base64) para enviarla en el JSON 👇
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
+
 export default function CheckoutPage() {
   const [showAuth, setShowAuth] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -62,7 +72,7 @@ export default function CheckoutPage() {
   const [comprobante, setComprobante] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const qrImageUrl = "URL_DE_TU_QR_AQUI";
+  const qrImageUrl = "URL_DE_TU_QR_AQUI"; // Nota: Aquí pondrías la imagen de tu QR real
   const cuentaBancaria = "Banco Unión - Cuenta corriente 100-2458796";
   const { items, subtotal, clearCart } = useCart();
   const { isLoggedIn } = useSession();
@@ -77,14 +87,12 @@ export default function CheckoutPage() {
 
   const direccionCompleta = direccion.trim().length > 6 && destinatario.trim() !== "" && telefono.trim().length === 8;
 
-  // Formateadores para inputs de tarjeta
   const handleTarjetaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "").substring(0, 16);
     const formatted = value.replace(/(\d{4})(?=\d)/g, "$1 ");
     setNumeroTarjeta(formatted);
   };
 
-  // Magia de UX para la fecha de la tarjeta
   const handleFechaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value.replace(/\D/g, "");
 
@@ -93,24 +101,19 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Si el usuario escribe un mes del 2 al 9, le ponemos un 0 adelante automáticamente
     if (val.length === 1 && parseInt(val) > 1) {
       val = "0" + val;
     }
 
     if (val.length >= 2) {
       let month = parseInt(val.substring(0, 2), 10);
-      // Si el mes es mayor a 12, lo forzamos a 12
       if (month > 12) {
         val = "12" + val.substring(2);
-      } 
-      // Si pone 00, lo forzamos a 01
-      else if (month === 0) {
+      } else if (month === 0) {
         val = "01" + val.substring(2);
       }
     }
 
-    // Agregamos la barra divisora
     if (val.length > 2) {
       setFechaTarjeta(`${val.substring(0, 2)}/${val.substring(2, 4)}`);
     } else {
@@ -163,6 +166,12 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
+      // 👇 AQUÍ ESTÁ LA MAGIA: Convertimos el comprobante si existe 👇
+      let comprobanteBase64 = null;
+      if ((metodoSeleccionado === "qr" || metodoSeleccionado === "transferencia") && comprobante) {
+        comprobanteBase64 = await fileToBase64(comprobante);
+      }
+
       const response = await fetch("/api/auth/catalog/orders", {
         method: "POST",
         headers: {
@@ -180,6 +189,7 @@ export default function CheckoutPage() {
           telefono,
           referencia,
           metodoPago: metodoSeleccionado,
+          comprobanteBase64, // <-- AHORA SÍ ENVIAMOS LA IMAGEN AL BACKEND
         }),
       });
 
