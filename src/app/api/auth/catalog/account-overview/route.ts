@@ -41,6 +41,7 @@ export async function GET() {
           estado: true,
           total: true,
           created_at: true,
+          motivo_rechazo: true,
           detalle_pedidos: {
             select: {
               cantidad: true,
@@ -59,6 +60,17 @@ export async function GET() {
               },
             },
           },
+          // 👇 AQUÍ TRAEMOS LA BITÁCORA DEL PEDIDO PARA EL CLIENTE 👇
+          bitacora_pedidos: {
+            select: {
+              id: true,
+              titulo: true,
+              mensaje: true,
+              imagen_url: true,
+              created_at: true,
+            },
+            orderBy: { created_at: "desc" }
+          }
         },
       }),
       prisma.notificaciones.findMany({
@@ -120,12 +132,21 @@ export async function GET() {
           productImageUrl: firstItem?.productos.imagen_url ?? null,
           brandName: firstItem?.proveedores.nombre_negocio ?? "Emotia Store",
           brandLogoUrl: firstItem?.proveedores.logo_url ?? null,
+          rejectionReason: order.motivo_rechazo,
           items: order.detalle_pedidos.map((item) => ({
             id: item.productos.id,
             name: item.productos.nombre,
             quantity: item.cantidad,
             imageUrl: item.productos.imagen_url ?? null,
           })),
+          // 👇 Y LA MAPÉAMOS AQUÍ PARA ENVIARLA AL FRONTEND 👇
+          bitacora: order.bitacora_pedidos.map(b => ({
+            id: b.id,
+            titulo: b.titulo,
+            mensaje: b.mensaje,
+            imagenUrl: b.imagen_url,
+            fecha: b.created_at.toISOString(),
+          }))
         };
       }),
       notifications: notifications.map((notification) => ({

@@ -4,12 +4,12 @@ import React, { useEffect, useState } from "react";
 import {
   Clock, Package, CheckCircle, Truck,
   MessageSquare, MapPin, ChevronRight,
-  AlertTriangle, Eye, X, FileText, ImageIcon, FileImage, XCircle
+  AlertTriangle, Eye, X, FileText, ImageIcon, Camera, FileImage, XCircle
 } from "lucide-react";
 import {
   obtenerPedidosProveedor,
   avanzarEstadoPedidoProveedor,
-  rechazarPagoProveedor, // <--- NUEVA FUNCIÓN IMPORTADA
+  rechazarPagoProveedor,
 } from "./actions";
 import {
   exportarPedidosProveedorExcel,
@@ -28,7 +28,7 @@ interface Pedido {
   total: number;
   estado: "pendiente" | "en_preparacion" | "listo" | "entregado" | "cancelado";
   fecha: string;
-  comprobante_url?: string | null; // <--- NUEVO CAMPO AÑADIDO
+  comprobante_url?: string | null;
   productos: {
     detalleId: number;
     nombre: string;
@@ -36,7 +36,23 @@ interface Pedido {
     personalizacion: string | null;
     total: number;
   }[];
+  bitacora: {
+    id: number;
+    titulo: string;
+    mensaje: string | null;
+    imagen_url: string | null;
+    fecha: string;
+  }[];
 }
+
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 export default function PedidosPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
@@ -53,9 +69,15 @@ export default function PedidosPage() {
 
   // Estados para modales
   const [pedidoAConfirmar, setPedidoAConfirmar] = useState<Pedido | null>(null);
-  const [pedidoAVerificar, setPedidoAVerificar] = useState<Pedido | null>(null); // <--- NUEVO ESTADO
+  const [pedidoAVerificar, setPedidoAVerificar] = useState<Pedido | null>(null);
   const [pedidoDetalle, setPedidoDetalle] = useState<Pedido | null>(null);
-  const [motivoRechazo, setMotivoRechazo] = useState(""); // <--- ESTADO PARA EL MOTIVO
+  const [motivoRechazo, setMotivoRechazo] = useState("");
+
+  // Estados para nuevas evidencias de bitácora
+  const [isSubiendoEvidencia, setIsSubiendoEvidencia] = useState(false);
+  const [evidenciaTitulo, setEvidenciaTitulo] = useState("");
+  const [evidenciaMensaje, setEvidenciaMensaje] = useState("");
+  const [evidenciaFoto, setEvidenciaFoto] = useState<File | null>(null);
 
   useEffect(() => {
     setLimitePorColumna(10);
@@ -85,7 +107,7 @@ export default function PedidosPage() {
       color: "border-red-200",
       bg: "bg-red-50",
       icon: <Clock size={18} className="text-red-600" />,
-      btnText: "Verificar Pago", // <--- CAMBIADO DE "Preparar Pedido"
+      btnText: "Verificar Pago",
     },
     {
       titulo: "En Preparación",
@@ -113,7 +135,6 @@ export default function PedidosPage() {
     },
   ] as const;
 
-  // Lógica inteligente: Si está pendiente abre Verificación, si no, abre Confirmación
   const solicitarAvance = (pedido: Pedido) => {
     if (pedido.estado === "pendiente") {
       setPedidoAVerificar(pedido);
@@ -130,11 +151,15 @@ export default function PedidosPage() {
     setIsAvanzando(true);
     try {
       const resultado = await avanzarEstadoPedidoProveedor(idTarget);
+
       if (!resultado.success) {
         alert(resultado.message || "No se pudo avanzar el pedido.");
-      } else {
-        await cargarPedidos();
+        setPedidoAConfirmar(null);
+        setPedidoAVerificar(null);
+        return;
       }
+
+      await cargarPedidos();
       setPedidoAConfirmar(null);
       setPedidoAVerificar(null);
     } catch (error) {
@@ -165,6 +190,43 @@ export default function PedidosPage() {
       alert("Ocurrió un error al cancelar el pedido.");
     } finally {
       setIsRechazando(false);
+    }
+  };
+
+  const handleSubirEvidencia = async () => {
+    if (!pedidoDetalle || !evidenciaTitulo.trim()) {
+      alert("Ponle un título a la actualización.");
+      return;
+    }
+
+    setIsSubiendoEvidencia(true);
+    try {
+      let fotoBase64 = null;
+      if (evidenciaFoto) fotoBase64 = await fileToBase64(evidenciaFoto);
+
+      // Usamos el import dinámico o directo del modulo actions
+      const { agregarEvidenciaPedido } = await import("./actions");
+      const res = await agregarEvidenciaPedido(pedidoDetalle.id, evidenciaTitulo, evidenciaMensaje, fotoBase64);
+
+      if (res.success) {
+        setEvidenciaTitulo("");
+        setEvidenciaMensaje("");
+        setEvidenciaFoto(null);
+
+        // Data refrescada localmente
+        const dataNueva = await obtenerPedidosProveedor();
+        setPedidos(dataNueva as Pedido[]);
+        const pedidoFresco = dataNueva.find(p => p.id === pedidoDetalle.id);
+        if (pedidoFresco) setPedidoDetalle(pedidoFresco as Pedido);
+
+        alert("¡Evidencia enviada al cliente con éxito!");
+      } else {
+        alert(res.message);
+      }
+    } catch (error) {
+      alert("Hubo un error al subir la foto.");
+    } finally {
+      setIsSubiendoEvidencia(false);
     }
   };
 
@@ -203,6 +265,7 @@ export default function PedidosPage() {
 
   const pedidosFiltrados = pedidos.filter((pedido) => {
     const textoBusqueda = busqueda.toLowerCase().trim();
+
     const coincideBusqueda =
       textoBusqueda.length === 0 ||
       pedido.codigo.toLowerCase().includes(textoBusqueda) ||
@@ -227,11 +290,17 @@ export default function PedidosPage() {
     return partes.length > 0 ? partes.join(" | ") : "Sin filtros";
   };
 
-  const exportarExcel = async () => await exportarPedidosProveedorExcel(pedidosFiltrados, obtenerDescripcionFiltros());
-  const exportarPDF = async () => await exportarPedidosProveedorPDF(pedidosFiltrados, obtenerDescripcionFiltros());
+  const exportarExcel = async () => {
+    await exportarPedidosProveedorExcel(pedidosFiltrados, obtenerDescripcionFiltros());
+  };
+
+  const exportarPDF = async () => {
+    await exportarPedidosProveedorPDF(pedidosFiltrados, obtenerDescripcionFiltros());
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1600px] mx-auto pb-12">
+
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-[#1A1A1A] tracking-tight">
@@ -263,6 +332,7 @@ export default function PedidosPage() {
               >
                 Exportar Excel
               </button>
+
               <button
                 onClick={async () => { await exportarPDF(); setMostrarMenuExportar(false); }}
                 className="w-full text-left px-4 py-3 text-xs font-bold text-[#3D0A1A] hover:bg-[#F5E6D0]"
@@ -313,6 +383,7 @@ export default function PedidosPage() {
           >
             Vista: {vista === "kanban" ? "Kanban" : "Tabla"}
           </button>
+
           <button
             onClick={cargarPedidos}
             disabled={isLoading}
@@ -339,6 +410,7 @@ export default function PedidosPage() {
                     {columna.icon}
                     {columna.titulo}
                   </div>
+
                   <span className="bg-white text-gray-700 px-2.5 py-0.5 rounded-full text-xs font-black shadow-sm">
                     {pedidosColumna.length}
                   </span>
@@ -357,10 +429,12 @@ export default function PedidosPage() {
                           className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow group flex flex-col relative overflow-hidden"
                         >
                           <div className="absolute top-0 left-0 right-0 h-1 bg-[#BC9968]/20 group-hover:bg-[#BC9968] transition-colors" />
+
                           <div className="flex justify-between items-start mb-3 mt-1">
                             <span className="text-xs font-black text-[#8E1B3A] bg-[#F5E6D0] px-2 py-1 rounded-md tracking-wider">
                               {pedido.codigo}
                             </span>
+
                             <div className="flex gap-2">
                               <button
                                 onClick={() => setPedidoDetalle(pedido)}
@@ -387,6 +461,7 @@ export default function PedidosPage() {
                               <h3 className="font-bold text-[#1A1A1A] text-sm leading-tight mb-1">
                                 {pedido.productos.length === 1 ? pedido.productos[0].nombre : `${pedido.productos.length} productos`}
                               </h3>
+
                               {pedido.productos.length > 1 && (
                                 <div className="mt-1 space-y-0.5">
                                   {pedido.productos.slice(0, 3).map((producto) => (
@@ -399,6 +474,7 @@ export default function PedidosPage() {
                                   )}
                                 </div>
                               )}
+
                               <p className="text-xs text-gray-600 font-medium mt-1">👤 {pedido.cliente}</p>
                             </div>
                           </div>
@@ -419,6 +495,7 @@ export default function PedidosPage() {
 
                           <div className="flex items-center justify-between border-t border-gray-100 pt-3 mt-auto">
                             <div className="text-sm font-black text-[#3D0A1A]">Bs. {pedido.total}</div>
+
                             {pedido.estado !== "entregado" && (
                               <button
                                 onClick={() => solicitarAvance(pedido)}
@@ -448,6 +525,7 @@ export default function PedidosPage() {
           })}
         </div>
       ) : (
+        /* 👇 AQUÍ ESTÁ TU TABLA DE MÁS DE 150 LÍNEAS COMPLETAMENTE RECONSTITUIDA 👇 */
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
@@ -471,14 +549,20 @@ export default function PedidosPage() {
                 ) : (
                   pedidosFiltrados.map((pedido) => (
                     <tr key={pedido.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-bold text-[#8E1B3A] align-middle">{pedido.codigo}</td>
+                      <td className="px-4 py-3 font-bold text-[#8E1B3A] align-middle">
+                        {pedido.codigo}
+                      </td>
                       <td className="px-4 py-3 text-gray-700 align-middle">{pedido.cliente}</td>
                       <td className="px-4 py-3 text-gray-600 max-w-[520px] align-middle">
                         {pedido.productos.length === 1 ? (
-                          <span className="line-clamp-1 break-words">{pedido.productos[0].nombre}</span>
+                          <span className="line-clamp-1 break-words">
+                            {pedido.productos[0].nombre}
+                          </span>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-gray-800 whitespace-nowrap">{pedido.productos.length} productos</span>
+                            <span className="font-semibold text-gray-800 whitespace-nowrap">
+                              {pedido.productos.length} productos
+                            </span>
                             <span className="text-xs text-gray-400 truncate">
                               {pedido.productos.map((producto) => producto.nombre).join(" · ")}
                             </span>
@@ -490,7 +574,9 @@ export default function PedidosPage() {
                           {getEstadoLabel(pedido.estado)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right font-bold align-middle">Bs. {pedido.total}</td>
+                      <td className="px-4 py-3 text-right font-bold align-middle">
+                        Bs. {pedido.total}
+                      </td>
                       <td className="px-4 py-3 text-right min-w-[120px] align-middle">
                         <button
                           onClick={() => setPedidoDetalle(pedido)}
@@ -519,22 +605,14 @@ export default function PedidosPage() {
               <h2 className="text-xl font-extrabold text-[#1A1A1A] mb-2">
                 ¿Avanzar a "{getSiguienteEstado(pedidoAConfirmar.estado)}"?
               </h2>
-              <p className="text-gray-600 text-sm mb-4">
-                Estás cambiando el estado de <span className="font-bold text-[#8E1B3A]">{pedidoAConfirmar.id}</span>.
-              </p>
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-left">
-                <p className="text-xs font-semibold text-gray-700 flex items-start gap-2">
-                  <CheckCircle size={16} className="text-green-600 shrink-0" />
-                  El cliente recibirá una notificación automática.
-                </p>
-              </div>
+              <p className="text-gray-600 text-sm mb-4">El cliente será notificado de este avance automáticamente.</p>
             </div>
             <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3 border-t border-gray-100">
               <button onClick={() => setPedidoAConfirmar(null)} className="px-5 py-2.5 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-200">Cancelar</button>
               <button
                 onClick={() => confirmarAvance()}
                 disabled={isAvanzando}
-                className="px-5 py-2.5 rounded-lg text-sm font-bold bg-[#BC9968] text-white hover:bg-[#9A7A48] disabled:opacity-60 disabled:cursor-not-allowed"
+                className="px-5 py-2.5 rounded-lg text-sm font-bold bg-[#BC9968] text-white hover:bg-[#9A7A48]"
               >
                 {isAvanzando ? "Actualizando..." : "Confirmar Avance"}
               </button>
@@ -543,14 +621,14 @@ export default function PedidosPage() {
         </div>
       )}
 
-      {/* --- NUEVO: MODAL DE VERIFICACIÓN DE PAGO --- */}
+      {/* --- VISOR INTELIGENTE DE VOUCHERS (SOPORTA PDF E IMAGENES) --- */}
       {pedidoAVerificar && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#3D0A1A]/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-[#f8f9fb]">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center">
-                  <FileImage size={20} />
+                  <ImageIcon size={20} />
                 </div>
                 <div>
                   <h2 className="text-lg font-extrabold text-[#3D0A1A]">Verificación de Pago</h2>
@@ -566,17 +644,9 @@ export default function PedidosPage() {
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-2 flex justify-center items-center min-h-[250px] w-full overflow-hidden">
                 {pedidoAVerificar.comprobante_url ? (
                   pedidoAVerificar.comprobante_url.startsWith("data:application/pdf") ? (
-                    <iframe
-                      src={pedidoAVerificar.comprobante_url}
-                      className="w-full h-[400px] rounded-lg shadow-sm border-0"
-                      title="Comprobante PDF"
-                    />
+                    <iframe src={pedidoAVerificar.comprobante_url} className="w-full h-[400px] rounded-lg shadow-sm border-0" title="Comprobante PDF" />
                   ) : (
-                    <img
-                      src={pedidoAVerificar.comprobante_url}
-                      alt="Comprobante de pago"
-                      className="max-w-full max-h-[400px] object-contain rounded-lg shadow-sm"
-                    />
+                    <img src={pedidoAVerificar.comprobante_url} alt="Comprobante de pago" className="max-w-full max-h-[400px] object-contain rounded-lg shadow-sm" />
                   )
                 ) : (
                   <div className="text-center text-gray-400 p-8">
@@ -615,7 +685,7 @@ export default function PedidosPage() {
                 <button
                   onClick={() => confirmarAvance(pedidoAVerificar.id)}
                   disabled={isAvanzando}
-                  className="px-5 py-2.5 rounded-lg text-sm font-bold bg-green-600 text-white hover:bg-green-700 shadow-sm disabled:opacity-60"
+                  className="px-5 py-2.5 rounded-lg text-sm font-bold bg-green-600 text-white hover:bg-green-700 shadow-sm"
                 >
                   {isAvanzando ? "Aprobando..." : "Aprobar y Preparar"}
                 </button>
@@ -625,7 +695,7 @@ export default function PedidosPage() {
         </div>
       )}
 
-      {/* --- MODAL DETALLES (Se mantiene igual) --- */}
+      {/* --- MODAL DETALLES COMPLETO CON BITÁCORA / SECCIÓN EVIDENCIA --- */}
       {pedidoDetalle && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
@@ -639,23 +709,76 @@ export default function PedidosPage() {
                   <p className="text-xs text-gray-500 font-bold">{pedidoDetalle.codigo}</p>
                 </div>
               </div>
-              <button onClick={() => setPedidoDetalle(null)} className="p-2 text-gray-400 hover:text-gray-700 rounded-full">
+              <button
+                onClick={() => { setPedidoDetalle(null); setEvidenciaFoto(null); setEvidenciaTitulo(""); setEvidenciaMensaje(""); }}
+                className="p-2 text-gray-400 hover:text-gray-700 rounded-full"
+              >
                 <X size={20} />
               </button>
             </div>
 
             <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+
+              {/* Bitácoras/Evidencias ya enviadas previamente */}
+              {pedidoDetalle.bitacora && pedidoDetalle.bitacora.length > 0 && (
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                  <p className="text-xs font-bold text-blue-800 uppercase tracking-wider mb-3">Evidencias enviadas</p>
+                  <div className="space-y-3">
+                    {pedidoDetalle.bitacora.map(bit => (
+                      <div key={bit.id} className="bg-white p-3 rounded-lg border border-blue-50 shadow-sm text-sm">
+                        <div className="flex justify-between items-start">
+                          <strong className="text-blue-900">{bit.titulo}</strong>
+                          <span className="text-[10px] text-gray-400">{new Date(bit.fecha).toLocaleDateString()}</span>
+                        </div>
+                        {bit.mensaje && <p className="text-gray-600 mt-1 text-xs">{bit.mensaje}</p>}
+                        {bit.imagen_url && <img src={bit.imagen_url} alt="Evidencia" className="mt-2 rounded-md max-h-32 object-contain mx-auto" />}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Formulario dinámico para agregar evidencias de confianza */}
+              {(pedidoDetalle.estado === "en_preparacion" || pedidoDetalle.estado === "listo") && (
+                <div className="border border-dashed border-[#BC9968] bg-[#FAF3EC] rounded-xl p-4">
+                  <p className="text-sm font-bold text-[#8E1B3A] mb-1 flex items-center gap-2">
+                    <Camera size={16} /> Máquina de Confianza — Enviar avance real
+                  </p>
+                  <p className="text-xs text-gray-600 mb-3">Saca una foto real del producto/empaque para enamorar al cliente.</p>
+
+                  <div className="space-y-3">
+                    <input type="text" placeholder="Título: Ej: ¡Tu regalo ya está en su caja de madera!" value={evidenciaTitulo} onChange={e => setEvidenciaTitulo(e.target.value)} className="w-full text-sm px-3 py-2 rounded-md border border-gray-200 outline-none" />
+                    <textarea placeholder="Mensaje adicional: Ej: El arreglo floral quedó fresco y listo para ruta..." value={evidenciaMensaje} onChange={e => setEvidenciaMensaje(e.target.value)} className="w-full text-sm px-3 py-2 rounded-md border border-gray-200 outline-none resize-none h-16" />
+                    <input type="file" accept="image/*" onChange={e => setEvidenciaFoto(e.target.files?.[0] || null)} className="text-xs w-full text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#8E1B3A] file:text-white hover:file:bg-[#5A0F24]" />
+
+                    <button onClick={handleSubirEvidencia} disabled={isSubiendoEvidencia || !evidenciaTitulo.trim()} className="w-full py-2 bg-[#8E1B3A] text-white rounded-lg text-sm font-bold disabled:opacity-50 mt-2 transition-all">
+                      {isSubiendoEvidencia ? "Subiendo actualización..." : "Enviar Avance Visual"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Información del Cliente</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+                  Información del Cliente
+                </p>
                 <p className="font-bold text-gray-800">{pedidoDetalle.cliente}</p>
-                <p className="text-sm text-gray-600 mt-1 flex items-center gap-2"><MapPin size={14} /> {pedidoDetalle.direccion}</p>
+                <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
+                  <MapPin size={14} /> {pedidoDetalle.direccion}
+                </p>
               </div>
 
               <div className="border-t border-gray-100 pt-4">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Productos del pedido</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                  Productos del pedido
+                </p>
+
                 <div className="space-y-3">
                   {pedidoDetalle.productos.map((producto) => (
-                    <div key={producto.detalleId} className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <div
+                      key={producto.detalleId}
+                      className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border border-gray-100"
+                    >
                       {producto.imagen ? (
                         <img src={producto.imagen} alt={producto.nombre} className="w-12 h-12 rounded-md object-cover border border-gray-200" />
                       ) : (
@@ -663,41 +786,70 @@ export default function PedidosPage() {
                           <ImageIcon size={18} className="text-gray-400" />
                         </div>
                       )}
+
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-[#1A1A1A] text-sm line-clamp-2">{producto.nombre}</p>
+                        <p className="font-bold text-[#1A1A1A] text-sm line-clamp-2">
+                          {producto.nombre}
+                        </p>
                         {producto.personalizacion && (
-                          <p className="text-xs text-yellow-700 mt-1 line-clamp-2">“{producto.personalizacion}”</p>
+                          <p className="text-xs text-yellow-700 mt-1 line-clamp-2">
+                            “{producto.personalizacion}”
+                          </p>
                         )}
                       </div>
-                      <p className="font-black text-[#8E1B3A] shrink-0">Bs. {producto.total}</p>
+
+                      <p className="font-black text-[#8E1B3A] shrink-0">
+                        Bs. {producto.total}
+                      </p>
                     </div>
                   ))}
                 </div>
+
                 <div className="mt-4 flex justify-between items-center border-t border-gray-100 pt-3">
-                  <span className="text-sm font-bold text-gray-500">Total proveedor</span>
-                  <span className="text-lg font-black text-[#8E1B3A]">Bs. {pedidoDetalle.total}</span>
+                  <span className="text-sm font-bold text-gray-500">
+                    Total proveedor
+                  </span>
+                  <span className="text-lg font-black text-[#8E1B3A]">
+                    Bs. {pedidoDetalle.total}
+                  </span>
                 </div>
               </div>
 
               {pedidoDetalle.productos.some((producto) => producto.personalizacion) && (
                 <div className="border-t border-gray-100 pt-4">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Instrucciones especiales</p>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Instrucciones especiales
+                  </p>
+
                   <div className="space-y-2">
-                    {pedidoDetalle.productos.filter((producto) => producto.personalizacion).map((producto) => (
-                      <div key={`mensaje-${producto.detalleId}`} className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl flex items-start gap-3">
-                        <MessageSquare size={18} className="text-yellow-600 shrink-0" />
-                        <div>
-                          <p className="text-xs font-bold text-yellow-900 mb-1">{producto.nombre}</p>
-                          <p className="text-sm font-semibold text-yellow-800 whitespace-pre-wrap">{producto.personalizacion}</p>
+                    {pedidoDetalle.productos
+                      .filter((producto) => producto.personalizacion)
+                      .map((producto) => (
+                        <div
+                          key={`mensaje-${producto.detalleId}`}
+                          className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl flex items-start gap-3"
+                        >
+                          <MessageSquare size={18} className="text-yellow-600 shrink-0" />
+                          <div>
+                            <p className="text-xs font-bold text-yellow-900 mb-1">
+                              {producto.nombre}
+                            </p>
+                            <p className="text-sm font-semibold text-yellow-800 whitespace-pre-wrap">
+                              {producto.personalizacion}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
               )}
             </div>
+
             <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3 border-t border-gray-100">
-              <button onClick={() => setPedidoDetalle(null)} className="px-5 py-2.5 rounded-lg text-sm font-bold bg-[#8E1B3A] text-white hover:bg-[#5A0F24]">
+              <button
+                onClick={() => { setPedidoDetalle(null); setEvidenciaFoto(null); setEvidenciaTitulo(""); setEvidenciaMensaje(""); }}
+                className="px-5 py-2.5 rounded-lg text-sm font-bold bg-[#8E1B3A] text-white hover:bg-[#5A0F24]"
+              >
                 Cerrar Detalles
               </button>
             </div>

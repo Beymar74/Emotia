@@ -327,6 +327,24 @@ export default function Header({
     }
 
     if (
+      notification.tipo.startsWith("pedido") ||
+      notification.tipo === "actualizacion_pedido" ||
+      notification.tipo === "nuevo_pedido"
+    ) {
+      const matchingOrder = accountOverview?.orders.find(
+        (order) => order.id === targetOrderId
+      );
+
+      if (matchingOrder) {
+        openOrderDetail(matchingOrder);
+      } else if (highlightedOrder) {
+        openOrderDetail(highlightedOrder);
+      }
+    }
+
+    if (notification.leida) return;
+
+    if (
       notification.tipo === "pedido" ||
       notification.tipo === "nuevo_pedido" ||
       notification.tipo === "pedido_aprobado" ||
@@ -491,7 +509,7 @@ export default function Header({
   );
 
   // 👇 AQUÍ SE APLICA EL CÓDIGO DE COLORES Y EL DISEÑO RESCATADO 👇
-const notificationMenuContent = (
+  const notificationMenuContent = (
     <>
       <div className={styles.notificationHeader}>
         <div>
@@ -516,10 +534,10 @@ const notificationMenuContent = (
               const match = `${notification.titulo} ${notification.mensaje || ""}`.match(/EM-0*(\d+)/);
               if (match) targetOrderId = parseInt(match[1], 10);
             }
-            
+
             const matchingOrder = targetOrderId ? accountOverview.orders.find(o => o.id === targetOrderId) : null;
             const cleanTitle = notification.titulo.split(':')[0].trim();
-            
+
             // Leemos el color basado en el pedido, o si no hay pedido, basado en el título de la notificación vieja
             const colorStyle = getNotificationColor(matchingOrder ? matchingOrder.estado : `${notification.tipo} ${notification.titulo}`);
 
@@ -527,11 +545,10 @@ const notificationMenuContent = (
               <article
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
-                className={`relative p-3 rounded-xl border-2 transition-all cursor-pointer ${
-                  !notification.leida 
-                    ? `${colorStyle.bg} ${colorStyle.border} shadow-sm` 
-                    : `bg-white ${colorStyle.border} opacity-80 hover:opacity-100 hover:${colorStyle.bg}`
-                }`}
+                className={`relative p-3 rounded-xl border-2 transition-all cursor-pointer ${!notification.leida
+                  ? `${colorStyle.bg} ${colorStyle.border} shadow-sm`
+                  : `bg-white ${colorStyle.border} opacity-80 hover:opacity-100 hover:${colorStyle.bg}`
+                  }`}
               >
                 {/* Puntito de no leído */}
                 {!notification.leida && (
@@ -549,7 +566,7 @@ const notificationMenuContent = (
                         {colorStyle.badge}
                       </span>
                     </div>
-                    
+
                     <div className="mt-1">
                       <h4 className="text-sm font-bold text-[#2A0E18] leading-tight">{matchingOrder.primaryProductName}</h4>
                       <p className="text-[11px] text-[#7A5260] mt-0.5">{matchingOrder.brandName}</p>
@@ -875,10 +892,47 @@ const notificationMenuContent = (
               </div>
             </div>
 
+
+            {/* 👇 MURO DE EVIDENCIAS (NUEVO) 👇 */}
+            {selectedOrder.bitacora && selectedOrder.bitacora.length > 0 && (
+              <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 900, color: '#8E1B3A', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                  📸 Actualizaciones del Proveedor
+                </p>
+                {selectedOrder.bitacora.map((evidencia: any) => (
+                  <div key={evidencia.id} style={{ padding: '1rem', backgroundColor: '#FDFBF9', border: '1px solid rgba(230, 136, 92, 0.2)', borderRadius: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                      <strong style={{ color: '#2A0E18', fontSize: '0.95rem' }}>{evidencia.titulo}</strong>
+                      <span style={{ fontSize: '0.7rem', color: '#9a8a82' }}>{new Date(evidencia.fecha).toLocaleDateString()}</span>
+                    </div>
+                    {evidencia.mensaje && <p style={{ fontSize: '0.85rem', color: '#7A5260', margin: '0 0 0.8rem 0', lineHeight: 1.5 }}>{evidencia.mensaje}</p>}
+                    {evidencia.imagenUrl && (
+                      <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.05)' }}>
+                        <img src={evidencia.imagenUrl} alt="Evidencia" style={{ width: '100%', maxHeight: '250px', objectFit: 'contain', backgroundColor: '#fff' }} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* 👆 FIN MURO DE EVIDENCIAS 👆 */}
+
+
             {selectedOrder.estado === "cancelado" ? (
-              <div className={styles.trackingCancelled}>
-                <CircleSlash size={18} strokeWidth={2} />
-                <p>Este pedido fue cancelado. Si necesitas ayuda, revisa el detalle del pago o contacta a la marca.</p>
+              <div className={styles.trackingCancelled} style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center' }}>
+                  <CircleSlash size={18} strokeWidth={2} />
+                  <strong style={{ fontSize: '0.9rem' }}>Este pedido fue cancelado.</strong>
+                </div>
+
+                {/* 👇 AQUÍ MOSTRAMOS EL MOTIVO 👇 */}
+                {(selectedOrder as any).rejectionReason ? (
+                  <p style={{ marginTop: '0.5rem', backgroundColor: 'rgba(255,255,255,0.5)', padding: '0.5rem', borderRadius: '8px', border: '1px solid rgba(176, 69, 63, 0.2)' }}>
+                    <span style={{ fontWeight: 'bold' }}>Motivo:</span> {(selectedOrder as any).rejectionReason}
+                  </p>
+                ) : (
+                  <p style={{ marginTop: '0.2rem' }}>Si necesitas ayuda, contacta a la marca para más detalles.</p>
+                )}
               </div>
             ) : (
               <div className={styles.trackingSteps}>
