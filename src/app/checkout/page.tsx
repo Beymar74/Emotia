@@ -19,25 +19,25 @@ const metodosPago: Array<{
   descripcion: string;
   icono: typeof QrCode;
 }> = [
-  {
-    id: "qr",
-    titulo: "Código QR",
-    descripcion: "Escanea y paga al instante desde tu banca móvil.",
-    icono: QrCode,
-  },
-  {
-    id: "tarjeta",
-    titulo: "Tarjeta de débito",
-    descripcion: "Paga con tu tarjeta y confirma al instante.",
-    icono: CreditCard,
-  },
-  {
-    id: "transferencia",
-    titulo: "Transferencia bancaria",
-    descripcion: "Haz la transferencia y sube tu comprobante.",
-    icono: Landmark,
-  },
-];
+    {
+      id: "qr",
+      titulo: "Código QR",
+      descripcion: "Escanea y paga al instante desde tu banca móvil.",
+      icono: QrCode,
+    },
+    {
+      id: "tarjeta",
+      titulo: "Tarjeta de débito",
+      descripcion: "Paga con tu tarjeta y confirma al instante.",
+      icono: CreditCard,
+    },
+    {
+      id: "transferencia",
+      titulo: "Transferencia bancaria",
+      descripcion: "Haz la transferencia y sube tu comprobante.",
+      icono: Landmark,
+    },
+  ];
 
 const zonasEntrega: Array<{ id: ZonaEntrega; label: string; eta: string; extra: number }> = [
   { id: "centro", label: "Centro", eta: "Entrega estimada hoy en 1 a 2 horas", extra: 0 },
@@ -72,8 +72,15 @@ export default function CheckoutPage() {
   const [comprobante, setComprobante] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const qrImageUrl = "URL_DE_TU_QR_AQUI"; // Nota: Aquí pondrías la imagen de tu QR real
-  const cuentaBancaria = "Banco Unión - Cuenta corriente 100-2458796";
+  const qrImageUrl = "/logo/qr-emotia.png";
+
+  const cuentaBancaria = `
+      Banco Unión
+      Cuenta Corriente Empresarial
+      Nro: 2025-77821-EMT
+      Titular: Emotia S.R.L.
+      `;
+
   const { items, subtotal, clearCart } = useCart();
   const { isLoggedIn } = useSession();
 
@@ -127,11 +134,11 @@ export default function CheckoutPage() {
 
   const isTarjetaVigente = () => {
     if (fechaTarjeta.length !== 5) return false;
-    
+
     const [mesStr, anioStr] = fechaTarjeta.split('/');
     const mes = parseInt(mesStr, 10);
     const anio = parseInt(anioStr, 10) + 2000;
-    
+
     const fechaActual = new Date();
     const anioActual = fechaActual.getFullYear();
     const mesActual = fechaActual.getMonth() + 1;
@@ -139,7 +146,7 @@ export default function CheckoutPage() {
     if (mes < 1 || mes > 12) return false;
     if (anio < anioActual) return false;
     if (anio === anioActual && mes < mesActual) return false;
-    
+
     return true;
   };
 
@@ -257,9 +264,8 @@ export default function CheckoutPage() {
                 onChange={handleFechaChange}
                 placeholder="MM/AA"
                 inputMode="numeric"
-                className={`min-h-[58px] w-full rounded-[20px] border border-[#E6885C]/18 bg-[#FFFDFC] px-5 text-[#5C3A2E] outline-none transition focus:border-[#C6284F] focus:ring-4 focus:ring-[#C6284F]/10 ${
-                  fechaTarjeta.length === 5 && !isTarjetaVigente() ? "border-red-500 text-red-600 focus:border-red-500 focus:ring-red-500/10" : ""
-                }`}
+                className={`min-h-[58px] w-full rounded-[20px] border border-[#E6885C]/18 bg-[#FFFDFC] px-5 text-[#5C3A2E] outline-none transition focus:border-[#C6284F] focus:ring-4 focus:ring-[#C6284F]/10 ${fechaTarjeta.length === 5 && !isTarjetaVigente() ? "border-red-500 text-red-600 focus:border-red-500 focus:ring-red-500/10" : ""
+                  }`}
               />
             </label>
 
@@ -345,7 +351,7 @@ export default function CheckoutPage() {
               width={240}
               height={240}
               unoptimized
-              className="h-60 w-60 rounded-[26px] object-cover"
+              className="h-60 w-60 rounded-[26px] object-contain"
             />
           )}
         </div>
@@ -365,7 +371,7 @@ export default function CheckoutPage() {
             onChange={(event) => setComprobante(event.target.files?.[0] || null)}
           />
         </label>
-        
+
         <p className="text-center text-sm font-bold uppercase tracking-[0.18em] text-[#8E3651]">Escanea para pagar seguro</p>
       </div>
     );
@@ -549,9 +555,8 @@ export default function CheckoutPage() {
                             key={metodo.id}
                             type="button"
                             onClick={() => setMetodoSeleccionado(metodo.id)}
-                            className={`rounded-[24px] border p-4 transition ${
-                              activo ? "border-[#C6284F] bg-[#FFF5F6] shadow-[0_16px_28px_rgba(198,40,79,0.10)]" : "border-[#E6885C]/12 bg-[#FFFCFA] hover:border-[#C6284F]/30"
-                            }`}
+                            className={`rounded-[24px] border p-4 transition ${activo ? "border-[#C6284F] bg-[#FFF5F6] shadow-[0_16px_28px_rgba(198,40,79,0.10)]" : "border-[#E6885C]/12 bg-[#FFFCFA] hover:border-[#C6284F]/30"
+                              }`}
                           >
                             <div className="flex min-h-[104px] flex-col items-center justify-center gap-3 text-center">
                               <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${activo ? "bg-white text-[#C6284F]" : "bg-[#FFF3E6] text-[#8E3651]"}`}>
@@ -632,7 +637,7 @@ export default function CheckoutPage() {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,#E6885C,#D96A38)] text-3xl font-black text-white sm:h-20 sm:w-20 sm:text-4xl">
               ⏱
             </div>
-            
+
             <p className="mt-6 text-sm font-extrabold uppercase tracking-[0.22em] text-[#8A6F62]">Pago en revisión</p>
             <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] text-[#5C3A2E] sm:text-4xl">Tu pedido está siendo procesado</h2>
             <p className="mt-4 text-base leading-7 text-[#8A6F62]">
