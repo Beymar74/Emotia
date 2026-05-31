@@ -34,7 +34,7 @@ import {
   exportarReporteDashboardEjecutivoExcel,
   exportarReporteDashboardEjecutivoPDF,
 } from "../../../utils/exportExcel_Pdf";
-import { obtenerDashboardProveedor } from "./actions";
+import { obtenerDashboardProveedor, notificarRetiroAdmin } from "./actions";
 
 const P = {
   bordoNegro: "#3D0A1A",
@@ -605,10 +605,10 @@ export default function DashboardPage() {
                         <td className="px-5 py-3 text-center">
                           <span
                             className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] font-medium border ${o.estado === "Pendiente"
-                                ? "bg-red-50 text-red-700 border-red-200"
-                                : o.estado === "Entregado"
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                  : "bg-orange-50 text-orange-700 border-orange-200"
+                              ? "bg-red-50 text-red-700 border-red-200"
+                              : o.estado === "Entregado"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-orange-50 text-orange-700 border-orange-200"
                               }`}
                           >
                             {o.estado}
@@ -904,19 +904,20 @@ export default function DashboardPage() {
       </div>
 
       {/* 👇 MODAL DE LIQUIDACIÓN DE FONDOS 👇 */}
+     {/* 👇 MODAL DE LIQUIDACIÓN DE FONDOS 👇 */}
       {mostrarModalRetiro && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[#3D0A1A]/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col transition-all">
 
             {retiroExitoso ? (
-              // VISTA DE ÉXITO (Reemplaza al alert feo)
+              // VISTA DE ÉXITO ESTÉTICA (Cero alerts, cero texto inventado)
               <div className="p-8 text-center flex flex-col items-center justify-center animate-in zoom-in-95 duration-300">
                 <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 text-green-600 mb-5 shadow-sm border border-green-200">
                   <CheckCircle size={40} />
                 </div>
                 <h2 className="text-2xl font-extrabold text-[#1A1A1A] mb-2">¡Solicitud Enviada!</h2>
                 <p className="text-gray-600 text-sm">
-                  La administración ha recibido tu solicitud. Tu saldo será abonado pronto a tu cuenta bancaria registrada.
+                  La administración ha recibido tu solicitud. Tu saldo será procesado y abonado a tu cuenta bancaria registrada.
                 </p>
               </div>
             ) : (
@@ -945,8 +946,8 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3 border-t border-gray-100">
-                  <button
-                    onClick={() => setMostrarModalRetiro(false)}
+                  <button 
+                    onClick={() => setMostrarModalRetiro(false)} 
                     disabled={isProcesandoRetiro}
                     className="px-4 py-2 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-200 disabled:opacity-50"
                   >
@@ -955,27 +956,32 @@ export default function DashboardPage() {
                   <button
                     onClick={async () => {
                       setIsProcesandoRetiro(true);
-
-                      // AQUÍ LUEGO LLAMAREMOS AL BACKEND PARA LA NOTIFICACIÓN
-                      // await enviarNotificacionAdmin();
-
+                      
+                      try {
+                        // Disparamos la notificación real a la base de datos
+                        await notificarRetiroAdmin(saldoDisponible);
+                      } catch (error) {
+                        console.error("Error al notificar al admin:", error);
+                      }
+                      
+                      // Simulamos el tiempo de carga por UX
                       setTimeout(() => {
                         setIsProcesandoRetiro(false);
-                        setRetiroExitoso(true); // Cambia a la vista de éxito
-
-                        // Cierra el modal automáticamente después de 3 segundos
+                        setRetiroExitoso(true); // Cambia a la vista de éxito bonita
+                        
+                        // Cierra el modal automáticamente a los 3 segundos
                         setTimeout(() => {
                           setMostrarModalRetiro(false);
                           setRetiroExitoso(false);
                         }, 3000);
-
+                        
                       }, 1500);
                     }}
                     disabled={isProcesandoRetiro}
                     className="px-4 py-2 rounded-lg text-xs font-bold bg-green-600 text-white hover:bg-green-700 disabled:opacity-60 flex items-center gap-2"
                   >
                     {isProcesandoRetiro ? (
-                      <><Loader2 size={14} className="animate-spin" /> Procesando...</>
+                      <><Loader2 size={14} className="animate-spin" /> Procesando Abono...</>
                     ) : (
                       "Confirmar Transferencia"
                     )}

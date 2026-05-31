@@ -21,7 +21,7 @@ export async function obtenerProveedoresPendientes() {
         created_at: "desc", // Los más recientes primero
       },
     });
-    
+
     return proveedores;
   } catch (error) {
     console.error("Error al obtener proveedores pendientes:", error);
@@ -103,4 +103,30 @@ export async function cancelarPedido(id: number) {
   } catch (error) {
     return { success: false };
   }
+}
+export async function obtenerNotificacionesAdmin() {
+  const admin = await prisma.usuarios.findFirst({
+    where: {
+      tipo: "admin",
+    },
+  });
+
+  if (!admin) return [];
+
+  return prisma.notificaciones.findMany({
+    where: {
+      usuario_id: admin.id,
+      leida: false,
+    },
+    select: {
+      id: true,
+      titulo: true,
+      mensaje: true,
+      proveedor_id: true, // 👈 importante
+      created_at: true,
+    },
+    orderBy: {
+      created_at: "desc",
+    },
+  });
 }

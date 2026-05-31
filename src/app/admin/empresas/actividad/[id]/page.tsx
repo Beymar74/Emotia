@@ -88,6 +88,19 @@ export default async function DetalleActividadEmpresaPage({
 
   if (!empresa) notFound();
 
+
+  // Marcar notificaciones de esta empresa como leídas
+  await prisma.notificaciones.updateMany({
+    where: {
+      proveedor_id: empresaId,
+      leida: false,
+    },
+    data: {
+      leida: true,
+    },
+  });
+
+
   // --- MATEMÁTICA FINANCIERA (COMISIÓN 8.5%) ---
   const brutoPorLiquidar = Number(ventasPorLiquidarAgg._sum.subtotal || 0);
   const brutoLiquidado = Number(ventasLiquidadasAgg._sum.subtotal || 0);
@@ -98,13 +111,13 @@ export default async function DetalleActividadEmpresaPage({
   // 👇 SERVER ACTION PARA EL BOTÓN DE PAGO 👇
   async function liquidarSaldos() {
     "use server";
-    
+
     // 1. Buscamos todos los pedidos de este proveedor que estén "entregados"
     const pedidosAfectados = await prisma.detalle_pedidos.findMany({
       where: { proveedor_id: empresaId, pedidos: { estado: "entregado" } },
       select: { pedido_id: true }
     });
-    
+
     const ids = pedidosAfectados.map(d => d.pedido_id);
 
     // 2. Si hay pedidos, los pasamos a "liquidado"
@@ -129,11 +142,11 @@ export default async function DetalleActividadEmpresaPage({
 
   const initials = empresa.nombre_negocio
     ? empresa.nombre_negocio
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase()
     : "EM";
 
   const totalPedidos = pedidosCompletados + pedidosCancelados;
@@ -142,10 +155,10 @@ export default async function DetalleActividadEmpresaPage({
     tasaExito === null
       ? "#7A5260"
       : tasaExito >= 80
-      ? "#2D7A47"
-      : tasaExito >= 60
-      ? "#BC9968"
-      : "#A32D2D";
+        ? "#2D7A47"
+        : tasaExito >= 60
+          ? "#BC9968"
+          : "#A32D2D";
 
   const redes = empresa.redes_sociales as Record<string, string> | null;
   const isActivo = empresa.estado === "aprobado";
@@ -162,8 +175,8 @@ export default async function DetalleActividadEmpresaPage({
     totalVendido >= 1000000
       ? `Bs. ${(totalVendido / 1000000).toFixed(1)}M`
       : totalVendido >= 1000
-      ? `Bs. ${(totalVendido / 1000).toFixed(1)}k`
-      : `Bs. ${totalVendido.toFixed(2)}`;
+        ? `Bs. ${(totalVendido / 1000).toFixed(1)}k`
+        : `Bs. ${totalVendido.toFixed(2)}`;
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -213,9 +226,8 @@ export default async function DetalleActividadEmpresaPage({
                   {empresa.nombre_negocio}
                 </h1>
                 <span
-                  className={`text-[10px] font-bold uppercase px-3 py-1 rounded-full border ${
-                    estadoBadge[empresa.estado] ?? "bg-gray-100 text-gray-600 border-gray-200"
-                  }`}
+                  className={`text-[10px] font-bold uppercase px-3 py-1 rounded-full border ${estadoBadge[empresa.estado] ?? "bg-gray-100 text-gray-600 border-gray-200"
+                    }`}
                 >
                   {empresa.estado}
                 </span>
@@ -418,7 +430,7 @@ export default async function DetalleActividadEmpresaPage({
 
         {/* Columna derecha (2/3) */}
         <div className="lg:col-span-2 space-y-5">
-          
+
           {/* 👇 NUEVO PANEL: FINANZAS Y LIQUIDACIÓN 👇 */}
           <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 shadow-sm p-6 relative overflow-hidden">
             <div className="absolute right-0 top-0 w-32 h-32 bg-emerald-500 opacity-5 rounded-bl-full" />
@@ -427,7 +439,7 @@ export default async function DetalleActividadEmpresaPage({
                 <Landmark size={20} /> Finanzas y Liquidación
               </h3>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-5">
               <div className="bg-white rounded-xl p-4 shadow-sm border border-emerald-100">
                 <p className="text-[10px] uppercase font-bold text-gray-500 mb-1">Saldo a favor (Por Liquidar)</p>
@@ -572,11 +584,10 @@ export default async function DetalleActividadEmpresaPage({
                         Bs. {Number(prod.precio_venta).toFixed(2)}
                       </p>
                       <span
-                        className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full ${
-                          prod.activo
+                        className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full ${prod.activo
                             ? "bg-[#EEF8F0] text-[#2D7A47]"
                             : "bg-[#FBF0F0] text-[#A32D2D]"
-                        }`}
+                          }`}
                       >
                         {prod.activo ? "Activo" : "Inactivo"}
                       </span>
