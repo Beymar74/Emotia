@@ -40,7 +40,7 @@ const navSections = [
       { href: "/admin/productos", label: "Catálogo", soloAdmin: false },
       { href: "/admin/categorias", label: "Categorías", soloAdmin: false },
       { href: "/admin/calificaciones", label: "Reseñas de Productos", soloAdmin: false },
-      { href: "/admin/personalizacion", label: "Diseños de Tarjeta", soloAdmin: false },
+      { href: "/admin/personalizacion", label: "Personalización", soloAdmin: false },
     ],
   },
   {
