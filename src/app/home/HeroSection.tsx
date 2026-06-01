@@ -2,7 +2,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, Star, Truck, Gift, CheckCircle, Heart, ShieldCheck } from "lucide-react";
+import { Star, Truck, Gift, CheckCircle, Heart, ShieldCheck } from "lucide-react";
 import { EmotiaIcon } from './EmotiaIcon';
 import { TRUST_ITEMS } from "./constants";
 
@@ -16,7 +16,10 @@ interface HeroSectionProps {
   onOpenRegister?: () => void;
 }
 
-export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
+export default function HeroSection({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onOpenRegister
+}: HeroSectionProps) {
   const router = useRouter();
 
   return (
@@ -40,22 +43,73 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
           <div className="hero-grid">
             <div style={{ display: "flex", flexDirection: "column" }}>
 
-              <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ display: "inline-flex", alignItems: "center", gap: 8, backgroundColor: P.blanco, border: `1px solid ${P.dorado}50`, borderRadius: 100, padding: "6px 16px", marginBottom: 20, width: "fit-content", boxShadow: `0 4px 15px ${P.granate}15` } as any}>
-                <Star size={12} fill={P.dorado} color={P.dorado} />
-                <span style={{ fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "0.75rem", color: P.bordo, letterSpacing: "0.08em", textTransform: "uppercase" }}>La nueva forma de regalar en Bolivia</span>
+              <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ display: "inline-flex", alignItems: "center", gap: 8, backgroundColor: P.blanco, border: `1px solid ${P.dorado}50`, borderRadius: 100, padding: "6px 16px", marginBottom: 20, width: "fit-content", boxShadow: `0 4px 15px ${P.granate}15` } as React.CSSProperties}>
+                <Gift size={12} color={P.dorado} />
+                <span style={{ fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: "0.75rem", color: P.bordo, letterSpacing: "0.08em", textTransform: "uppercase" }}>Emotia • Regalos Exclusivos</span>
               </motion.div>
 
-              <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "clamp(2.6rem, 4.5vw, 4.2rem)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-0.02em", marginBottom: 16, color: P.bordo }}>
-                EMOTIA: Regala emociones<br /><span className="hero-grad-text">inolvidables.</span>
+              <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "clamp(2.4rem, 4vw, 3.8rem)", fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.02em", marginBottom: 16, color: P.bordo }}>
+                Emotia: Regala,<br /> emociones <span className="hero-grad-text"> personaliza momentos.</span>
               </motion.h1>
 
-              <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "1.05rem", color: P.chocolate, lineHeight: 1.6, marginBottom: 32, maxWidth: 520 }}>
-                Sorprende a los que más quieres con detalles únicos. Desde experiencias exclusivas hasta regalos artesanales, con entrega garantizada y empaque premium en La Paz.
+              <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "1.05rem", color: P.chocolate, lineHeight: 1.6, marginBottom: 24, maxWidth: 520 }}>
+                Conectamos con los mejores artesanos y marcas premium en La Paz, Bolivia para crear detalles únicos. Te invitamos a explorar nuestro catálogo de regalos exclusivos y diseñar momentos inolvidables.
               </motion.p>
 
-              <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 36 }}>
-                <motion.button whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} onClick={() => router.push("/producto")} style={{ backgroundImage: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`, color: P.blanco, border: "none", padding: "14px 28px", borderRadius: 100, fontFamily: "'DM Sans',sans-serif", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", boxShadow: `0 8px 25px ${P.granate}40`, display: "flex", alignItems: "center", gap: 8 } as any}>
+              {/* Explorar Catalogo CTAs */}
+              <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 36 }}
+              >
+                <motion.button
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => router.push("/producto")}
+                  style={{
+                    backgroundImage: `linear-gradient(135deg, ${P.granate}, ${P.carmesi})`,
+                    color: P.blanco,
+                    border: "none",
+                    padding: "16px 32px",
+                    borderRadius: 100,
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontWeight: 800,
+                    fontSize: "0.95rem",
+                    cursor: "pointer",
+                    boxShadow: `0 8px 25px ${P.granate}40`,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8
+                  }}
+                >
                   <Gift size={16} strokeWidth={2.5} /> Explorar Catálogo
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => {
+                    const el = document.getElementById("unete");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  style={{
+                    backgroundColor: "transparent",
+                    border: `1.5px solid ${P.dorado}`,
+                    color: P.bordo,
+                    padding: "16px 32px",
+                    borderRadius: 100,
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontWeight: 800,
+                    fontSize: "0.95rem",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    transition: "all 0.2s ease"
+                  }}
+                >
+                  Conocer ecosistema
                 </motion.button>
               </motion.div>
 
@@ -74,15 +128,16 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
             </div>
 
             <motion.div className="hero-image-container" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.2 }} style={{ position: "relative", height: 480, width: "100%" }}>
+
               <div style={{ position: "absolute", inset: "20px 0 0 40px", borderRadius: 30, overflow: "hidden", boxShadow: `0 24px 50px ${P.bordo}20` }}>
                 <img src="https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777328641/emotia_store_lqk7hw.jpg" alt="Regalo Premium" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${P.bordo}90 0%, transparent 40%)` }} />
                 <div style={{ position: "absolute", bottom: 24, left: 24, right: 24 }}>
-                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "1.2rem", fontWeight: 800, color: P.blanco, lineHeight: 1.3 }}>"El detalle perfecto habla por ti."</p>
+                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "1.2rem", fontWeight: 800, color: P.blanco, lineHeight: 1.3 }}>&quot;El detalle perfecto habla por ti.&quot;</p>
                 </div>
               </div>
 
-              <motion.div style={{ position: "absolute", top: 40, left: 0, backgroundColor: P.blanco, padding: "14px 20px", borderRadius: 16, boxShadow: `0 12px 30px ${P.granate}15`, display: "flex", alignItems: "center", gap: 12, animation: "float 6s ease-in-out infinite" } as any}>
+              <motion.div style={{ position: "absolute", top: 40, left: 0, backgroundColor: P.blanco, padding: "14px 20px", borderRadius: 16, boxShadow: `0 12px 30px ${P.granate}15`, display: "flex", alignItems: "center", gap: 12, animation: "float 6s ease-in-out infinite" } as React.CSSProperties}>
                 <div style={{ background: `${P.beige}80`, padding: 8, borderRadius: 10 }}><Gift size={20} color={P.granate} /></div>
                 <div>
                   <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.7rem", fontWeight: 800, color: P.gris, textTransform: "uppercase" }}>Incluido</div>
@@ -90,7 +145,7 @@ export default function HeroSection({ onOpenRegister }: HeroSectionProps) {
                 </div>
               </motion.div>
 
-              <motion.div style={{ position: "absolute", bottom: 80, right: -20, backgroundColor: P.blanco, padding: "14px 20px", borderRadius: 16, boxShadow: `0 12px 30px ${P.granate}15`, display: "flex", alignItems: "center", gap: 12, animation: "float 7s ease-in-out infinite alternate" } as any}>
+              <motion.div style={{ position: "absolute", bottom: 80, right: -20, backgroundColor: P.blanco, padding: "14px 20px", borderRadius: 16, boxShadow: `0 12px 30px ${P.granate}15`, display: "flex", alignItems: "center", gap: 12, animation: "float 7s ease-in-out infinite alternate" } as React.CSSProperties}>
                 <div style={{ background: `${P.dorado}20`, padding: 8, borderRadius: 10 }}><Heart size={20} color={P.dorado} fill={P.dorado} /></div>
                 <div>
                   <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: "0.95rem", fontWeight: 800, color: P.bordo }}>+2,400 Sonrisas</div>

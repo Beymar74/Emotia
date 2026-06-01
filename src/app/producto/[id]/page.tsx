@@ -49,6 +49,11 @@ export default async function DetalleProducto({ params }: PageProps) {
         },
       },
       detalle_pedidos: {
+        where: {
+          calificacion: {
+            not: null,
+          },
+        },
         orderBy: {
           created_at: "desc",
         },
@@ -84,12 +89,30 @@ export default async function DetalleProducto({ params }: PageProps) {
     orderBy: { id: "asc" },
   });
 
+  const empaquesDB = await prisma.empaque_disenos.findMany({
+    where: { activo: true },
+    orderBy: { id: "asc" },
+  });
+
+  const envolturasDB = await prisma.envoltura_disenos.findMany({
+    where: { activo: true },
+    orderBy: { id: "asc" },
+  });
+
+  const listonesDB = await prisma.liston_disenos.findMany({
+    where: { activo: true },
+    orderBy: { id: "asc" },
+  });
+
   return (
     <>
       <ProductDetailClient
         producto={producto}
         comentariosIniciales={comentariosIniciales}
         tarjetasDB={tarjetasDB}
+        empaquesDB={empaquesDB}
+        envolturasDB={envolturasDB}
+        listonesDB={listonesDB}
       />
       <FooterCatalogo />
     </>

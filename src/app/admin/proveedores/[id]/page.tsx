@@ -418,7 +418,7 @@ export default async function DetalleProveedorPage({
           <table className="w-full text-left border-separate border-spacing-0">
             <thead>
               <tr className="bg-[#FDFBF9]/30">
-                {["Producto", "Categoría", "Precio", "Stock", "Estado"].map(
+                {["Producto", "Categoría", "Precio", "Stock", "Reseñas", "IA / Público", "Estado", "Acciones"].map(
                   (h) => (
                     <th
                       key={h}

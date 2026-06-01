@@ -194,6 +194,7 @@ model proveedores {
   password_hash       String            @db.VarChar(255)
   telefono            String?           @db.VarChar(20)
   direccion           String?           @db.VarChar(255)
+  numero_cuenta_bancaria String?        @db.VarChar(80)
   
   // Datos del representante
   rep_nombre          String?           @db.VarChar(150)
@@ -269,6 +270,7 @@ model recomendaciones {
   presupuesto_min      Decimal?   @db.Decimal(10, 2)
   presupuesto_max      Decimal?   @db.Decimal(10, 2)
   productos_sugeridos  Int[]
+  productos_elegidos   Int[]      @default([])
   producto_elegido     Int?
   convertida_en_compra Boolean    @default(false)
   created_at           DateTime   @default(now()) @db.Timestamptz(6)
@@ -359,4 +361,39 @@ model bitacora_pedidos {
   proveedores    proveedores @relation(fields: [proveedor_id], references: [id], onDelete: Cascade)
 
   @@index([pedido_id])
+}
+model empaque_disenos {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique @db.VarChar(80)
+  preview_url String
+  descripcion String?  @db.VarChar(180)
+  activo      Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model envoltura_disenos {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique @db.VarChar(80)
+  preview_url String
+  descripcion String?  @db.VarChar(180)
+  activo      Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model liston_disenos {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique @db.VarChar(80)
+  preview_url String
+  descripcion String?  @db.VarChar(180)
+  activo      Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model personalizacion_fechas {
+  id         Int      @id @default(autoincrement())
+  fecha      DateTime
+  titulo     String   @db.VarChar(100)
+  design_ids Int[] @default([])
+  activo     Boolean  @default(true)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
 }

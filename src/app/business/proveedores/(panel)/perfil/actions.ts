@@ -21,8 +21,7 @@ function normalizarRedesSociales(valor: unknown): RedSocialRegistro[] {
       const red = item as Record<string, unknown>;
 
       return {
-        plataforma:
-          typeof red.plataforma === "string" ? red.plataforma : "",
+        plataforma: typeof red.plataforma === "string" ? red.plataforma : "",
         url: typeof red.url === "string" ? red.url : "",
       };
     })
@@ -34,25 +33,26 @@ export async function obtenerPerfilProveedor() {
     const proveedorSesion = await requireProveedor();
 
     const [proveedor, categoriasDisponibles] = await Promise.all([
-  prisma.proveedores.findUnique({
-    where: {
-      id: proveedorSesion.id,
-    },
-  }),
+      prisma.proveedores.findUnique({
+        where: {
+          id: proveedorSesion.id,
+        },
+      }),
 
-  prisma.categorias.findMany({
-    where: {
-      activo: true,
-    },
-    select: {
-      id: true,
-      nombre: true,
-    },
-    orderBy: {
-      nombre: "asc",
-    },
-  }),
-]);
+      prisma.categorias.findMany({
+        where: {
+          activo: true,
+        },
+        select: {
+          id: true,
+          nombre: true,
+        },
+        orderBy: {
+          nombre: "asc",
+        },
+      }),
+    ]);
+
     if (!proveedor) return null;
 
     return {
@@ -65,6 +65,12 @@ export async function obtenerPerfilProveedor() {
       telefono: proveedor.telefono || "",
       email: proveedor.email,
       direccion: proveedor.direccion || "",
+      // 👇 TUS CAMPOS BANCARIOS REALES 👇
+      banco: proveedor.banco || "",
+      numeroCuenta: proveedor.numero_cuenta || "",
+      titularCuenta: proveedor.titular_cuenta || "",
+      tipoCuenta: proveedor.tipo_cuenta || "",
+      // 👆 ---------------------------- 👆
       logo: proveedor.logo_url || null,
       estado: proveedor.estado,
       ventas: proveedor.total_vendido ? Number(proveedor.total_vendido) : 0,
@@ -85,8 +91,15 @@ export async function actualizarPerfilProveedor(
     descripcion: string;
     telefono: string;
     direccion: string;
+    // 👇 TUS CAMPOS BANCARIOS REALES 👇
+    banco: string;
+    numeroCuenta: string;
+    titularCuenta: string;
+    tipoCuenta: string;
+    // 👆 ---------------------------- 👆
     categorias: string[];
     redesSociales: RedSocialRegistro[];
+    logo?: string | null;
   }
 ) {
   try {
@@ -104,14 +117,22 @@ export async function actualizarPerfilProveedor(
         id: idProveedor,
       },
       data: {
-        nombre_negocio: datos.nombre,
-        descripcion: datos.descripcion,
-        telefono: datos.telefono,
-        direccion: datos.direccion,
+        nombre_negocio: datos.nombre.trim(),
+        descripcion: datos.descripcion.trim() || null,
+        telefono: datos.telefono.trim() || null,
+        direccion: datos.direccion.trim() || null,
+        // 👇 TUS CAMPOS BANCARIOS REALES 👇
+        banco: datos.banco?.trim() || null,
+        numero_cuenta: datos.numeroCuenta?.trim() || null,
+        titular_cuenta: datos.titularCuenta?.trim() || null,
+        tipo_cuenta: datos.tipoCuenta?.trim() || null,
+        // 👆 ---------------------------- 👆
         categorias: datos.categorias || [],
         redes_sociales: datos.redesSociales || [],
+        logo_url: datos.logo || null,
       },
     });
+
     revalidatePath("/business/proveedores/perfil");
 
     return { success: true };

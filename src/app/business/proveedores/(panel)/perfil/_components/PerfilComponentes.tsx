@@ -13,6 +13,7 @@ import {
   Trash2,
   Wallet,
   Star,
+  CreditCard,
 } from "lucide-react";
 
 export interface RedSocialRegistro {
@@ -33,6 +34,12 @@ export interface PerfilBusinessData {
   telefono: string;
   email: string;
   direccion: string;
+  // 👇 AQUÍ ESTÁN LOS CAMPOS BANCARIOS CORRECTOS 👇
+  banco: string;
+  numeroCuenta: string;
+  titularCuenta: string;
+  tipoCuenta: string;
+  // 👆 ------------------------------------------ 👆
   logo: string | null;
   estado?: string;
   ventas?: number;
@@ -165,13 +172,14 @@ export function TarjetaLogo({
     </div>
   );
 }
+
 export function FormulariosPerfil({
   businessData,
   setBusinessData,
 }: FormulariosPerfilProps) {
   const toggleCategoria = (categoria: string) => {
     setBusinessData((prev) => {
-  if (!prev) return prev;
+      if (!prev) return prev;
       const existe = prev.categorias.includes(categoria);
 
       return {
@@ -185,7 +193,7 @@ export function FormulariosPerfil({
 
   const agregarRedSocial = () => {
     setBusinessData((prev) => {
-  if (!prev) return prev;
+      if (!prev) return prev;
       const usadas = prev.redesSociales.map((r) => r.plataforma);
 
       const disponibles = PLATAFORMAS.filter(
@@ -213,7 +221,7 @@ export function FormulariosPerfil({
     valor: string
   ) => {
     setBusinessData((prev) => {
-  if (!prev) return prev;
+      if (!prev) return prev;
       const nuevas = [...prev.redesSociales];
 
       nuevas[index] = {
@@ -293,73 +301,54 @@ export function FormulariosPerfil({
 
             <div className="flex flex-wrap gap-2">
               {businessData.categoriasDisponibles.map((cat) => {
-  const active = businessData.categorias.includes(cat.nombre);
+                const active = businessData.categorias.includes(cat.nombre);
 
-  return (
-    <button
-      key={cat.id}
-      type="button"
-      onClick={() => toggleCategoria(cat.nombre)}
-      className="px-4 py-2 rounded-xl text-sm font-bold border transition-all"
-      style={{
-        background: active ? "#8E1B3A" : "#FFFFFF",
-        color: active ? "#FFFFFF" : "#5C3A2E",
-        borderColor: active ? "#8E1B3A" : "#F5E6D0",
-        boxShadow: active ? "0 4px 12px rgba(142,27,58,0.18)" : "none",
-      }}
-    >
-      {cat.nombre}
-    </button>
-  );
-})}
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => toggleCategoria(cat.nombre)}
+                    className="px-4 py-2 rounded-xl text-sm font-bold border transition-all"
+                    style={{
+                      background: active ? "#8E1B3A" : "#FFFFFF",
+                      color: active ? "#FFFFFF" : "#5C3A2E",
+                      borderColor: active ? "#8E1B3A" : "#F5E6D0",
+                      boxShadow: active ? "0 4px 12px rgba(142,27,58,0.18)" : "none",
+                    }}
+                  >
+                    {cat.nombre}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Contacto */}
+      {/* Contacto y Bancos */}
       <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#F5E6D0] relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#3D0A1A] via-[#8E1B3A] to-[#BC9968]" />
         <h3 className="text-sm font-bold text-[#8E1B3A] uppercase tracking-widest mb-6 flex items-center gap-2">
           <Mail size={18} />
-          Contacto y presencia digital
+          Contacto y facturación
         </h3>
 
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="relative">
-              <Phone
-                size={16}
-                className="absolute left-4 top-[42px] text-gray-400"
-              />
-
-              <label className="block text-xs font-bold text-gray-400 uppercase mb-2">
-                Teléfono
-              </label>
-
+              <Phone size={16} className="absolute left-4 top-[42px] text-gray-400" />
+              <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Teléfono</label>
               <input
                 type="text"
                 value={businessData.telefono}
-                onChange={(e) =>
-                  setBusinessData({
-                    ...businessData,
-                    telefono: e.target.value,
-                  })
-                }
+                onChange={(e) => setBusinessData({ ...businessData, telefono: e.target.value })}
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-[#8E1B3A] focus:ring-2 focus:ring-[#8E1B3A]/10 transition-all"
               />
             </div>
 
             <div className="relative">
-              <Mail
-                size={16}
-                className="absolute left-4 top-[42px] text-gray-400"
-              />
-
-              <label className="block text-xs font-bold text-gray-400 uppercase mb-2">
-                Correo
-              </label>
-
+              <Mail size={16} className="absolute left-4 top-[42px] text-gray-400" />
+              <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Correo</label>
               <input
                 type="email"
                 disabled
@@ -370,27 +359,85 @@ export function FormulariosPerfil({
           </div>
 
           <div className="relative">
-            <MapPin
-              size={16}
-              className="absolute left-4 top-[42px] text-gray-400"
-            />
-
-            <label className="block text-xs font-bold text-gray-400 uppercase mb-2">
-              Dirección
-            </label>
-
+            <MapPin size={16} className="absolute left-4 top-[42px] text-gray-400" />
+            <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Dirección</label>
             <input
               type="text"
               value={businessData.direccion}
-              onChange={(e) =>
-                setBusinessData({
-                  ...businessData,
-                  direccion: e.target.value,
-                })
-              }
+              onChange={(e) => setBusinessData({ ...businessData, direccion: e.target.value })}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-[#8E1B3A] focus:ring-2 focus:ring-[#8E1B3A]/10 transition-all"
             />
           </div>
+
+          {/* 👇 NUEVA SECCIÓN: DATOS BANCARIOS COMPLETOS 👇 */}
+          <div className="bg-[#FDFBF9] border border-[#F5E6D0] rounded-2xl p-5">
+            <div className="flex items-start gap-3 mb-5">
+              <div className="h-10 w-10 rounded-xl bg-[#F5E6D0] text-[#8E1B3A] flex items-center justify-center shrink-0">
+                <CreditCard size={20} />
+              </div>
+              <div>
+                <h4 className="text-sm font-black text-[#3D0A1A]">
+                  Datos bancarios para liquidación
+                </h4>
+                <p className="text-xs text-[#7A5260] mt-1 leading-relaxed">
+                  Registra la cuenta donde la Administración de Emotia realizará las transferencias (ACH) de tus ventas acumuladas.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Banco</label>
+                <input
+                  type="text"
+                  value={businessData.banco}
+                  onChange={(e) => setBusinessData({ ...businessData, banco: e.target.value })}
+                  placeholder="Ej: Banco Mercantil Santa Cruz"
+                  className="w-full px-4 py-3 bg-white border border-[#F5E6D0] rounded-xl outline-none focus:border-[#8E1B3A] focus:ring-2 focus:ring-[#8E1B3A]/10 transition-all font-semibold text-[#3D0A1A]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Tipo de Cuenta</label>
+                <select
+                  value={businessData.tipoCuenta}
+                  onChange={(e) => setBusinessData({ ...businessData, tipoCuenta: e.target.value })}
+                  className="w-full px-4 py-3 bg-white border border-[#F5E6D0] rounded-xl outline-none focus:border-[#8E1B3A] focus:ring-2 focus:ring-[#8E1B3A]/10 transition-all font-semibold text-[#3D0A1A]"
+                >
+                  <option value="">Selecciona un tipo...</option>
+                  <option value="Caja de Ahorro">Caja de Ahorro</option>
+                  <option value="Cuenta Corriente">Cuenta Corriente</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Número de Cuenta</label>
+                <input
+                  type="text"
+                  value={businessData.numeroCuenta}
+                  onChange={(e) => setBusinessData({ ...businessData, numeroCuenta: e.target.value })}
+                  placeholder="Ej: 100000123456789"
+                  className="w-full px-4 py-3 bg-white border border-[#F5E6D0] rounded-xl outline-none focus:border-[#8E1B3A] focus:ring-2 focus:ring-[#8E1B3A]/10 transition-all font-semibold text-[#3D0A1A]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Nombre del Titular</label>
+                <input
+                  type="text"
+                  value={businessData.titularCuenta}
+                  onChange={(e) => setBusinessData({ ...businessData, titularCuenta: e.target.value })}
+                  placeholder="Ej: Juan Pérez"
+                  className="w-full px-4 py-3 bg-white border border-[#F5E6D0] rounded-xl outline-none focus:border-[#8E1B3A] focus:ring-2 focus:ring-[#8E1B3A]/10 transition-all font-semibold text-[#3D0A1A]"
+                />
+              </div>
+            </div>
+
+            <p className="text-[11px] text-[#BC9968] mt-4 font-bold uppercase tracking-wider">
+              * Esta información es estrictamente confidencial.
+            </p>
+          </div>
+          {/* 👆 FIN SECCIÓN DATOS BANCARIOS 👆 */}
 
           <div>
             <div className="flex justify-between items-center mb-4">

@@ -60,28 +60,91 @@ export async function obtenerProductosProveedor() {
           nombre: true,
         },
       },
+      detalle_pedidos: {
+        where: {
+          calificacion: {
+            not: null,
+          },
+        },
+        orderBy: {
+          created_at: "desc",
+        },
+        select: {
+          id: true,
+          calificacion: true,
+          resena: true,
+          created_at: true,
+          pedidos: {
+            select: {
+              usuarios: {
+                select: {
+                  nombre: true,
+                  apellido: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
-  return productos.map((producto) => ({
-    id: producto.id,
-    nombre: producto.nombre,
-    descripcion: producto.descripcion || "",
-    categoriaId: producto.categoria_id,
-    categoria: producto.categorias?.nombre || "Sin categoría",
-    precioBase: producto.precio_base.toString(),
-    precioVenta: producto.precio_venta.toString(),
-    stock: producto.stock,
-    imagenUrl: producto.imagen_url,
-    ocasiones: producto.ocasiones || [],
-    personalidades: producto.personalidades || [],
-    generoDestinatario: producto.genero_destinatario || "cualquiera",
-    edadMin: producto.edad_min?.toString() || "",
-    edadMax: producto.edad_max?.toString() || "",
-    permiteMensaje: producto.permite_mensaje,
-    permiteEmpaque: producto.permite_empaque,
-    activo: producto.activo,
-  }));
+  return productos.map((producto) => {
+    const reseñas = producto.detalle_pedidos || [];
+
+    const cantidadResenas = reseñas.length;
+
+    const promedioResenas =
+      cantidadResenas > 0
+        ? reseñas.reduce(
+            (total, item) => total + Number(item.calificacion || 0),
+            0
+          ) / cantidadResenas
+        : 0;
+
+    const ultimaResena = reseñas[0];
+    
+    return {
+      id: producto.id,
+      nombre: producto.nombre,
+      descripcion: producto.descripcion || "",
+      categoriaId: producto.categoria_id,
+      categoria: producto.categorias?.nombre || "Sin categoría",
+      precioBase: producto.precio_base.toString(),
+      precioVenta: producto.precio_venta.toString(),
+      stock: producto.stock,
+      imagenUrl: producto.imagen_url,
+      ocasiones: producto.ocasiones || [],
+      personalidades: producto.personalidades || [],
+      generoDestinatario: producto.genero_destinatario || "cualquiera",
+      edadMin: producto.edad_min?.toString() || "",
+      edadMax: producto.edad_max?.toString() || "",
+      permiteMensaje: producto.permite_mensaje,
+      permiteEmpaque: producto.permite_empaque,
+      activo: producto.activo,
+      promedioResenas: Number(promedioResenas.toFixed(1)),
+      cantidadResenas,
+      ultimaResena: ultimaResena
+        ? {
+            autor: `${ultimaResena.pedidos.usuarios.nombre} ${
+              ultimaResena.pedidos.usuarios.apellido || ""
+            }`.trim(),
+            calificacion: ultimaResena.calificacion || 0,
+            texto: ultimaResena.resena || "",
+            fecha: ultimaResena.created_at.toISOString(),
+          }
+        : null,
+      resenas: reseñas.map((item) => ({
+      id: item.id,
+      autor: `${item.pedidos.usuarios.nombre} ${
+        item.pedidos.usuarios.apellido || ""
+      }`.trim(),
+      calificacion: item.calificacion || 0,
+      texto: item.resena || "",
+      fecha: item.created_at.toISOString(),
+  })),
+    };
+  });
 }
 
 function validarProducto(datos: DatosProductoProveedor) {

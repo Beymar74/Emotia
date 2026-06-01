@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { stackServerApp } from "@/lib/stack";
 
 type RecommendationIntent = {
   destinatario: string;
@@ -42,10 +44,107 @@ function extractJsonFromText(text: string) {
   }
 }
 
+async function getCatalogUsuarioId() {
+  const currentUser = await stackServerApp.getUser({ or: "return-null" });
+
+  if (!currentUser?.primaryEmail) {
+    return null;
+  }
+
+  const usuario = await prisma.usuarios.findUnique({
+    where: {
+      email: currentUser.primaryEmail,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return usuario?.id ?? null;
+}
+
+function normalizarTextoReporte(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function normalizarPersonalidad(value: string) {
+  const personalidad = normalizarTextoReporte(value);
+
+  if (!personalidad) return [];
+
+  return personalidad
+    .split(/[,\s/]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 5);
+}
+
 export async function POST(request: Request) {
   try {
-    const { prompt } = (await request.json()) as { prompt?: string };
+      const body = (await request.json()) as {
+    prompt?: string;
+    intent?: Partial<RecommendationIntent>;
+    productosSugeridos?: number[];
+  };
 
+  const { prompt } = body;
+  const usuarioId = await getCatalogUsuarioId();
+
+  if (!usuarioId) {
+    return NextResponse.json(
+      {
+        success: false,
+        authRequired: true,
+        error: "Inicia sesión para usar las recomendaciones inteligentes de Emotia.",
+      },
+      { status: 401 }
+    );
+  }
+    if (body.intent) {
+    const intent = normalizeIntent(body.intent);
+    let recomendacionId: number | null = null;
+
+    try {
+  const productosSugeridos = Array.isArray(body.productosSugeridos)
+    ? body.productosSugeridos
+        .map((id) => Number(id))
+        .filter((id) => Number.isInteger(id) && id > 0)
+        .slice(0, 12)
+    : [];
+
+  const recomendacion = await prisma.recomendaciones.create({
+    data: {
+      usuario_id: usuarioId,
+      destinatario_rel: intent.destinatario
+        ? normalizarTextoReporte(intent.destinatario)
+        : null,
+      destinatario_edad: intent.edad,
+      destinatario_genero: "cualquiera",
+      personalidad: normalizarPersonalidad(intent.personalidad),
+      ocasion: intent.ocasion ? normalizarTextoReporte(intent.ocasion) : null,
+      presupuesto_min: null,
+      presupuesto_max: intent.presupuestoMax,
+      productos_sugeridos: productosSugeridos,
+      productos_elegidos: [],
+      producto_elegido: null,
+      convertida_en_compra: false,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  recomendacionId = recomendacion.id;
+} catch (error) {
+  console.error("No se pudo registrar la recomendación manual:", error);
+}
+
+    return NextResponse.json({
+      success: true,
+      intent,
+      recomendacionId,
+    });
+  }
     if (!prompt || prompt.trim().length < 4) {
       return NextResponse.json(
         {
@@ -150,10 +249,46 @@ Reglas:
     }
 
     const parsed = extractJsonFromText(content) as Partial<RecommendationIntent>;
+    const intent = normalizeIntent(parsed);
+
+    let recomendacionId: number | null = null;
+
+    try {
+      const usuarioId = await getCatalogUsuarioId();
+
+      if (usuarioId) {
+        const recomendacion = await prisma.recomendaciones.create({
+          data: {
+            usuario_id: usuarioId,
+            destinatario_rel: intent.destinatario
+              ? normalizarTextoReporte(intent.destinatario)
+              : null,
+            destinatario_edad: intent.edad,
+            destinatario_genero: "cualquiera",
+            personalidad: normalizarPersonalidad(intent.personalidad),
+            ocasion: intent.ocasion ? normalizarTextoReporte(intent.ocasion) : null,
+            presupuesto_min: null,
+            presupuesto_max: intent.presupuestoMax,
+            productos_sugeridos: [],
+            productos_elegidos: [],
+            producto_elegido: null,
+            convertida_en_compra: false,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        recomendacionId = recomendacion.id;
+      }
+    } catch (error) {
+      console.error("No se pudo registrar la recomendación IA:", error);
+    }
 
     return NextResponse.json({
       success: true,
-      intent: normalizeIntent(parsed),
+      intent,
+      recomendacionId,
     });
   } catch (error) {
     console.error("Error interpretando recomendación:", error);
@@ -162,6 +297,150 @@ Reglas:
       {
         success: false,
         error: "Ocurrió un error al interpretar la recomendación.",
+      },
+      { status: 500 }
+    );
+  }
+}
+export async function PATCH(request: Request) {
+  try {
+    const body = (await request.json()) as {
+      recomendacionId?: number;
+      productosSugeridos?: number[];
+      productoElegido?: number;
+      convertidaEnCompra?: boolean;
+    };
+
+    const recomendacionId = Number(body.recomendacionId);
+
+    if (!Number.isInteger(recomendacionId) || recomendacionId <= 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Recomendación inválida.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const usuarioId = await getCatalogUsuarioId();
+
+    if (!usuarioId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Usuario no autenticado.",
+        },
+        { status: 401 }
+      );
+    }
+
+    const data: {
+      productos_sugeridos?: number[];
+      productos_elegidos?: number[];
+      producto_elegido?: number;
+      convertida_en_compra?: boolean;
+    } = {};
+
+    if (Array.isArray(body.productosSugeridos)) {
+      data.productos_sugeridos = body.productosSugeridos
+        .map((id) => Number(id))
+        .filter((id) => Number.isInteger(id) && id > 0)
+        .slice(0, 12);
+    }
+
+    if (body.productoElegido !== undefined && body.productoElegido !== null) {
+  const productoElegido = Number(body.productoElegido);
+
+  if (Number.isInteger(productoElegido) && productoElegido > 0) {
+    const recomendacionActual = await prisma.recomendaciones.findFirst({
+      where: {
+        id: recomendacionId,
+        usuario_id: usuarioId,
+      },
+      select: {
+        producto_elegido: true,
+        productos_elegidos: true,
+      },
+    });
+
+    if (!recomendacionActual) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No se encontró la recomendación para este usuario.",
+          debug: {
+            recomendacionId,
+            usuarioId,
+          },
+        },
+        { status: 404 }
+      );
+    }
+
+    const productosElegidosActuales =
+      recomendacionActual.productos_elegidos || [];
+
+    const productosElegidos = Array.from(
+      new Set([...productosElegidosActuales, productoElegido])
+    );
+
+    data.productos_elegidos = productosElegidos;
+
+    if (!recomendacionActual.producto_elegido) {
+      data.producto_elegido = productoElegido;
+    }
+  }
+}
+
+    if (typeof body.convertidaEnCompra === "boolean") {
+      data.convertida_en_compra = body.convertidaEnCompra;
+    }
+
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No hay datos válidos para actualizar.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const updated = await prisma.recomendaciones.updateMany({
+      where: {
+        id: recomendacionId,
+        usuario_id: usuarioId,
+      },
+      data,
+    });
+
+    if (updated.count === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No se encontró la recomendación para este usuario.",
+          debug: {
+            recomendacionId,
+            usuarioId,
+            data,
+          },
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      updated: updated.count,
+    });
+  } catch (error) {
+    console.error("Error actualizando recomendación IA:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "No se pudo actualizar la recomendación.",
       },
       { status: 500 }
     );

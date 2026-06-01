@@ -25,6 +25,9 @@ async function main() {
     console.log('🧹 Limpiando base de datos...')
     await prisma.$transaction([
         prisma.personalizaciones.deleteMany(),
+        prisma.liston_disenos.deleteMany(),
+        prisma.envoltura_disenos.deleteMany(),
+        prisma.empaque_disenos.deleteMany(),
         prisma.tarjeta_disenos.deleteMany(),
         prisma.notificaciones.deleteMany(),
         prisma.recordatorios.deleteMany(),

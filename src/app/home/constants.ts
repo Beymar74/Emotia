@@ -94,7 +94,7 @@ export const TESTIMONIALS = [
 ];
 
 export const TRUST_ITEMS = [
-  { icon:"Truck",        label:"Envíos a nivel nacional" },
+  { icon:"Truck",        label:"Envíos a seguros" },
   { icon:"Package",      label:"Empaque premium garantizado" },
   { icon:"PenTool",      label:"Dedicatorias personalizadas" },
   { icon:"Award",        label:"Selección artesanal exclusiva" },

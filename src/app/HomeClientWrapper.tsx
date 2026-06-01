@@ -2,12 +2,18 @@
 import React, { useState } from "react";
 import Navbar from "./home/Navbar";
 import HeroSection from "./home/HeroSection";
+import EcosystemSection from "./home/EcosystemSection";
 import ProductsSection from "./home/ProductsSection";
-import JoinSection from "./home/JoinSection";
 import Footer from "./home/Footer";
 import AuthModal from "./home/AuthModal";
 
-export default function HomeClientWrapper({ initialProducts }: { initialProducts: any[] }) {
+export default function HomeClientWrapper({
+  initialProducts,
+  initialBrands
+}: {
+  initialProducts: any[];
+  initialBrands: string[];
+}) {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<'login' | 'register'>('register');
 
@@ -25,11 +31,11 @@ export default function HomeClientWrapper({ initialProducts }: { initialProducts
     <main style={{ minHeight: "100vh", background: "#FFF3E6", overflowX: "hidden" }}>
       <Navbar onOpenLogin={openLogin} onOpenRegister={openRegister} />
       <HeroSection onOpenRegister={openRegister} />
-      <ProductsSection initialProducts={initialProducts} />
       
-      {/* 👇 AQUÍ LE PONEMOS EL ID "unete" PARA QUE EL FOOTER LO ENCUENTRE 👇 */}
+      <ProductsSection initialProducts={initialProducts} initialBrands={initialBrands} />
+      
       <div id="unete">
-        <JoinSection onOpenRegister={openRegister} />
+        <EcosystemSection />
       </div>
       
       <Footer />

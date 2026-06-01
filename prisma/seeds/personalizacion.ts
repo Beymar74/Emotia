@@ -1,7 +1,9 @@
 import { PrismaClient } from '../../src/generated/prisma/client'
+import type { Prisma } from '../../src/generated/prisma/client'
+import { DISENOS_EMPAQUE, DISENOS_ENVOLTURA, DISENOS_LISTON } from '../../src/lib/personalization-designs'
 
 
-const DISENOS_TARJETA = [
+const DISENOS_TARJETA: Prisma.tarjeta_disenosCreateInput[] = [
     {
         nombre: 'Elegante',
         design_url: 'https://res.cloudinary.com/dcq7xfyyn/image/upload/v1777322450/emotia3_bmutfx.png',
@@ -52,6 +54,31 @@ export async function seedPersonalizacion(prisma: PrismaClient) {
         })
     }
 
+    // ── 1.1 Seedear catálogos visuales ──
+    for (const diseno of DISENOS_EMPAQUE) {
+        await prisma.empaque_disenos.upsert({
+            where: { nombre: diseno.nombre },
+            update: diseno,
+            create: diseno,
+        })
+    }
+
+    for (const diseno of DISENOS_ENVOLTURA) {
+        await prisma.envoltura_disenos.upsert({
+            where: { nombre: diseno.nombre },
+            update: diseno,
+            create: diseno,
+        })
+    }
+
+    for (const diseno of DISENOS_LISTON) {
+        await prisma.liston_disenos.upsert({
+            where: { nombre: diseno.nombre },
+            update: diseno,
+            create: diseno,
+        })
+    }
+
     // ── 2. Seedear personalizaciones ──
     const carritos = await prisma.carrito.findMany({
         select: { id: true },
@@ -65,12 +92,7 @@ export async function seedPersonalizacion(prisma: PrismaClient) {
 
     const nombres = DISENOS_TARJETA.map((d) => d.nombre)
 
-    const personalizacionesData: Array<{
-        carrito_id?: number
-        detalle_pedido_id?: number
-        tipo_tarjeta: string
-        mensaje: string
-    }> = []
+    const personalizacionesData: Prisma.personalizacionesCreateManyInput[] = []
 
     // Personalizar cada item del carrito
     for (let i = 0; i < carritos.length; i++) {
