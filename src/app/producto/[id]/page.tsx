@@ -49,6 +49,11 @@ export default async function DetalleProducto({ params }: PageProps) {
         },
       },
       detalle_pedidos: {
+        where: {
+          calificacion: {
+            not: null,
+          },
+        },
         orderBy: {
           created_at: "desc",
         },
