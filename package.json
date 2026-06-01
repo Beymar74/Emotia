@@ -68,5 +68,11 @@
     "tsx": "^4.22.4",
     "typescript": "^5",
     "wrangler": "^4.74.0"
+  },
+  "overrides": {
+    "lucide-react": {
+      "react": "$react",
+      "react-dom": "$react-dom"
+    }
   }
 }
