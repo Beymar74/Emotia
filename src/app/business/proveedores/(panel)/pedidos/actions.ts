@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { requireProveedor } from "@/lib/auth-proveedor";
-import { revalidatePath } from "next/cache"; // IMPORTANTE: Agrega esto arriba
+import { revalidatePath } from "next/cache";
 
 const FLUJO_ESTADOS = [
   "pendiente",
@@ -53,12 +53,21 @@ type PedidoAgrupado = {
   personalizacion: string | null;
   imagen: string | null;
   producto: string;
+  comprobante_url?: string | null;
   productos: {
     detalleId: number;
     nombre: string;
     imagen: string | null;
     personalizacion: string | null;
     total: number;
+  }[];
+  // 👇 NUEVO: Agregamos la bitácora al tipo 👇
+  bitacora: {
+    id: number;
+    titulo: string;
+    mensaje: string | null;
+    imagen_url: string | null;
+    fecha: string;
   }[];
 };
 
@@ -73,26 +82,19 @@ export async function obtenerPedidosProveedor() {
       pedidos: {
         include: {
           usuarios: {
-            select: {
-              nombre: true,
-              apellido: true,
-            },
+            select: { nombre: true, apellido: true },
           },
           direcciones: {
-            select: {
-              calle: true,
-              zona: true,
-              ciudad: true,
-            },
+            select: { calle: true, zona: true, ciudad: true },
           },
+          // 👇 Traemos la bitácora de este pedido 👇
+          bitacora_pedidos: {
+            orderBy: { created_at: "desc" }
+          }
         },
       },
       productos: {
-        select: {
-          nombre: true,
-          imagen_url: true,
-          permite_mensaje: true,
-        },
+        select: { nombre: true, imagen_url: true, permite_mensaje: true },
       },
     },
     orderBy: {
@@ -107,17 +109,15 @@ export async function obtenerPedidosProveedor() {
 
     const direccion = detalle.pedidos.direcciones
       ? [
-          detalle.pedidos.direcciones.calle,
-          detalle.pedidos.direcciones.zona,
-          detalle.pedidos.direcciones.ciudad,
-        ]
-          .filter(Boolean)
-          .join(", ")
+        detalle.pedidos.direcciones.calle,
+        detalle.pedidos.direcciones.zona,
+        detalle.pedidos.direcciones.ciudad,
+      ]
+        .filter(Boolean)
+        .join(", ")
       : "Dirección no registrada";
 
-    const cliente = `${detalle.pedidos.usuarios.nombre} ${
-      detalle.pedidos.usuarios.apellido || ""
-    }`.trim();
+    const cliente = `${detalle.pedidos.usuarios.nombre} ${detalle.pedidos.usuarios.apellido || ""}`.trim();
 
     const productoDetalle = {
       detalleId: detalle.id,
@@ -142,9 +142,16 @@ export async function obtenerPedidosProveedor() {
         personalizacion: detalle.mensaje_personal || null,
         imagen: detalle.productos.imagen_url,
         producto: detalle.productos.nombre,
+        comprobante_url: detalle.pedidos.comprobante_url,
         productos: [productoDetalle],
+        bitacora: detalle.pedidos.bitacora_pedidos.map(b => ({
+          id: b.id,
+          titulo: b.titulo,
+          mensaje: b.mensaje,
+          imagen_url: b.imagen_url,
+          fecha: b.created_at.toISOString()
+        }))
       });
-
       continue;
     }
 
@@ -183,7 +190,7 @@ export async function avanzarEstadoPedidoProveedor(pedidoId: number) {
       proveedor_id: proveedor.id,
     },
     include: {
-      pedidos: true, // Vital para sacar el usuario_id
+      pedidos: true,
     },
   });
 
@@ -200,7 +207,6 @@ export async function avanzarEstadoPedidoProveedor(pedidoId: number) {
     };
   }
 
-  // 1. Textos adaptados a la experiencia de Emotia
   const mensajesNotificacion: Record<string, { titulo: string; descripcion: string }> = {
     en_preparacion: {
       titulo: "Preparación y confirmación",
@@ -221,35 +227,97 @@ export async function avanzarEstadoPedidoProveedor(pedidoId: number) {
     descripcion: `Tu pedido ha pasado a la fase: ${nuevoEstado}`,
   };
 
-  // 2. Transacción: Actualiza el pedido y crea la notificación al mismo tiempo
   await prisma.$transaction([
     prisma.pedidos.update({
-      where: {
-        id: pedidoId,
-      },
-      data: {
-        estado: nuevoEstado,
-      },
+      where: { id: pedidoId },
+      data: { estado: nuevoEstado },
     }),
-    
-    // Usamos el modelo "notificaciones" exacto de tu schema.prisma
     prisma.notificaciones.create({
       data: {
         usuario_id: detalle.pedidos.usuario_id,
-        tipo: "actualizacion_pedido", // Coincide con tu VarChar(50)
-        titulo: infoNotificacion.titulo,
+        tipo: `pedido_${nuevoEstado}`,
+        titulo: `EM-${String(pedidoId).padStart(4, "0")}: ${infoNotificacion.titulo}`,
         mensaje: infoNotificacion.descripcion,
         leida: false,
+        // Agregamos la referencia al pedido para que el frontend lo pueda enlazar fácil
       },
     }),
   ]);
 
-  // 3. Revalidamos la ruta para que la UI del cliente se refresque
-  // Ajusta esta ruta según dónde esté tu layout principal con la campanita
-  revalidatePath("/", "layout"); 
+  revalidatePath("/", "layout");
 
   return {
     success: true,
     nuevoEstado,
   };
+}
+
+// 👇 1. ARREGLAMOS EL RECHAZO (AHORA SÍ NOTIFICA AL CLIENTE) 👇
+export async function rechazarPagoProveedor(pedidoId: number, motivo: string) {
+  try {
+    const pedido = await prisma.pedidos.findUnique({ where: { id: pedidoId }, select: { usuario_id: true } });
+    if (!pedido) throw new Error("Pedido no encontrado");
+
+    await prisma.$transaction([
+      prisma.pedidos.update({
+        where: { id: pedidoId },
+        data: {
+          estado: "cancelado",
+          motivo_rechazo: motivo
+        },
+      }),
+      prisma.notificaciones.create({
+        data: {
+          usuario_id: pedido.usuario_id,
+          tipo: "pedido_cancelado",
+          titulo: `Pago rechazado: EM-${String(pedidoId).padStart(4, "0")}`,
+          mensaje: `Tu comprobante de pago fue rechazado. Motivo: ${motivo}`,
+          leida: false,
+        }
+      })
+    ]);
+
+    revalidatePath("/", "layout");
+    return { success: true };
+  } catch (error) {
+    console.error("Error al rechazar pago:", error);
+    return { success: false, message: "No se pudo rechazar el pedido." };
+  }
+}
+
+// 👇 2. NUEVA FUNCIÓN: LA MÁQUINA DE CONFIANZA (BITÁCORA) 👇
+export async function agregarEvidenciaPedido(pedidoId: number, titulo: string, mensaje: string, imagenBase64: string | null) {
+  try {
+    const proveedor = await requireProveedor();
+    const pedido = await prisma.pedidos.findUnique({ where: { id: pedidoId }, select: { usuario_id: true } });
+    if (!pedido) throw new Error("Pedido no encontrado");
+
+    await prisma.$transaction([
+      prisma.bitacora_pedidos.create({
+        data: {
+          pedido_id: pedidoId,
+          proveedor_id: proveedor.id,
+          titulo,
+          mensaje,
+          imagen_url: imagenBase64,
+          notificar: true
+        }
+      }),
+      prisma.notificaciones.create({
+        data: {
+          usuario_id: pedido.usuario_id,
+          tipo: "actualizacion_pedido",
+          titulo: `📸 Actualización: EM-${String(pedidoId).padStart(4, "0")}`,
+          mensaje: `${titulo}: ${mensaje}`,
+          leida: false,
+        }
+      })
+    ]);
+
+    revalidatePath("/", "layout");
+    return { success: true };
+  } catch (error) {
+    console.error("Error al agregar evidencia:", error);
+    return { success: false, message: "No se pudo subir la evidencia." };
+  }
 }

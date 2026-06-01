@@ -155,6 +155,7 @@ export async function POST(req: Request) {
       telefono?: string;
       referencia?: string;
       metodoPago?: keyof typeof PAYMENT_METHODS;
+      comprobanteBase64?: string | null; // <--- AGREGA ESTO
     };
 
     const rawItems = Array.isArray(body.items) ? body.items : [];
@@ -255,10 +256,10 @@ export async function POST(req: Request) {
           metodo_pago: PAYMENT_METHODS[metodoPago],
           referencia_pago: `WEB-${Date.now()}`,
           notas,
+          // 👇 AGREGAR ESTA LÍNEA 👇
+          comprobante_url: body.comprobanteBase64 || null,
         },
-        select: {
-          id: true,
-        },
+        select: { id: true },
       });
 
       await tx.detalle_pedidos.createMany({

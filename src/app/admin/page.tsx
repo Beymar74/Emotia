@@ -18,6 +18,7 @@ export default async function AdminPage() {
     pedidosCompletados,
     ventasGlobales,
     ingresosAgg,
+    dineroRetenidoAgg, // <--- NUEVO
   ] = await Promise.all([
     prisma.usuarios.count(),
     prisma.proveedores.count({ where: { estado: "aprobado" } }),
@@ -29,9 +30,18 @@ export default async function AdminPage() {
       _sum: { total: true },
       where: { estado: "entregado" },
     }),
+    prisma.pedidos.aggregate({
+      _sum: { total: true },
+      where: { estado: { in: ["en_preparacion", "listo"] } }, // <--- EL DINERO RETENIDO
+    }),
   ]);
 
   const ingresosTotales = Number(ingresosAgg._sum.total || 0);
+  const dineroRetenido = Number(dineroRetenidoAgg._sum.total || 0);
+
+  // LA MAGIA DEL NEGOCIO
+  const comisionEmotia = ingresosTotales * 0.10;
+  const pagoProveedores = ingresosTotales * 0.90;
 
   // 2. Fetch growth metrics (Users in last 30 days vs total)
   const lastMonthDate = new Date();
@@ -67,7 +77,7 @@ export default async function AdminPage() {
 
   // JS grouping for months
   const nombresMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-  
+
   const getMesLabel = (date: Date) => {
     return `${nombresMeses[date.getMonth()]} ${date.getFullYear().toString().slice(-2)}`;
   };
@@ -190,6 +200,9 @@ export default async function AdminPage() {
       pedidosCompletados: pedidosCompletados,
       ventasGlobales: ventasGlobales,
       ingresosTotales: ingresosTotales,
+      comisionEmotia,     // <--- NUEVO
+      pagoProveedores,    // <--- NUEVO
+      dineroRetenido,     // <--- NUEVO
       crecimientoMensual,
     },
     usuariosMensuales,
@@ -201,10 +214,10 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-8 p-2 sm:p-0 animate-fade-in">
-      
+
       {/* Cabecera / Banner PREPE Principal */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm border border-[#8E1B3A]/10 relative overflow-hidden">
-        
+
         {/* Contenedor de Texto - max-w-[70%] asegura espacio para el logo */}
         <div className="space-y-2 relative z-10 w-full md:max-w-[70%] text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8E1B3A]/10 border border-[#8E1B3A]/20 text-xs font-semibold text-[#BC9968]">

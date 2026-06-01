@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import { revalidatePath } from "next/cache"; // <-- IMPORTANTE PARA QUE SE ACTUALICE AL DAR CLIC
 import {
   ArrowLeft,
   Mail,
@@ -19,6 +21,8 @@ import {
   Globe,
   ExternalLink,
   User,
+  Wallet, // <-- NUEVO ICONO
+  Landmark // <-- NUEVO ICONO
 } from "lucide-react";
 import Breadcrumbs from "../../../_components/Breadcrumbs";
 
@@ -31,6 +35,7 @@ export default async function DetalleActividadEmpresaPage({
   const empresaId = parseInt(id);
   if (isNaN(empresaId)) notFound();
 
+  // 👇 ACTUALIZAMOS LAS CONSULTAS PARA INCLUIR EL ESTADO "LIQUIDADO" Y CALCULAR EL DINERO 👇
   const [
     empresa,
     pedidosCompletados,
@@ -38,13 +43,15 @@ export default async function DetalleActividadEmpresaPage({
     pedidosEnProceso,
     productosActivos,
     topProductos,
+    ventasPorLiquidarAgg,
   ] = await Promise.all([
     prisma.proveedores.findUnique({
       where: { id: empresaId },
       include: { _count: { select: { productos: true, detalle_pedidos: true } } },
     }),
     prisma.detalle_pedidos.count({
-      where: { proveedor_id: empresaId, pedidos: { estado: "entregado" } },
+      // Sumamos tanto entregados como liquidados para que la métrica de éxito no baje
+      where: { proveedor_id: empresaId, pedidos: { estado: { in: ["entregado", "liquidado"] } } },
     }),
     prisma.detalle_pedidos.count({
       where: { proveedor_id: empresaId, pedidos: { estado: "cancelado" } },
@@ -52,7 +59,7 @@ export default async function DetalleActividadEmpresaPage({
     prisma.detalle_pedidos.count({
       where: {
         proveedor_id: empresaId,
-        pedidos: { estado: { notIn: ["entregado", "cancelado"] } },
+        pedidos: { estado: { notIn: ["entregado", "liquidado", "cancelado"] } },
       },
     }),
     prisma.productos.count({ where: { proveedor_id: empresaId, activo: true } }),
@@ -69,9 +76,95 @@ export default async function DetalleActividadEmpresaPage({
         imagen_url: true,
       },
     }),
+    prisma.detalle_pedidos.aggregate({
+      _sum: { subtotal: true },
+      where: { proveedor_id: empresaId, pedidos: { estado: "entregado" } }, // Plata que le debemos
+    }),
   ]);
 
+  const liquidaciones = await prisma.liquidaciones.findMany({
+    where: {
+      proveedor_id: empresaId,
+    },
+    orderBy: {
+      fecha_pago: "desc",
+    },
+  });
+  console.log("LIQUIDACIONES:");
+  console.log(liquidaciones);
+
   if (!empresa) notFound();
+
+
+  // Marcar notificaciones de esta empresa como leídas
+  await prisma.notificaciones.updateMany({
+    where: {
+      proveedor_id: empresaId,
+      leida: false,
+    },
+    data: {
+      leida: true,
+    },
+  });
+
+
+  // --- MATEMÁTICA FINANCIERA (COMISIÓN 8.5%) ---
+  const brutoPorLiquidar = Number(ventasPorLiquidarAgg._sum.subtotal || 0);
+
+  const netoPorLiquidar = brutoPorLiquidar * 0.915; // Lo que le debemos transferir
+
+  const totalLiquidaciones = await prisma.liquidaciones.aggregate({
+    _sum: {
+      monto: true,
+    },
+    where: {
+      proveedor_id: empresaId,
+    },
+  });
+  const netoLiquidado = Number(totalLiquidaciones._sum.monto || 0);
+  // 👇 SERVER ACTION PARA EL BOTÓN DE PAGO 👇
+  async function liquidarSaldos() {
+    "use server";
+
+    // 1. Buscamos todos los pedidos de este proveedor que estén "entregados"
+    const pedidosAfectados = await prisma.detalle_pedidos.findMany({
+      where: { proveedor_id: empresaId, pedidos: { estado: "entregado" } },
+      select: { pedido_id: true }
+    });
+
+    const ids = pedidosAfectados.map(d => d.pedido_id);
+
+    // 2. Si hay pedidos, los pasamos a "liquidado"
+    if (ids.length > 0) {
+      console.log("ENTRO A LIQUIDAR");
+
+      const nuevaLiquidacion =
+        await prisma.liquidaciones.create({
+          data: {
+            proveedor_id: empresaId,
+            monto: netoPorLiquidar,
+            observaciones:
+              "Liquidación realizada desde panel administrativo"
+          }
+        });
+
+      console.log("LIQUIDACION CREADA:", nuevaLiquidacion);
+
+      await prisma.pedidos.updateMany({
+        where: {
+          id: { in: ids }
+        },
+        data: {
+          estado: "liquidado"
+        }
+      });
+    }
+
+    // 3. Recargamos la página mágicamente
+    revalidatePath(`/admin/empresas/actividad/${empresaId}`);
+    revalidatePath(`/admin/empresas/actividad`); // Para la vista general también
+    redirect(`/admin/empresas/actividad/${empresaId}`);
+  }
 
   const formatFecha = (fecha: Date) =>
     new Intl.DateTimeFormat("es-BO", {
@@ -82,11 +175,11 @@ export default async function DetalleActividadEmpresaPage({
 
   const initials = empresa.nombre_negocio
     ? empresa.nombre_negocio
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase()
     : "EM";
 
   const totalPedidos = pedidosCompletados + pedidosCancelados;
@@ -95,10 +188,10 @@ export default async function DetalleActividadEmpresaPage({
     tasaExito === null
       ? "#7A5260"
       : tasaExito >= 80
-      ? "#2D7A47"
-      : tasaExito >= 60
-      ? "#BC9968"
-      : "#A32D2D";
+        ? "#2D7A47"
+        : tasaExito >= 60
+          ? "#BC9968"
+          : "#A32D2D";
 
   const redes = empresa.redes_sociales as Record<string, string> | null;
   const isActivo = empresa.estado === "aprobado";
@@ -115,8 +208,8 @@ export default async function DetalleActividadEmpresaPage({
     totalVendido >= 1000000
       ? `Bs. ${(totalVendido / 1000000).toFixed(1)}M`
       : totalVendido >= 1000
-      ? `Bs. ${(totalVendido / 1000).toFixed(1)}k`
-      : `Bs. ${totalVendido.toFixed(2)}`;
+        ? `Bs. ${(totalVendido / 1000).toFixed(1)}k`
+        : `Bs. ${totalVendido.toFixed(2)}`;
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -166,9 +259,8 @@ export default async function DetalleActividadEmpresaPage({
                   {empresa.nombre_negocio}
                 </h1>
                 <span
-                  className={`text-[10px] font-bold uppercase px-3 py-1 rounded-full border ${
-                    estadoBadge[empresa.estado] ?? "bg-gray-100 text-gray-600 border-gray-200"
-                  }`}
+                  className={`text-[10px] font-bold uppercase px-3 py-1 rounded-full border ${estadoBadge[empresa.estado] ?? "bg-gray-100 text-gray-600 border-gray-200"
+                    }`}
                 >
                   {empresa.estado}
                 </span>
@@ -234,7 +326,7 @@ export default async function DetalleActividadEmpresaPage({
             icon: <TrendingUp size={17} />,
             label: "Total facturado",
             valor: totalVendidoStr,
-            sub: "ingresos acumulados",
+            sub: "ingresos brutos acumulados",
             color: "#2D7A47",
             bg: "#F0FAF3",
           },
@@ -248,9 +340,9 @@ export default async function DetalleActividadEmpresaPage({
           },
           {
             icon: <CheckCircle size={17} />,
-            label: "Ítems entregados",
+            label: "Ítems procesados",
             valor: String(pedidosCompletados),
-            sub: `de ${totalPedidos} procesados`,
+            sub: `de ${totalPedidos} registrados`,
             color: "#185FA5",
             bg: "#EBF3FB",
           },
@@ -371,6 +463,159 @@ export default async function DetalleActividadEmpresaPage({
 
         {/* Columna derecha (2/3) */}
         <div className="lg:col-span-2 space-y-5">
+
+          {/* 👇 NUEVO PANEL: FINANZAS Y LIQUIDACIÓN 👇 */}
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 shadow-sm p-6 relative overflow-hidden">
+            <div className="absolute right-0 top-0 w-32 h-32 bg-emerald-500 opacity-5 rounded-bl-full" />
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="font-serif text-lg font-bold text-emerald-900 flex items-center gap-2">
+                <Landmark size={20} /> Finanzas y Liquidación
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-5">
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-emerald-100">
+                <p className="text-[10px] uppercase font-bold text-gray-500 mb-1">Saldo a favor (Por Liquidar)</p>
+                <p className="text-3xl font-black text-emerald-700">Bs. {netoPorLiquidar.toFixed(2)}</p>
+                <p className="text-[10px] text-gray-400 mt-1">Libre de la comisión del 8.5%</p>
+              </div>
+              <div className="bg-white/50 rounded-xl p-4 border border-emerald-100/50">
+                <p className="text-[10px] uppercase font-bold text-gray-500 mb-1">Histórico Pagado</p>
+                <p className="text-xl font-bold text-gray-700">Bs. {netoLiquidado.toFixed(2)}</p>
+                <p className="text-[10px] text-gray-400 mt-1">Fondos ya transferidos a la cuenta</p>
+              </div>
+            </div>
+
+            {/* Datos bancarios */}
+            <div className="bg-white rounded-xl p-4 border border-emerald-100 mb-5">
+              <h4 className="font-semibold text-emerald-900 mb-3">
+                Datos bancarios registrados
+              </h4>
+
+              {empresa.banco &&
+                empresa.numero_cuenta &&
+                empresa.titular_cuenta ? (
+                <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-gray-500">Banco</p>
+                    <p className="font-medium">{empresa.banco}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-gray-500">Tipo de cuenta</p>
+                    <p className="font-medium">
+                      {empresa.tipo_cuenta || "No especificado"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-gray-500">Número de cuenta</p>
+                    <p className="font-medium">{empresa.numero_cuenta}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-gray-500">Titular</p>
+                    <p className="font-medium">{empresa.titular_cuenta}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <p className="text-sm text-amber-800">
+                    Este proveedor aún no registró datos bancarios.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {netoPorLiquidar > 0 ? (
+              empresa.banco &&
+                empresa.numero_cuenta &&
+                empresa.titular_cuenta ? (
+                <form action={liquidarSaldos}>
+                  <button
+                    type="submit"
+                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition-all shadow-sm flex items-center justify-center gap-2"
+                  >
+                    <Wallet size={16} />
+                    Marcar como Pagado (Liquidar Saldo)
+                  </button>
+
+                  <p className="text-[10px] text-emerald-700 mt-2 opacity-80">
+                    * Registrar esta liquidación en el historial financiero del proveedor.
+                  </p>
+                </form>
+              ) : (
+                <div className="space-y-3">
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                    <p className="font-semibold text-amber-800 text-sm">
+                      No es posible registrar una liquidación todavía.
+                    </p>
+
+                    <p className="text-xs text-amber-700 mt-1">
+                      El proveedor aún no registró sus datos bancarios.
+                    </p>
+                  </div>
+
+                  <button
+                    disabled
+                    className="w-full sm:w-auto bg-gray-300 text-gray-500 font-bold py-2.5 px-6 rounded-xl text-sm cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <Wallet size={16} />
+                    Liquidación bloqueada
+                  </button>
+                </div>
+              )
+            ) : (
+              <div className="bg-emerald-100/50 text-emerald-700 text-xs py-2.5 px-4 rounded-xl font-semibold flex items-center gap-2">
+                <CheckCircle size={14} />
+                La empresa no tiene fondos pendientes de cobro actualmente.
+              </div>
+            )}
+          </div>
+          {/* 👆 FIN DEL PANEL FINANCIERO 👆 */}
+
+          <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm p-6">
+            <h3 className="font-serif text-lg font-bold text-[#5A0F24] mb-4">
+              Historial de Liquidaciones
+            </h3>
+
+            {liquidaciones.length === 0 ? (
+              <p className="text-sm text-[#7A5260] italic">
+                No existen liquidaciones registradas.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {liquidaciones.map((liq) => (
+                  <div
+                    key={liq.id}
+                    className="flex justify-between items-center border rounded-xl p-3"
+                  >
+                    <div>
+                      <p className="font-semibold">
+                        Bs. {Number(liq.monto).toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {formatFecha(liq.fecha_pago)}
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500">
+                        #{liq.id}
+                      </p>
+                      {liq.observaciones && (
+                        <p className="text-xs text-gray-400">
+                          {liq.observaciones}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+
           {/* Desempeño de pedidos */}
           <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 shadow-sm p-6">
             <h3 className="font-serif text-lg font-bold text-[#5A0F24] mb-5">
@@ -484,11 +729,10 @@ export default async function DetalleActividadEmpresaPage({
                         Bs. {Number(prod.precio_venta).toFixed(2)}
                       </p>
                       <span
-                        className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full ${
-                          prod.activo
-                            ? "bg-[#EEF8F0] text-[#2D7A47]"
-                            : "bg-[#FBF0F0] text-[#A32D2D]"
-                        }`}
+                        className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full ${prod.activo
+                          ? "bg-[#EEF8F0] text-[#2D7A47]"
+                          : "bg-[#FBF0F0] text-[#A32D2D]"
+                          }`}
                       >
                         {prod.activo ? "Activo" : "Inactivo"}
                       </span>

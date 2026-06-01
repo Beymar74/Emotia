@@ -19,31 +19,41 @@ const metodosPago: Array<{
   descripcion: string;
   icono: typeof QrCode;
 }> = [
-  {
-    id: "qr",
-    titulo: "Código QR",
-    descripcion: "Escanea y paga al instante desde tu banca móvil.",
-    icono: QrCode,
-  },
-  {
-    id: "tarjeta",
-    titulo: "Tarjeta de débito",
-    descripcion: "Paga con tu tarjeta y confirma al instante.",
-    icono: CreditCard,
-  },
-  {
-    id: "transferencia",
-    titulo: "Transferencia bancaria",
-    descripcion: "Haz la transferencia y sube tu comprobante.",
-    icono: Landmark,
-  },
-];
+    {
+      id: "qr",
+      titulo: "Código QR",
+      descripcion: "Escanea y paga al instante desde tu banca móvil.",
+      icono: QrCode,
+    },
+    {
+      id: "tarjeta",
+      titulo: "Tarjeta de débito",
+      descripcion: "Paga con tu tarjeta y confirma al instante.",
+      icono: CreditCard,
+    },
+    {
+      id: "transferencia",
+      titulo: "Transferencia bancaria",
+      descripcion: "Haz la transferencia y sube tu comprobante.",
+      icono: Landmark,
+    },
+  ];
 
 const zonasEntrega: Array<{ id: ZonaEntrega; label: string; eta: string; extra: number }> = [
   { id: "centro", label: "Centro", eta: "Entrega estimada hoy en 1 a 2 horas", extra: 0 },
   { id: "zona-sur", label: "Zona Sur", eta: "Entrega estimada hoy en 2 a 4 horas", extra: 8 },
   { id: "miraflores", label: "Miraflores / Sopocachi", eta: "Entrega estimada hoy en 2 a 3 horas", extra: 5 },
 ];
+
+// 👇 NUEVA FUNCIÓN: Convierte la imagen a texto (Base64) para enviarla en el JSON 👇
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 export default function CheckoutPage() {
   const [showAuth, setShowAuth] = useState(false);
@@ -62,8 +72,15 @@ export default function CheckoutPage() {
   const [comprobante, setComprobante] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const qrImageUrl = "URL_DE_TU_QR_AQUI";
-  const cuentaBancaria = "Banco Unión - Cuenta corriente 100-2458796";
+  const qrImageUrl = "/logo/qr-emotia.png";
+
+  const cuentaBancaria = `
+      Banco Unión
+      Cuenta Corriente Empresarial
+      Nro: 2025-77821-EMT
+      Titular: Emotia S.R.L.
+      `;
+
   const { items, subtotal, clearCart } = useCart();
   const { isLoggedIn } = useSession();
 
@@ -77,14 +94,12 @@ export default function CheckoutPage() {
 
   const direccionCompleta = direccion.trim().length > 6 && destinatario.trim() !== "" && telefono.trim().length === 8;
 
-  // Formateadores para inputs de tarjeta
   const handleTarjetaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "").substring(0, 16);
     const formatted = value.replace(/(\d{4})(?=\d)/g, "$1 ");
     setNumeroTarjeta(formatted);
   };
 
-  // Magia de UX para la fecha de la tarjeta
   const handleFechaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value.replace(/\D/g, "");
 
@@ -93,24 +108,19 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Si el usuario escribe un mes del 2 al 9, le ponemos un 0 adelante automáticamente
     if (val.length === 1 && parseInt(val) > 1) {
       val = "0" + val;
     }
 
     if (val.length >= 2) {
       let month = parseInt(val.substring(0, 2), 10);
-      // Si el mes es mayor a 12, lo forzamos a 12
       if (month > 12) {
         val = "12" + val.substring(2);
-      } 
-      // Si pone 00, lo forzamos a 01
-      else if (month === 0) {
+      } else if (month === 0) {
         val = "01" + val.substring(2);
       }
     }
 
-    // Agregamos la barra divisora
     if (val.length > 2) {
       setFechaTarjeta(`${val.substring(0, 2)}/${val.substring(2, 4)}`);
     } else {
@@ -124,11 +134,11 @@ export default function CheckoutPage() {
 
   const isTarjetaVigente = () => {
     if (fechaTarjeta.length !== 5) return false;
-    
+
     const [mesStr, anioStr] = fechaTarjeta.split('/');
     const mes = parseInt(mesStr, 10);
     const anio = parseInt(anioStr, 10) + 2000;
-    
+
     const fechaActual = new Date();
     const anioActual = fechaActual.getFullYear();
     const mesActual = fechaActual.getMonth() + 1;
@@ -136,7 +146,7 @@ export default function CheckoutPage() {
     if (mes < 1 || mes > 12) return false;
     if (anio < anioActual) return false;
     if (anio === anioActual && mes < mesActual) return false;
-    
+
     return true;
   };
 
@@ -163,6 +173,12 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
+      // 👇 AQUÍ ESTÁ LA MAGIA: Convertimos el comprobante si existe 👇
+      let comprobanteBase64 = null;
+      if ((metodoSeleccionado === "qr" || metodoSeleccionado === "transferencia") && comprobante) {
+        comprobanteBase64 = await fileToBase64(comprobante);
+      }
+
       const response = await fetch("/api/auth/catalog/orders", {
         method: "POST",
         headers: {
@@ -180,6 +196,7 @@ export default function CheckoutPage() {
           telefono,
           referencia,
           metodoPago: metodoSeleccionado,
+          comprobanteBase64, // <-- AHORA SÍ ENVIAMOS LA IMAGEN AL BACKEND
         }),
       });
 
@@ -247,9 +264,8 @@ export default function CheckoutPage() {
                 onChange={handleFechaChange}
                 placeholder="MM/AA"
                 inputMode="numeric"
-                className={`min-h-[58px] w-full rounded-[20px] border border-[#E6885C]/18 bg-[#FFFDFC] px-5 text-[#5C3A2E] outline-none transition focus:border-[#C6284F] focus:ring-4 focus:ring-[#C6284F]/10 ${
-                  fechaTarjeta.length === 5 && !isTarjetaVigente() ? "border-red-500 text-red-600 focus:border-red-500 focus:ring-red-500/10" : ""
-                }`}
+                className={`min-h-[58px] w-full rounded-[20px] border border-[#E6885C]/18 bg-[#FFFDFC] px-5 text-[#5C3A2E] outline-none transition focus:border-[#C6284F] focus:ring-4 focus:ring-[#C6284F]/10 ${fechaTarjeta.length === 5 && !isTarjetaVigente() ? "border-red-500 text-red-600 focus:border-red-500 focus:ring-red-500/10" : ""
+                  }`}
               />
             </label>
 
@@ -335,7 +351,7 @@ export default function CheckoutPage() {
               width={240}
               height={240}
               unoptimized
-              className="h-60 w-60 rounded-[26px] object-cover"
+              className="h-60 w-60 rounded-[26px] object-contain"
             />
           )}
         </div>
@@ -355,7 +371,7 @@ export default function CheckoutPage() {
             onChange={(event) => setComprobante(event.target.files?.[0] || null)}
           />
         </label>
-        
+
         <p className="text-center text-sm font-bold uppercase tracking-[0.18em] text-[#8E3651]">Escanea para pagar seguro</p>
       </div>
     );
@@ -539,9 +555,8 @@ export default function CheckoutPage() {
                             key={metodo.id}
                             type="button"
                             onClick={() => setMetodoSeleccionado(metodo.id)}
-                            className={`rounded-[24px] border p-4 transition ${
-                              activo ? "border-[#C6284F] bg-[#FFF5F6] shadow-[0_16px_28px_rgba(198,40,79,0.10)]" : "border-[#E6885C]/12 bg-[#FFFCFA] hover:border-[#C6284F]/30"
-                            }`}
+                            className={`rounded-[24px] border p-4 transition ${activo ? "border-[#C6284F] bg-[#FFF5F6] shadow-[0_16px_28px_rgba(198,40,79,0.10)]" : "border-[#E6885C]/12 bg-[#FFFCFA] hover:border-[#C6284F]/30"
+                              }`}
                           >
                             <div className="flex min-h-[104px] flex-col items-center justify-center gap-3 text-center">
                               <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${activo ? "bg-white text-[#C6284F]" : "bg-[#FFF3E6] text-[#8E3651]"}`}>
@@ -622,7 +637,7 @@ export default function CheckoutPage() {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,#E6885C,#D96A38)] text-3xl font-black text-white sm:h-20 sm:w-20 sm:text-4xl">
               ⏱
             </div>
-            
+
             <p className="mt-6 text-sm font-extrabold uppercase tracking-[0.22em] text-[#8A6F62]">Pago en revisión</p>
             <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] text-[#5C3A2E] sm:text-4xl">Tu pedido está siendo procesado</h2>
             <p className="mt-4 text-base leading-7 text-[#8A6F62]">

@@ -65,7 +65,12 @@ export async function obtenerPerfilProveedor() {
       telefono: proveedor.telefono || "",
       email: proveedor.email,
       direccion: proveedor.direccion || "",
-      numeroCuentaBancaria: proveedor.numero_cuenta_bancaria || "",
+      // 👇 TUS CAMPOS BANCARIOS REALES 👇
+      banco: proveedor.banco || "",
+      numeroCuenta: proveedor.numero_cuenta || "",
+      titularCuenta: proveedor.titular_cuenta || "",
+      tipoCuenta: proveedor.tipo_cuenta || "",
+      // 👆 ---------------------------- 👆
       logo: proveedor.logo_url || null,
       estado: proveedor.estado,
       ventas: proveedor.total_vendido ? Number(proveedor.total_vendido) : 0,
@@ -86,7 +91,12 @@ export async function actualizarPerfilProveedor(
     descripcion: string;
     telefono: string;
     direccion: string;
-    numeroCuentaBancaria: string;
+    // 👇 TUS CAMPOS BANCARIOS REALES 👇
+    banco: string;
+    numeroCuenta: string;
+    titularCuenta: string;
+    tipoCuenta: string;
+    // 👆 ---------------------------- 👆
     categorias: string[];
     redesSociales: RedSocialRegistro[];
     logo?: string | null;
@@ -111,8 +121,12 @@ export async function actualizarPerfilProveedor(
         descripcion: datos.descripcion.trim() || null,
         telefono: datos.telefono.trim() || null,
         direccion: datos.direccion.trim() || null,
-        numero_cuenta_bancaria:
-          datos.numeroCuentaBancaria?.trim() || null,
+        // 👇 TUS CAMPOS BANCARIOS REALES 👇
+        banco: datos.banco?.trim() || null,
+        numero_cuenta: datos.numeroCuenta?.trim() || null,
+        titular_cuenta: datos.titularCuenta?.trim() || null,
+        tipo_cuenta: datos.tipoCuenta?.trim() || null,
+        // 👆 ---------------------------- 👆
         categorias: datos.categorias || [],
         redes_sociales: datos.redesSociales || [],
         logo_url: datos.logo || null,

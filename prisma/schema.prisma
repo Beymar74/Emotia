@@ -82,14 +82,19 @@ model insignias {
 }
 
 model notificaciones {
-  id         Int      @id @default(autoincrement())
-  usuario_id Int
-  tipo       String   @db.VarChar(50)
-  titulo     String   @db.VarChar(200)
-  mensaje    String?
-  leida      Boolean  @default(false)
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  usuarios   usuarios @relation(fields: [usuario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id           Int      @id @default(autoincrement())
+  usuario_id   Int
+  proveedor_id Int?
+
+  tipo         String   @db.VarChar(50)
+  titulo       String   @db.VarChar(200)
+  mensaje      String?
+  leida        Boolean  @default(false)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  usuarios     usuarios @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  proveedor    proveedores? @relation("ProveedorNotificacionesAdmin", fields: [proveedor_id], references: [id])
 
   @@index([usuario_id, leida], map: "idx_notificaciones_usuario")
 }
@@ -126,6 +131,12 @@ model pedidos {
   detalle_pedidos  detalle_pedidos[]
   direcciones      direcciones?      @relation(fields: [direccion_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   usuarios         usuarios          @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  comprobante_url  String?           // Para guardar la foto del voucher/transferencia
+  motivo_rechazo   String?
+
+  // 👇 AQUÍ ESTÁ LA LÍNEA MÁGICA DE LA RELACIÓN 👇
+  bitacora_pedidos bitacora_pedidos[]
 
   @@index([estado], map: "idx_pedidos_estado")
   @@index([usuario_id], map: "idx_pedidos_usuario")
@@ -167,6 +178,11 @@ model productos {
 model proveedores {
   id                  Int               @id @default(autoincrement())
   nombre_negocio      String            @db.VarChar(150)
+  banco           String?
+  numero_cuenta   String?
+  titular_cuenta  String?
+  tipo_cuenta     String?
+
 
   descripcion         String?
   logo_url            String?
@@ -194,15 +210,38 @@ model proveedores {
   detalle_pedidos     detalle_pedidos[]
   productos           productos[]
   sesiones            proveedor_sesiones[]
-  notificaciones    proveedor_notificaciones[]
+  notificaciones      proveedor_notificaciones[]
+
+  notificaciones_admin notificaciones[] @relation("ProveedorNotificacionesAdmin")
+
+  bitacora_pedidos bitacora_pedidos[]
+
+  liquidaciones liquidaciones[]
+}
+model liquidaciones {
+  id            Int       @id @default(autoincrement())
+
+  proveedor_id  Int
+  admin_id      Int?
+
+  monto         Decimal   @db.Decimal(10,2)
+
+  fecha_pago    DateTime  @default(now())
+
+  observaciones String?
+
+  created_at    DateTime  @default(now())
+
+  proveedor     proveedores @relation(fields: [proveedor_id], references: [id])
+  admin         usuarios?   @relation(fields: [admin_id], references: [id])
 }
 
 model proveedor_sesiones {
-  id            Int       @id @default(autoincrement())
-  proveedor_id  Int
-  token         String    @unique @db.VarChar(255)
-  expires_at    DateTime
-  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  id           Int       @id @default(autoincrement())
+  proveedor_id Int
+  token        String    @unique @db.VarChar(255)
+  expires_at   DateTime
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
 
   proveedores proveedores @relation(fields: [proveedor_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -255,27 +294,29 @@ model recordatorios {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model usuarios {
-  id              Int               @id @default(autoincrement())
-  nombre          String            @db.VarChar(100)
-  apellido        String?           @db.VarChar(100)
-  email           String            @unique @db.VarChar(150)
-  password_hash   String?           @db.VarChar(255)
-  foto_perfil     String?
-  telefono        String?           @db.VarChar(20)
-  tipo            String            @default("usuario") @db.VarChar(20)
-  plan            String            @default("basico") @db.VarChar(20)
-  puntos          Int               @default(0)
-  google_id       String?           @unique @db.VarChar(100)
-  activo          Boolean           @default(true)
-  created_at      DateTime          @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime          @default(now()) @db.Timestamptz(6)
-  carrito         carrito[]
-  direcciones     direcciones[]
-  insignias       insignias[]
-  notificaciones  notificaciones[]
-  pedidos         pedidos[]
+  id             Int               @id @default(autoincrement())
+  nombre         String            @db.VarChar(100)
+  apellido       String?           @db.VarChar(100)
+  email          String            @unique @db.VarChar(150)
+  password_hash  String?           @db.VarChar(255)
+  foto_perfil    String?
+  telefono       String?           @db.VarChar(20)
+  tipo           String            @default("usuario") @db.VarChar(20)
+  plan           String            @default("basico") @db.VarChar(20)
+  puntos         Int               @default(0)
+  google_id      String?           @unique @db.VarChar(100)
+  activo         Boolean           @default(true)
+  created_at     DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime          @default(now()) @db.Timestamptz(6)
+  carrito        carrito[]
+  direcciones    direcciones[]
+  insignias      insignias[]
+  notificaciones notificaciones[]
+  pedidos        pedidos[]
   recomendaciones recomendaciones[]
-  recordatorios   recordatorios[]
+  recordatorios  recordatorios[]
+
+  liquidaciones liquidaciones[]
 }
 
 model personalizaciones {
@@ -306,6 +347,21 @@ model tarjeta_disenos {
   created_at    DateTime @default(now()) @db.Timestamptz(6)
 }
 
+model bitacora_pedidos {
+  id             Int      @id @default(autoincrement())
+  pedido_id      Int
+  proveedor_id   Int
+  titulo         String   @db.VarChar(150)
+  mensaje        String?  @db.Text
+  imagen_url     String?  // Para la foto de evidencia
+  notificar      Boolean  @default(true) // Si es true, dispara la campanita al cliente
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  pedidos        pedidos     @relation(fields: [pedido_id], references: [id], onDelete: Cascade)
+  proveedores    proveedores @relation(fields: [proveedor_id], references: [id], onDelete: Cascade)
+
+  @@index([pedido_id])
+}
 model empaque_disenos {
   id          Int      @id @default(autoincrement())
   nombre      String   @unique @db.VarChar(80)

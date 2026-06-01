@@ -22,6 +22,9 @@ interface KPIData {
   pedidosCompletados: number;
   ventasGlobales: number;
   ingresosTotales: number;
+  comisionEmotia: number;     // <--- NUEVO
+  pagoProveedores: number;    // <--- NUEVO
+  dineroRetenido: number;     // <--- NUEVO
   crecimientoMensual: number;
 }
 
@@ -108,10 +111,10 @@ export default function DashboardGlobal({ data }: DashboardGlobalProps) {
               </div>
               <span className="text-[10px] uppercase font-bold tracking-widest text-[#7A5260]/60">Núcleo PREPE</span>
             </div>
-            
+
             <p className="text-xs font-bold text-[#7A5260] uppercase tracking-wider mb-1">{kpi.label}</p>
             <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#2A0E18]">{kpi.valor}</h3>
-            
+
             <div className="flex items-center gap-1.5 mt-3 text-xs text-[#7A5260]/80">
               {kpi.trendUp ? (
                 <span className="text-emerald-600 font-bold flex items-center gap-0.5 bg-emerald-50 px-1.5 py-0.5 rounded">
@@ -130,9 +133,33 @@ export default function DashboardGlobal({ data }: DashboardGlobalProps) {
         ))}
       </div>
 
+      {/* --- PANEL FINANCIERO CENTRAL (SISTEMA ESCROW) --- */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+          <div className="absolute -right-4 -bottom-4 opacity-10"><DollarSign size={80} /></div>
+          <p className="text-xs font-extrabold text-indigo-800 uppercase tracking-wider mb-1">Ganancias Emotia (10%)</p>
+          <h3 className="text-3xl font-black text-indigo-700">{fmtMoney(kpis.comisionEmotia)}</h3>
+          <p className="text-xs text-indigo-600 mt-2 font-medium">Ingreso neto libre de la plataforma.</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+          <div className="absolute -right-4 -bottom-4 opacity-10"><Users size={80} /></div>
+          <p className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider mb-1">A Pagar a Proveedores (90%)</p>
+          <h3 className="text-3xl font-black text-emerald-700">{fmtMoney(kpis.pagoProveedores)}</h3>
+          <p className="text-xs text-emerald-600 mt-2 font-medium">Liquidación pendiente a empresas aliadas.</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+          <div className="absolute -right-4 -bottom-4 opacity-10"><ShieldCheck size={80} /></div>
+          <p className="text-xs font-extrabold text-amber-800 uppercase tracking-wider mb-1">Fideicomiso / Escrow</p>
+          <h3 className="text-3xl font-black text-amber-700">{fmtMoney(kpis.dineroRetenido)}</h3>
+          <p className="text-xs text-amber-600 mt-2 font-medium">Fondos protegidos de pedidos en proceso.</p>
+        </div>
+      </div>
+
       {/* 2. Charts Section - Grid Principal */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* CHART A: Crecimiento de Usuarios */}
         <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-5">
@@ -222,7 +249,7 @@ export default function DashboardGlobal({ data }: DashboardGlobalProps) {
 
       {/* 3. Secondary Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* CHART C: Ingresos por Empresa (BarChart Vertical) */}
         <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 p-6 shadow-sm lg:col-span-2">
           <div className="flex items-center justify-between mb-5">
@@ -318,7 +345,7 @@ export default function DashboardGlobal({ data }: DashboardGlobalProps) {
 
       {/* 4. Products selling & activity table */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        
+
         {/* Top Productos (BarChart Horizontal / List) */}
         <div className="bg-white rounded-2xl border border-[#8E1B3A]/10 p-6 shadow-sm xl:col-span-2">
           <div className="flex items-center justify-between mb-5">
