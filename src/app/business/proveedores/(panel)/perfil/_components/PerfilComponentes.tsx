@@ -13,6 +13,7 @@ import {
   Trash2,
   Wallet,
   Star,
+  CreditCard,
 } from "lucide-react";
 
 export interface RedSocialRegistro {
@@ -33,6 +34,7 @@ export interface PerfilBusinessData {
   telefono: string;
   email: string;
   direccion: string;
+  numeroCuentaBancaria: string;
   logo: string | null;
   estado?: string;
   ventas?: number;
@@ -390,8 +392,45 @@ export function FormulariosPerfil({
               }
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-[#8E1B3A] focus:ring-2 focus:ring-[#8E1B3A]/10 transition-all"
             />
+            
           </div>
+<div className="bg-[#FDFBF9] border border-[#F5E6D0] rounded-2xl p-5">
+  <div className="flex items-start gap-3 mb-4">
+    <div className="h-10 w-10 rounded-xl bg-[#F5E6D0] text-[#8E1B3A] flex items-center justify-center shrink-0">
+      <CreditCard size={20} />
+    </div>
 
+    <div>
+      <h4 className="text-sm font-black text-[#3D0A1A]">
+        Cuenta bancaria para pagos
+      </h4>
+      <p className="text-xs text-[#7A5260] mt-1 leading-relaxed">
+        Registra el número de cuenta donde Emotia podrá identificar los pagos o transferencias asociadas a tu negocio.
+      </p>
+    </div>
+  </div>
+
+  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">
+    Número de cuenta bancaria
+  </label>
+
+  <input
+    type="text"
+    value={businessData.numeroCuentaBancaria}
+    onChange={(e) =>
+      setBusinessData({
+        ...businessData,
+        numeroCuentaBancaria: e.target.value,
+      })
+    }
+    placeholder="Ej: 100000123456789"
+    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#8E1B3A] focus:ring-2 focus:ring-[#8E1B3A]/10 transition-all font-semibold text-[#3D0A1A]"
+  />
+
+  <p className="text-[11px] text-gray-400 mt-2 font-medium">
+    Este dato es administrativo y no se mostrará públicamente en el catálogo.
+  </p>
+</div>
           <div>
             <div className="flex justify-between items-center mb-4">
               <label className="block text-xs font-bold text-gray-400 uppercase">
