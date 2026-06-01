@@ -5,6 +5,14 @@ export type CatalogOrderItem = {
   imageUrl: string | null;
 };
 
+export type CatalogOrderEvidencia = {
+  id: number;
+  titulo: string;
+  mensaje: string | null;
+  imagenUrl: string | null;
+  fecha: string;
+};
+
 export type CatalogOrder = {
   id: number;
   estado: string;
@@ -18,6 +26,8 @@ export type CatalogOrder = {
   items: CatalogOrderItem[];
   fechaEntrega?: string | null;
   horarioEntrega?: string | null;
+  bitacora?: CatalogOrderEvidencia[];
+  rejectionReason?: string | null;
 };
 
 export type OrderStatusTone = "pending" | "active" | "success" | "danger";
