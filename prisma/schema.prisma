@@ -178,6 +178,11 @@ model productos {
 model proveedores {
   id                  Int               @id @default(autoincrement())
   nombre_negocio      String            @db.VarChar(150)
+  banco           String?
+  numero_cuenta   String?
+  titular_cuenta  String?
+  tipo_cuenta     String?
+
 
   descripcion         String?
   logo_url            String?
@@ -207,9 +212,27 @@ model proveedores {
   notificaciones      proveedor_notificaciones[]
 
   notificaciones_admin notificaciones[] @relation("ProveedorNotificacionesAdmin")
-  
-  // 👇 Y AQUÍ ESTÁ LA OTRA LÍNEA MÁGICA DE LA RELACIÓN 👇
-  bitacora_pedidos    bitacora_pedidos[]
+
+  bitacora_pedidos bitacora_pedidos[]
+
+  liquidaciones liquidaciones[]
+}
+model liquidaciones {
+  id            Int       @id @default(autoincrement())
+
+  proveedor_id  Int
+  admin_id      Int?
+
+  monto         Decimal   @db.Decimal(10,2)
+
+  fecha_pago    DateTime  @default(now())
+
+  observaciones String?
+
+  created_at    DateTime  @default(now())
+
+  proveedor     proveedores @relation(fields: [proveedor_id], references: [id])
+  admin         usuarios?   @relation(fields: [admin_id], references: [id])
 }
 
 model proveedor_sesiones {
@@ -290,6 +313,8 @@ model usuarios {
   pedidos        pedidos[]
   recomendaciones recomendaciones[]
   recordatorios  recordatorios[]
+
+  liquidaciones liquidaciones[]
 }
 
 model personalizaciones {
