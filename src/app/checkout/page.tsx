@@ -339,21 +339,14 @@ export default function CheckoutPage() {
         </div>
 
         <div className="flex min-h-[300px] items-center justify-center rounded-[28px] border border-[#E6885C]/16 bg-[linear-gradient(180deg,#FFF8F4_0%,#FFF4F6_100%)] p-6">
-          {qrImageUrl === "URL_DE_TU_QR_AQUI" ? (
-            <div className="flex h-60 w-60 flex-col items-center justify-center rounded-[26px] border border-[#E6885C]/14 bg-white text-center">
-              <QrCode size={52} strokeWidth={1.8} className="text-[#C6284F]" />
-              <span className="mt-4 max-w-[170px] text-sm font-semibold leading-6 text-[#8A6F62]">Espacio para el código QR del pago</span>
-            </div>
-          ) : (
-            <Image
-              src={qrImageUrl}
-              alt="Código QR de pago"
-              width={240}
-              height={240}
-              unoptimized
-              className="h-60 w-60 rounded-[26px] object-contain"
-            />
-          )}
+          <Image
+            src={qrImageUrl}
+            alt="Código QR de pago"
+            width={240}
+            height={240}
+            unoptimized
+            className="h-60 w-60 rounded-[26px] object-contain"
+          />
         </div>
 
         <label className="block rounded-[28px] border border-dashed border-[#C6284F]/30 bg-white p-6 text-center transition hover:border-[#C6284F] cursor-pointer">
