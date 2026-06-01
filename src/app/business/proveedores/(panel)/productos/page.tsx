@@ -53,6 +53,21 @@ interface ProductoVista {
   permiteMensaje: boolean;
   permiteEmpaque: boolean;
   activo: boolean;
+  promedioResenas: number;
+  cantidadResenas: number;
+  ultimaResena: {
+    autor: string;
+    calificacion: number;
+    texto: string;
+    fecha: string;
+  } | null;
+  resenas: {
+    id: number;
+    autor: string;
+    calificacion: number;
+    texto: string;
+    fecha: string;
+  }[];
 }
 
 const FORM_INICIAL: DatosProductoProveedor = {
@@ -127,6 +142,8 @@ export default function ProductosPage() {
     "todos" | "activos" | "inactivos" | "sin_stock" | "personalizables"
   >("todos");
   const [productoEditando, setProductoEditando] = useState<ProductoVista | null>(null);
+  const [productoResenasAbierto, setProductoResenasAbierto] =
+    useState<ProductoVista | null>(null);
   const [formData, setFormData] = useState<DatosProductoProveedor>(FORM_INICIAL);
 
   const cargarDatos = async () => {
@@ -146,13 +163,30 @@ export default function ProductosPage() {
   useEffect(() => {
     cargarDatos();
   }, []);
+  const totalResenas = productos.reduce(
+    (total, producto) => total + producto.cantidadResenas,
+    0
+  );
+
+  const promedioGeneralResenas =
+    totalResenas > 0
+      ? productos.reduce(
+          (total, producto) =>
+            total + producto.promedioResenas * producto.cantidadResenas,
+          0
+        ) / totalResenas
+      : 0;
+
   const metricas = {
     total: productos.length,
     activos: productos.filter((producto) => producto.activo).length,
     inactivos: productos.filter((producto) => !producto.activo).length,
     sinStock: productos.filter((producto) => producto.stock <= 0).length,
     personalizables: productos.filter((producto) => producto.permiteMensaje).length,
+    totalResenas,
+    promedioGeneralResenas: Number(promedioGeneralResenas.toFixed(1)),
   };
+
   const productosFiltrados = productos.filter((producto) => {
     const textoBusqueda = searchTerm.toLowerCase().trim();
 
@@ -343,7 +377,7 @@ export default function ProductosPage() {
             Mis productos
           </h1>
           <p className="text-[#B0B0B0] mt-1 font-medium">
-            Administra tu inventario, precios, imágenes y datos que alimentarán el catálogo inteligente.
+            Gestiona tu catálogo de productos, controla inventario, precios y disponibilidad desde un solo lugar. 
           </p>
         </div>
 
@@ -354,7 +388,7 @@ export default function ProductosPage() {
           <Plus size={18} /> Añadir Producto
         </button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
   <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
     <div className="flex items-center justify-between">
       <div>
@@ -430,10 +464,25 @@ export default function ProductosPage() {
         </p>
       </div>
       <div className="h-11 w-11 rounded-xl bg-[#F5E6D0] text-[#BC9968] flex items-center justify-center">
-        <MessageSquare size={22} />
+        <Sparkles size={22} />
       </div>
     </div>
   </div>
+  <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+  <div className="flex items-center justify-between">
+    <div>
+      <p className="text-xs font-black uppercase tracking-widest text-gray-400">
+        Reseñas
+      </p>
+      <p className="text-2xl font-black text-[#3D0A1A] mt-1">
+        {metricas.totalResenas}
+      </p>
+    </div>
+    <div className="h-11 w-11 rounded-xl bg-[#F5E6D0] text-[#BC9968] flex items-center justify-center">
+  <MessageSquare size={22} />
+</div>
+  </div>
+</div>
 </div>
       <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:w-96">
@@ -496,17 +545,18 @@ export default function ProductosPage() {
 </div>      
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse table-fixed">
             <thead>
-              <tr className="border-b border-gray-100 text-[#B0B0B0] text-[11px] uppercase tracking-[0.15em] font-black bg-gray-50/50">
-                <th className="px-6 py-4">Producto</th>
-                <th className="px-6 py-4">Categoría</th>
-                <th className="px-6 py-4">Precio</th>
-                <th className="px-6 py-4">Stock</th>
-                <th className="px-6 py-4">IA / Público</th>
-                <th className="px-6 py-4 text-center">Estado</th>
-                <th className="px-6 py-4 text-right">Acciones</th>
-              </tr>
+              <tr className="border-b border-gray-100 text-[#B0B0B0] text-[10px] uppercase tracking-[0.14em] font-black bg-gray-50/50">
+              <th className="px-5 py-4 w-[24%]">Producto</th>
+              <th className="px-4 py-4 w-[10%]">Categoría</th>
+              <th className="px-4 py-4 w-[8%]">Precio</th>
+              <th className="px-4 py-4 w-[8%]">Stock</th>
+              <th className="px-4 py-4 w-[16%]">Reseñas</th>
+              <th className="px-4 py-4 w-[20%]">IA / Público</th>
+              <th className="px-4 py-4 w-[6%] text-center">Estado</th>
+              <th className="px-4 py-4 w-[8%] text-center">Acciones</th>
+            </tr>
             </thead>
 
             <tbody className="divide-y divide-gray-50 text-sm">
@@ -516,7 +566,7 @@ export default function ProductosPage() {
                     key={producto.id}
                     className="hover:bg-[#F5E6D0]/10 transition-colors group"
                   >
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-4 align-top">
                       <div className="flex items-center gap-4">
                         <div className="h-12 w-12 rounded-lg border border-gray-200 overflow-hidden shrink-0 bg-gray-50">
                           {producto.imagenUrl ? (
@@ -532,8 +582,8 @@ export default function ProductosPage() {
                           )}
                         </div>
 
-                        <div>
-                          <div className="font-bold text-[#1A1A1A]">
+                        <div className="min-w-0">
+                            <div className="font-bold text-[#1A1A1A] leading-tight line-clamp-2">
                             {producto.nombre}
                           </div>
                           <div className="text-xs text-[#BC9968] font-semibold">
@@ -543,15 +593,15 @@ export default function ProductosPage() {
                       </div>
                     </td>
 
-                    <td className="px-6 py-4 text-gray-600 font-medium">
+                    <td className="px-4 py-4 align-top text-gray-600 font-medium text-sm">
                       {producto.categoria}
                     </td>
 
-                    <td className="px-6 py-4 font-bold text-[#3D0A1A]">
+                    <td className="px-4 py-4 align-top font-bold text-[#3D0A1A] whitespace-nowrap">
                       Bs. {producto.precioVenta}
                     </td>
 
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 align-top">
                       <span
                         className={`px-2.5 py-1 rounded-md text-xs font-bold ${
                           producto.stock > 0
@@ -562,7 +612,48 @@ export default function ProductosPage() {
                         {producto.stock > 0 ? `${producto.stock} und.` : "Agotado"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 min-w-[260px]">
+                    <td className="px-4 py-4 align-top">
+  {producto.cantidadResenas > 0 ? (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-black text-[#3D0A1A]">
+          ★ {producto.promedioResenas.toFixed(1)}
+        </span>
+        <span className="text-xs font-bold text-gray-400">
+          {producto.cantidadResenas} reseña
+          {producto.cantidadResenas === 1 ? "" : "s"}
+        </span>
+      </div>
+
+      {producto.ultimaResena?.texto ? (
+        <p className="text-xs text-gray-500 max-w-full overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]">
+          “{producto.ultimaResena.texto}”
+        </p>
+      ) : (
+        <p className="text-xs text-gray-400">Sin comentario escrito.</p>
+      )}
+
+      {producto.ultimaResena?.autor ? (
+        <p className="text-[10px] font-bold text-[#BC9968] uppercase tracking-wide">
+          Última opinión · {producto.ultimaResena.autor}
+        </p>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => setProductoResenasAbierto(producto)}
+        className="text-[11px] font-black text-[#8E1B3A] hover:text-[#5A0F24] underline underline-offset-2"
+      >
+        Ver todas
+      </button>
+    </div>
+  ) : (
+    <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 text-gray-400 text-xs font-bold">
+      <MessageSquare size={14} />
+      Sin reseñas
+    </div>
+  )}
+</td>
+                    <td className="px-4 py-4 align-top">
                       <div className="flex flex-col gap-2">
                         <div className="flex flex-wrap gap-1.5">
                           {producto.ocasiones.slice(0, 2).map((ocasion) => (
@@ -613,43 +704,47 @@ export default function ProductosPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-4 py-4 align-top text-center">
                       <button
-                        onClick={() => toggleActivo(producto.id)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          producto.activo ? "bg-[#8E1B3A]" : "bg-gray-200"
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
-                            producto.activo ? "translate-x-6" : "translate-x-1"
-                          }`}
-                        />
-                      </button>
+  type="button"
+  onClick={() => toggleActivo(producto.id)}
+  className={`relative mx-auto inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+    producto.activo ? "bg-[#8E1B3A]" : "bg-gray-200"
+  }`}
+  aria-label={producto.activo ? "Desactivar producto" : "Activar producto"}
+>
+  <span
+    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
+      producto.activo ? "translate-x-6" : "translate-x-1"
+    }`}
+  />
+</button>
                     </td>
 
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-4 py-4 align-top text-center">
+  <div className="flex items-center justify-center gap-1">
                         <button
-                          onClick={() => abrirModalEditar(producto)}
-                          className="p-2 text-gray-400 hover:text-[#BC9968] hover:bg-[#F5E6D0]/50 rounded-lg transition-colors"
-                        >
-                          <Edit3 size={18} />
-                        </button>
+  onClick={() => abrirModalEditar(producto)}
+  title="Editar producto"
+  className="h-8 w-8 inline-flex items-center justify-center text-gray-400 hover:text-[#8E1B3A] hover:bg-[#F5E6D0]/70 rounded-lg transition-colors"
+>
+  <Edit3 size={16} />
+</button>
 
-                        <button
-                          onClick={() => handleEliminar(producto.id, producto.nombre)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+<button
+  onClick={() => handleEliminar(producto.id, producto.nombre)}
+  title="Eliminar producto"
+  className="h-8 w-8 inline-flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+>
+  <Trash2 size={16} />
+</button>
                       </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-16 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-16 text-center text-gray-500">
                     <PackagePlus size={48} className="mx-auto text-gray-300 mb-4" />
                     <p className="font-bold text-gray-700 text-lg">
                       No hay productos
@@ -664,7 +759,75 @@ export default function ProductosPage() {
           </table>
         </div>
       </div>
+    {productoResenasAbierto && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#3D0A1A]/70 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[86vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+      <div className="px-6 py-4 border-b border-gray-100 flex items-start justify-between bg-[#FDFBF9]">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#BC9968]">
+            Opiniones del producto
+          </p>
+          <h2 className="text-xl font-extrabold text-[#3D0A1A] mt-1">
+            {productoResenasAbierto.nombre}
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            ★ {productoResenasAbierto.promedioResenas} ·{" "}
+            {productoResenasAbierto.cantidadResenas} reseña
+            {productoResenasAbierto.cantidadResenas === 1 ? "" : "s"}
+          </p>
+        </div>
 
+        <button
+          type="button"
+          onClick={() => setProductoResenasAbierto(null)}
+          className="p-2 text-gray-400 hover:text-[#8E1B3A] hover:bg-white rounded-full transition-colors"
+          aria-label="Cerrar reseñas"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="p-6 overflow-y-auto space-y-4">
+        {productoResenasAbierto.resenas.length > 0 ? (
+          productoResenasAbierto.resenas.map((resena) => (
+            <article
+              key={resena.id}
+              className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-black text-[#3D0A1A]">
+                    {resena.autor || "Cliente"}
+                  </p>
+                  <p className="text-xs text-gray-400 font-bold mt-0.5">
+                    {new Date(resena.fecha).toLocaleDateString("es-BO", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+
+                <div className="px-3 py-1 rounded-full bg-[#F5E6D0] text-[#8E1B3A] text-xs font-black">
+                  ★ {resena.calificacion}
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-600 mt-3 leading-relaxed">
+                {resena.texto || "Sin comentario escrito."}
+              </p>
+            </article>
+          ))
+        ) : (
+          <div className="py-10 text-center text-gray-400">
+            <MessageSquare size={42} className="mx-auto mb-3" />
+            <p className="font-bold">Este producto aún no tiene reseñas.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#3D0A1A]/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">

@@ -11,7 +11,7 @@ import { useSession } from "../components/auth/useSession";
 import type { DetailProduct, ProductComment } from "../product-data";
 import { DISENOS_EMPAQUE, DISENOS_ENVOLTURA, DISENOS_LISTON } from "@/lib/personalization-designs";
 import styles from "./detalle.module.css";
-import { getTarjetasActivas } from "./actions";
+import { getTarjetasActivas, guardarResenaProducto } from "./actions";
 
 type FontOption = {
   id: string;
@@ -1143,6 +1143,9 @@ export default function ProductDetailClient({
   const [commentText, setCommentText] = useState("");
   const [commentRating, setCommentRating] = useState(5);
   const [comments, setComments] = useState<ProductComment[]>(comentariosIniciales);
+  const [isSavingComment, setIsSavingComment] = useState(false);
+  const [commentError, setCommentError] = useState("");
+  const [commentSuccess, setCommentSuccess] = useState("");
   const [flyingAnimations, setFlyingAnimations] = useState<FlyingCartAnimation[]>([]);
 
   useEffect(() => {
@@ -1171,10 +1174,6 @@ export default function ProductDetailClient({
     }));
   }, [personalizationConfig.sections]);
 
-  const commentStorageKey = useMemo(
-    () => `emotia-product-comment-${producto.id}-${user?.email ?? "guest"}`,
-    [producto.id, user?.email]
-  );
   const tarjetaActiva = useMemo(
     () => tarjetas.find((tarjeta) => tarjeta.id === selectedCard) || tarjetas[0] || fallbackCardTemplate,
     [selectedCard, tarjetas]
@@ -1192,24 +1191,7 @@ export default function ProductDetailClient({
     [personalizationConfig.sections, savedPersonalization, tarjetas]
   );
 
-  const commentsWithStored = useMemo(() => {
-    if (!isLoggedIn || !user || typeof window === "undefined") return comments;
-
-    try {
-      const raw = window.localStorage.getItem(commentStorageKey);
-      if (!raw) return comments;
-      const stored = JSON.parse(raw) as ProductComment;
-      if (comments.some((comment) => comment.id === stored.id)) return comments;
-      return [stored, ...comments];
-    } catch {
-      return comments;
-    }
-  }, [commentStorageKey, comments, isLoggedIn, user]);
-
-  const hasUserComment = useMemo(() => {
-    if (!user?.email) return false;
-    return commentsWithStored.some((comment) => comment.id === commentStorageKey);
-  }, [commentStorageKey, commentsWithStored, user?.email]);
+  const commentsWithStored = comments;
 
   const averageCommentRating = useMemo(() => {
     if (commentsWithStored.length === 0) return producto.rating;
@@ -1227,21 +1209,37 @@ export default function ProductDetailClient({
     return true;
   };
 
-  const handleCommentSubmit = () => {
-    if (!requireSession()) return;
-    if (hasUserComment || commentText.trim() === "" || !user) return;
+  const handleCommentSubmit = async () => {
+  if (!requireSession()) return;
 
-    const nextComment: ProductComment = {
-      id: commentStorageKey,
-      author: user.name,
-      rating: commentRating,
-      text: commentText.trim(),
-    };
+  const texto = commentText.trim();
 
-    window.localStorage.setItem(commentStorageKey, JSON.stringify(nextComment));
-    setComments((prev) => [nextComment, ...prev]);
-    setCommentText("");
-  };
+  if (!texto) {
+    setCommentError("Escribe una reseña antes de publicarla.");
+    return;
+  }
+
+  setIsSavingComment(true);
+  setCommentError("");
+  setCommentSuccess("");
+
+  const result = await guardarResenaProducto(
+    producto.id,
+    commentRating,
+    texto
+  );
+
+  if (!result.success) {
+    setCommentError(result.error || "No se pudo guardar la reseña.");
+    setIsSavingComment(false);
+    return;
+  }
+
+  setComments(result.comentarios || []);
+  setCommentText("");
+  setCommentSuccess("Tu reseña fue guardada correctamente.");
+  setIsSavingComment(false);
+};
 
   const handleApplyPersonalization = (selection: PersonalizationSelection) => {
     setSelectedCard(selection.selectedCard);
@@ -1520,13 +1518,29 @@ export default function ProductDetailClient({
                 if (!isLoggedIn) setIsAuthOpen(true);
               }}
               className={styles.commentArea}
-              placeholder={isLoggedIn ? "Cuéntanos qué te pareció este producto..." : "Inicia sesión para dejar tu reseña"}
-              disabled={!isLoggedIn || hasUserComment}
+              placeholder={
+                isLoggedIn
+                  ? "Cuéntanos qué te pareció este producto..."
+                  : "Inicia sesión para dejar tu reseña"
+              }
+              disabled={!isLoggedIn || isSavingComment}
             />
+            {commentError ? (
+              <p className={styles.commentFeedbackError}>{commentError}</p>
+            ) : null}
 
-            <button type="button" className={styles.commentButton} onClick={handleCommentSubmit} disabled={!isLoggedIn || hasUserComment}>
+            {commentSuccess ? (
+              <p className={styles.commentFeedbackSuccess}>{commentSuccess}</p>
+            ) : null}
+
+            <button
+              type="button"
+              className={styles.commentButton}
+              onClick={() => void handleCommentSubmit()}
+              disabled={!isLoggedIn || isSavingComment}
+            >
               <Send size={16} strokeWidth={2} />
-              {hasUserComment ? "Ya dejaste tu reseña" : "Publicar reseña"}
+              {isSavingComment ? "Guardando..." : "Guardar reseña"}
             </button>
           </div>
 

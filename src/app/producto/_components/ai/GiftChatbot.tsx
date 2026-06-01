@@ -8,6 +8,7 @@ import { recommendGifts } from "../../_lib/recommendation-engine";
 import type { GiftRecommendationInput } from "../../_lib/recommendation-types";
 import { useCart } from "../../components/cart/useCart";
 import styles from "../../producto.module.css";
+import { useSession } from "../../components/auth/useSession";
 
 type GiftChatbotProps = {
   productos: CatalogProduct[];
@@ -33,6 +34,8 @@ const INITIAL_INTENT: GiftRecommendationInput = {
 export default function GiftChatbot({ productos }: GiftChatbotProps) {
   const router = useRouter();
   const { addItem } = useCart();
+  const { isLoggedIn, loginWithGoogle } = useSession();
+  const [showAuthGate, setShowAuthGate] = useState(false);
   const [recomendacionId, setRecomendacionId] = useState<number | null>(null);
   const [syncedRecommendationIds, setSyncedRecommendationIds] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -112,7 +115,10 @@ const actualizarRecomendacionIA = async (
 };
   const sendMessage = async () => {
     const prompt = input.trim();
-
+    if (!isLoggedIn) {
+      setShowAuthGate(true);
+      return;
+    }
     if (prompt.length < 4 || isThinking) return;
 
     const userMessage: ChatMessage = {
@@ -235,7 +241,14 @@ const actualizarRecomendacionIA = async (
       <button
         type="button"
         className={styles.chatbotFloatingButton}
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          if (!isLoggedIn) {
+            setShowAuthGate(true);
+            return;
+          }
+
+          setIsOpen(true);
+        }}
         aria-label="Abrir asistente de regalos"
       >
         <span className={styles.chatbotFloatingLogoWrap}>
@@ -248,7 +261,62 @@ const actualizarRecomendacionIA = async (
 
         <span className={styles.chatbotFloatingText}>IA</span>
       </button>
+      {showAuthGate && (
+  <div className={styles.aiAuthGateLayer}>
+    <button
+      type="button"
+      className={styles.aiAuthGateBackdrop}
+      onClick={() => setShowAuthGate(false)}
+      aria-label="Cerrar aviso de inicio de sesión"
+    />
 
+    <div className={styles.aiAuthGateCard}>
+      <button
+        type="button"
+        className={styles.aiAuthGateClose}
+        onClick={() => setShowAuthGate(false)}
+        aria-label="Cerrar"
+      >
+        <X size={18} />
+      </button>
+
+      <div className={styles.aiAuthGateIcon}>
+        <Sparkles size={24} />
+      </div>
+
+      <p className={styles.aiAuthGateEyebrow}>Recomendaciones inteligentes</p>
+
+      <h3>Inicia sesión para usar la IA de Emotia</h3>
+
+      <p>
+        Así podemos guardar tus preferencias, mostrarte sugerencias más útiles
+        y conectar tus recomendaciones con tu carrito.
+      </p>
+
+      <div className={styles.aiAuthGateBenefits}>
+        <span>Opciones según ocasión y presupuesto</span>
+        <span>Productos reales del catálogo</span>
+        <span>Seguimiento de tus regalos elegidos</span>
+      </div>
+
+      <button
+        type="button"
+        className={styles.aiAuthGatePrimary}
+        onClick={() => void loginWithGoogle()}
+      >
+        Iniciar sesión
+      </button>
+
+      <button
+        type="button"
+        className={styles.aiAuthGateSecondary}
+        onClick={() => setShowAuthGate(false)}
+      >
+        Seguir viendo el catálogo
+      </button>
+    </div>
+  </div>
+)}
       {isOpen && (
         <div className={styles.chatbotLayer}>
           <button

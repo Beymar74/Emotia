@@ -1659,3 +1659,16 @@
     font-size: 1.45rem;
   }
 }
+.commentFeedbackError {
+  margin: 0.65rem 0 0;
+  color: #a32d2d;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.commentFeedbackSuccess {
+  margin: 0.65rem 0 0;
+  color: #2d7a47;
+  font-size: 0.78rem;
+  font-weight: 800;
+}

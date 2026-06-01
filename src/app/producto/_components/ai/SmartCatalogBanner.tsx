@@ -8,6 +8,8 @@ import { recommendGifts } from "../../_lib/recommendation-engine";
 import type { GiftRecommendationInput } from "../../_lib/recommendation-types";
 import { useCart } from "../../components/cart/useCart";
 import styles from "../../producto.module.css";
+import { useSession } from "../../components/auth/useSession";
+
 
 type SmartCatalogBannerProps = {
   productos: CatalogProduct[];
@@ -26,7 +28,9 @@ const INITIAL_FORM: GiftRecommendationInput = {
 export default function SmartCatalogBanner({ productos }: SmartCatalogBannerProps) {
   const router = useRouter();
   const { addItem } = useCart();
-   const [recomendacionId, setRecomendacionId] = useState<number | null>(null);
+  const { isLoggedIn, loginWithGoogle } = useSession();
+  const [showAuthGate, setShowAuthGate] = useState(false);
+  const [recomendacionId, setRecomendacionId] = useState<number | null>(null);
   const [syncedRecommendationIds, setSyncedRecommendationIds] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [form, setForm] = useState<GiftRecommendationInput>(INITIAL_FORM);
@@ -99,6 +103,10 @@ const actualizarRecomendacionIA = async (
   }
 };
   const buscarRecomendaciones = async () => {
+  if (!isLoggedIn) {
+    setShowAuthGate(true);
+    return;
+  }  
   setIsSearching(true);
   setHasSearched(false);
   setAiError("");
@@ -152,6 +160,10 @@ const actualizarRecomendacionIA = async (
   }, 650);
 };
 const interpretarConIA = async () => {
+  if (!isLoggedIn) {
+    setShowAuthGate(true);
+    return;
+  }
   const prompt = freeText.trim();
 
   if (prompt.length < 4) {
@@ -271,9 +283,76 @@ const abrirCarrito = () => {
         </div>
       </div>
 
-      <button type="button" className={styles.smartButton} onClick={() => setIsOpen(true)}>
+      <button
+        type="button"
+        className={styles.smartButton}
+        onClick={() => {
+          if (!isLoggedIn) {
+            setShowAuthGate(true);
+            return;
+          }
+          setIsOpen(true);
+        }}
+      >
         Recomendar regalo
       </button>
+
+      {showAuthGate && (
+        <div className={styles.aiAuthGateLayer}>
+          <button
+            type="button"
+            className={styles.aiAuthGateBackdrop}
+            onClick={() => setShowAuthGate(false)}
+            aria-label="Cerrar aviso de inicio de sesión"
+          />
+
+          <div className={styles.aiAuthGateCard}>
+            <button
+              type="button"
+              className={styles.aiAuthGateClose}
+              onClick={() => setShowAuthGate(false)}
+              aria-label="Cerrar"
+            >
+              <X size={18} />
+            </button>
+
+            <div className={styles.aiAuthGateIcon}>
+              <Sparkles size={24} />
+            </div>
+
+            <p className={styles.aiAuthGateEyebrow}>Catálogo inteligente</p>
+
+            <h3>Inicia sesión para recibir recomendaciones</h3>
+
+            <p>
+              La IA de Emotia usa tu búsqueda para sugerirte regalos reales y guardar
+              los productos que elijas para tu carrito.
+            </p>
+
+            <div className={styles.aiAuthGateBenefits}>
+              <span>Recomendaciones personalizadas</span>
+              <span>Historial de productos elegidos</span>
+              <span>Mejor seguimiento de tu compra</span>
+            </div>
+
+            <button
+              type="button"
+              className={styles.aiAuthGatePrimary}
+              onClick={() => void loginWithGoogle()}
+            >
+              Iniciar sesión
+            </button>
+
+            <button
+              type="button"
+              className={styles.aiAuthGateSecondary}
+              onClick={() => setShowAuthGate(false)}
+            >
+              Seguir explorando
+            </button>
+          </div>
+        </div>
+      )}
 
       {isOpen && (
         <div className={styles.smartOverlay}>

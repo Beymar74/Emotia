@@ -88,48 +88,56 @@ export async function POST(request: Request) {
   };
 
   const { prompt } = body;
+  const usuarioId = await getCatalogUsuarioId();
+
+  if (!usuarioId) {
+    return NextResponse.json(
+      {
+        success: false,
+        authRequired: true,
+        error: "Inicia sesión para usar las recomendaciones inteligentes de Emotia.",
+      },
+      { status: 401 }
+    );
+  }
     if (body.intent) {
     const intent = normalizeIntent(body.intent);
     let recomendacionId: number | null = null;
 
     try {
-      const usuarioId = await getCatalogUsuarioId();
+  const productosSugeridos = Array.isArray(body.productosSugeridos)
+    ? body.productosSugeridos
+        .map((id) => Number(id))
+        .filter((id) => Number.isInteger(id) && id > 0)
+        .slice(0, 12)
+    : [];
 
-      if (usuarioId) {
-        const productosSugeridos = Array.isArray(body.productosSugeridos)
-          ? body.productosSugeridos
-              .map((id) => Number(id))
-              .filter((id) => Number.isInteger(id) && id > 0)
-              .slice(0, 12)
-          : [];
+  const recomendacion = await prisma.recomendaciones.create({
+    data: {
+      usuario_id: usuarioId,
+      destinatario_rel: intent.destinatario
+        ? normalizarTextoReporte(intent.destinatario)
+        : null,
+      destinatario_edad: intent.edad,
+      destinatario_genero: "cualquiera",
+      personalidad: normalizarPersonalidad(intent.personalidad),
+      ocasion: intent.ocasion ? normalizarTextoReporte(intent.ocasion) : null,
+      presupuesto_min: null,
+      presupuesto_max: intent.presupuestoMax,
+      productos_sugeridos: productosSugeridos,
+      productos_elegidos: [],
+      producto_elegido: null,
+      convertida_en_compra: false,
+    },
+    select: {
+      id: true,
+    },
+  });
 
-        const recomendacion = await prisma.recomendaciones.create({
-          data: {
-            usuario_id: usuarioId,
-            destinatario_rel: intent.destinatario
-              ? normalizarTextoReporte(intent.destinatario)
-              : null,
-            destinatario_edad: intent.edad,
-            destinatario_genero: "cualquiera",
-            personalidad: normalizarPersonalidad(intent.personalidad),
-            ocasion: intent.ocasion ? normalizarTextoReporte(intent.ocasion) : null,
-            presupuesto_min: null,
-            presupuesto_max: intent.presupuestoMax,
-            productos_sugeridos: productosSugeridos,
-            productos_elegidos: [],
-            producto_elegido: null,
-            convertida_en_compra: false,
-          },
-          select: {
-            id: true,
-          },
-        });
-
-        recomendacionId = recomendacion.id;
-      }
-    } catch (error) {
-      console.error("No se pudo registrar la recomendación manual:", error);
-    }
+  recomendacionId = recomendacion.id;
+} catch (error) {
+  console.error("No se pudo registrar la recomendación manual:", error);
+}
 
     return NextResponse.json({
       success: true,
