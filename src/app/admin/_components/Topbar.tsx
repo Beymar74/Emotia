@@ -163,7 +163,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
                   {/* MAPEO 1: SOLICITUDES DE RETIRO (NUEVO) */}
                   {notificacionesAdmin.map((notif) => (
                     <Link
-                      href={`/admin/empresas/actividad/${notif.proveedor_id}`}
+                      href="/admin/empresas/actividad"
                       key={`notif-${notif.id}`}
                       onClick={() => setIsOpen(false)}
                       className="group p-3 rounded-xl border border-green-100 bg-[#f4fbf6] hover:bg-green-50 transition-colors flex gap-3"
