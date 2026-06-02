@@ -38,7 +38,7 @@ export default async function ProductosPage({
     prisma.productos.count({ where }),
     prisma.productos.findMany({
       where,
-      include: { proveedores: { select: { nombre_negocio: true } }, categorias: { select: { nombre: true } } },
+      include: { proveedores: { select: { nombre_negocio: true, logo_url: true } }, categorias: { select: { nombre: true } } },
       orderBy: { created_at: "desc" },
       skip: (pagina - 1) * POR_PAGINA,
       take: POR_PAGINA,
@@ -64,14 +64,16 @@ export default async function ProductosPage({
   const desactivados   = statsGlobal.find((r) => r.activo === false)?._count.id ?? 0;
 
   type ProductoData = {
-    id: number; nombre: string; proveedor: string; categoria: string;
-    precio: string; stock: number; calificacion: string; estado: EstadoProd; activo: boolean;
+    id: number; nombre: string; imagenUrl: string | null; proveedor: string; proveedorLogoUrl: string | null;
+    categoria: string; precio: string; stock: number; calificacion: string; estado: EstadoProd; activo: boolean;
   };
 
   const productosMapeados: ProductoData[] = productosDB.map((p: any) => ({
     id:           p.id,
     nombre:       p.nombre,
+    imagenUrl:    p.imagen_url ?? null,
     proveedor:    p.proveedores?.nombre_negocio || "Desconocido",
+    proveedorLogoUrl: p.proveedores?.logo_url ?? null,
     categoria:    p.categorias?.nombre || "Sin categoría",
     precio:       `Bs ${Number(p.precio_venta).toLocaleString("en-US", { minimumFractionDigits: 0 })}`,
     stock:        p.stock,

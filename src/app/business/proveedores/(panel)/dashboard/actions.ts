@@ -614,7 +614,6 @@ export async function notificarRetiroAdmin(monto: number) {
     await prisma.notificaciones.create({
       data: {
         usuario_id: admin.id,
-        proveedor_id: proveedor.id,
         tipo: "solicitud_retiro",
         titulo: `Liquidación: ${proveedor.nombre_negocio}`,
         mensaje: `Solicita el abono de Bs. ${monto.toFixed(2)} a su cuenta bancaria.`,

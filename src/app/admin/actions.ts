@@ -105,28 +105,33 @@ export async function cancelarPedido(id: number) {
   }
 }
 export async function obtenerNotificacionesAdmin() {
-  const admin = await prisma.usuarios.findFirst({
-    where: {
-      tipo: "admin",
-    },
-  });
+  try {
+    const admin = await prisma.usuarios.findFirst({
+      where: {
+        tipo: "admin",
+      },
+    });
 
-  if (!admin) return [];
+    if (!admin) return [];
 
-  return prisma.notificaciones.findMany({
-    where: {
-      usuario_id: admin.id,
-      leida: false,
-    },
-    select: {
-      id: true,
-      titulo: true,
-      mensaje: true,
-      proveedor_id: true, // 👈 importante
-      created_at: true,
-    },
-    orderBy: {
-      created_at: "desc",
-    },
-  });
+    return prisma.notificaciones.findMany({
+      where: {
+        usuario_id: admin.id,
+        leida: false,
+      },
+      select: {
+        id: true,
+        titulo: true,
+        mensaje: true,
+        tipo: true,
+        created_at: true,
+      },
+      orderBy: {
+        created_at: "desc",
+      },
+    });
+  } catch (error) {
+    console.error("Error al obtener notificaciones admin:", error);
+    return [];
+  }
 }

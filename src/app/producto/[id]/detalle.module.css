@@ -40,12 +40,13 @@
 
 .mainVisual {
   position: relative;
-  border-radius: 34px;
+  border-radius: 28px;
   overflow: hidden;
-  background: linear-gradient(135deg, #c6284f 0%, #e04a64 48%, #ffd1b3 100%);
-  min-height: 430px;
-  padding: 0.78rem;
-  box-shadow: 0 28px 56px rgba(92, 58, 46, 0.18);
+  background: #ffffff;
+  border: 1px solid rgba(230, 136, 92, 0.16);
+  min-height: 400px;
+  padding: 0.65rem;
+  box-shadow: 0 22px 44px rgba(92, 58, 46, 0.1);
 }
 
 .productTag {
@@ -67,11 +68,11 @@
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 400px;
-  max-height: 560px;
-  border-radius: 26px;
+  min-height: 380px;
+  max-height: 520px;
+  border-radius: 20px;
   object-fit: contain;
-  background: #ffffff;
+  background: #faf8f6;
 }
 
 .galleryInfoBlock {
@@ -151,7 +152,7 @@
 
 .deliveryCard {
   margin-top: 0;
-  padding: 1.15rem 1.15rem 1.2rem;
+  padding: 1rem 1.05rem 1.05rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -203,8 +204,9 @@
 
 .commentsLayout {
   display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
+  grid-template-columns: 320px minmax(0, 1fr);
   gap: 1rem;
+  align-items: start;
 }
 
 .commentComposer,
@@ -216,7 +218,7 @@
 }
 
 .commentComposer {
-  padding: 1.2rem;
+  padding: 1.1rem;
   align-self: start;
 }
 
@@ -286,7 +288,7 @@
 }
 
 .commentCard {
-  padding: 1rem 1.1rem;
+  padding: 0.95rem 1.05rem;
 }
 
 .commentTop {
@@ -301,9 +303,9 @@
 }
 
 .commentCard p {
-  margin: 0.7rem 0 0;
+  margin: 0.55rem 0 0;
   color: #8a6f62;
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
 .deliveryLabel {
@@ -328,20 +330,21 @@
 }
 
 .brandAvatarWrap {
-  width: 74px;
-  height: 74px;
+  width: 64px;
+  height: 64px;
   flex-shrink: 0;
-  border-radius: 22px;
-  padding: 0.22rem;
-  background: linear-gradient(135deg, #c6284f 0%, #e04a64 48%, #ffd1b3 100%);
-  box-shadow: 0 14px 28px rgba(198, 40, 79, 0.18);
+  border-radius: 18px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(230, 136, 92, 0.16);
+  box-shadow: none;
 }
 
 .brandAvatar {
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 18px;
+  border-radius: 17px;
   object-fit: cover;
   background: #ffffff;
 }
@@ -427,7 +430,60 @@
 }
 
 .productHead {
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.35rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(230, 136, 92, 0.12);
+}
+
+.purchasePanel {
+  display: grid;
+  gap: 1rem;
+}
+
+.personalizationBlock,
+.previewBlock {
+  border-radius: 24px;
+  border: 1px solid rgba(230, 136, 92, 0.14);
+  background: #ffffff;
+  padding: 1.15rem 1.2rem;
+  box-shadow: 0 12px 28px rgba(92, 58, 46, 0.05);
+}
+
+.personalizationBlockTop,
+.previewBlockHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.personalizationEyebrow,
+.personalizationPreviewEyebrow {
+  margin: 0 0 0.25rem;
+  color: #c6284f;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.personalizationHeading {
+  margin: 0;
+  color: #5c3a2e;
+  font-size: 1.22rem;
+  line-height: 1.25;
+}
+
+.personalizationBadge {
+  flex-shrink: 0;
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(198, 40, 79, 0.08);
+  color: #8e3651;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .category {
@@ -442,12 +498,12 @@
 .productName {
   margin: 0;
   color: #5c3a2e;
-  font-size: clamp(2rem, 4vw, 3.4rem);
-  line-height: 0.97;
+  font-size: clamp(1.85rem, 3.5vw, 2.85rem);
+  line-height: 1.05;
 }
 
 .priceLine {
-  margin: 1rem 0 0;
+  margin: 0.85rem 0 0;
   display: flex;
   align-items: center;
   gap: 0.8rem;
@@ -455,15 +511,15 @@
 
 .price {
   color: #c6284f;
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 900;
 }
 
 .description {
-  margin: 1rem 0 0;
+  margin: 0.75rem 0 0;
   color: #8a6f62;
-  line-height: 1.75;
-  font-size: 1rem;
+  line-height: 1.65;
+  font-size: 0.94rem;
 }
 
 .customCardPanel {
@@ -475,47 +531,53 @@
 }
 
 .personalizationLead {
-  margin: 0 0 1rem;
+  margin: 0 0 0.85rem;
   color: #8a6f62;
-  line-height: 1.7;
-  font-size: 0.96rem;
+  line-height: 1.65;
+  font-size: 0.9rem;
 }
 
 .personalizationFeatureRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
-  margin-bottom: 1rem;
+  gap: 0.45rem;
+  margin-bottom: 0.95rem;
 }
 
 .personalizationFeaturePill {
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
-  padding: 0.45rem 0.82rem;
+  min-height: 30px;
+  padding: 0.35rem 0.72rem;
   border-radius: 999px;
-  border: 1px solid rgba(198, 40, 79, 0.12);
-  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(198, 40, 79, 0.1);
+  background: #fffaf8;
   color: #8e3651;
-  font-size: 0.78rem;
-  font-weight: 800;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .personalizeButton {
   width: 100%;
-  min-height: 56px;
+  min-height: 50px;
   border: none;
   border-radius: 999px;
   background: linear-gradient(135deg, #5c3a2e, #8e3651);
   color: #ffffff;
-  font-size: 0.96rem;
+  font-size: 0.92rem;
   font-weight: 800;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 0.55rem;
   cursor: pointer;
-  box-shadow: 0 14px 28px rgba(92, 58, 46, 0.18);
+  box-shadow: 0 10px 22px rgba(92, 58, 46, 0.14);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.personalizeButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(92, 58, 46, 0.18);
 }
 
 .personalizationPreviewBox {
@@ -526,38 +588,27 @@
   padding: 1rem;
 }
 
-.personalizationPreviewHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.95rem;
-}
-
-.personalizationPreviewEyebrow {
-  margin: 0 0 0.25rem;
-  color: #c6284f;
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  font-weight: 800;
-}
-
 .personalizationPreviewTitle {
   margin: 0;
   color: #5c3a2e;
-  font-size: 1.08rem;
-  line-height: 1.3;
+  font-size: 0.98rem;
+  line-height: 1.35;
+  font-weight: 800;
 }
 
 .personalizationPreviewState {
   flex-shrink: 0;
-  padding: 0.4rem 0.75rem;
+  padding: 0.32rem 0.68rem;
   border-radius: 999px;
   background: #fff3f7;
   color: #8e3651;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 800;
+}
+
+.personalizationPreviewStateSaved {
+  background: #eef8f0;
+  color: #2d7a47;
 }
 
 .personalizationShowcase {
@@ -637,24 +688,30 @@
 }
 
 .personalizationEmptyState {
-  border-radius: 22px;
-  border: 1px dashed rgba(198, 40, 79, 0.24);
-  background: linear-gradient(180deg, rgba(255, 243, 247, 0.95) 0%, rgba(255, 250, 246, 0.95) 100%);
-  padding: 1.2rem;
+  border-radius: 18px;
+  border: 1px dashed rgba(198, 40, 79, 0.18);
+  background: linear-gradient(180deg, rgba(255, 251, 249, 0.95) 0%, rgba(255, 248, 245, 0.95) 100%);
+  padding: 1.35rem 1rem;
   color: #8a6f62;
   text-align: center;
-  line-height: 1.65;
+  line-height: 1.55;
+}
+
+.personalizationEmptyIcon {
+  color: #c6284f;
+  margin-bottom: 0.55rem;
 }
 
 .personalizationEmptyTitle {
-  margin: 0 0 0.4rem;
+  margin: 0 0 0.35rem;
   color: #5c3a2e;
-  font-size: 1rem;
-  font-weight: 900;
+  font-size: 0.94rem;
+  font-weight: 800;
 }
 
 .personalizationEmptyCopy {
-  margin: 0 0 0.9rem;
+  margin: 0;
+  font-size: 0.84rem;
 }
 
 .sectionHeader {
@@ -828,12 +885,19 @@
   padding: 0.7rem 1rem;
   font-size: 0.86rem;
   cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.fontButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(198, 40, 79, 0.24);
 }
 
 .fontButtonActive {
-  background: #5c3a2e;
+  background: linear-gradient(135deg, #5c3a2e, #8e3651);
   border-color: #5c3a2e;
   color: #ffffff;
+  box-shadow: 0 10px 22px rgba(92, 58, 46, 0.18);
 }
 
 .personalizationOptionSection {
@@ -848,9 +912,63 @@
 
 .optionFieldBlock {
   padding: 1rem;
-  border-radius: 24px;
-  border: 1px solid rgba(230, 136, 92, 0.16);
-  background: rgba(255, 255, 255, 0.9);
+  border-radius: 22px;
+  border: 1px solid rgba(230, 136, 92, 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 250, 246, 0.92) 100%);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.optionFieldBlock:hover {
+  border-color: rgba(198, 40, 79, 0.16);
+  box-shadow: 0 8px 20px rgba(92, 58, 46, 0.05);
+}
+
+.optionFieldBlockMuted {
+  opacity: 0.72;
+  background: linear-gradient(180deg, rgba(255, 252, 250, 0.96) 0%, rgba(248, 244, 240, 0.92) 100%);
+}
+
+.choiceGridRibbonColor {
+  grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+}
+
+.choiceGridCompactSwatch {
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 0.45rem;
+}
+
+.choiceGridRibbonDesign {
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 0.55rem;
+}
+
+.choiceButtonCompactSwatch {
+  padding: 0.4rem 0.35rem 0.45rem;
+  gap: 0.3rem;
+  border-radius: 14px;
+}
+
+.choiceButtonCompactSwatch.choiceButtonActive {
+  box-shadow: 0 0 0 2px rgba(198, 40, 79, 0.14);
+}
+
+.choiceSwatchPreviewCompact {
+  height: 34px;
+  aspect-ratio: unset;
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.choiceButtonCompactSwatch .choiceTextBodyCompact strong {
+  font-size: 0.64rem;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.choiceVisualImageWrapCompact {
+  aspect-ratio: 1;
+  border-radius: 16px;
+  box-shadow: 0 6px 14px rgba(92, 58, 46, 0.07);
 }
 
 .optionFieldHead {
@@ -924,16 +1042,26 @@
   border-color: rgba(198, 40, 79, 0.3);
 }
 
+.choiceButtonDisabled,
+.choiceButtonDisabled:hover {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  border-color: rgba(230, 136, 92, 0.14);
+  box-shadow: none;
+}
+
 .choiceButtonImageOnly:hover {
   border-color: transparent;
 }
 
 .choiceVisualImageWrap {
+  position: relative;
   border-radius: 22px;
   overflow: hidden;
-  background: transparent;
+  background: #faf8f6;
   aspect-ratio: 1.24 / 1;
-  border: 1px solid transparent;
+  border: 1px solid rgba(230, 136, 92, 0.1);
   box-shadow: 0 10px 22px rgba(92, 58, 46, 0.08);
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
@@ -1122,15 +1250,21 @@
 
 .btnBolsa {
   width: 100%;
-  min-height: 62px;
+  min-height: 54px;
   border: none;
   border-radius: 999px;
   background: linear-gradient(135deg, #c6284f, #e04a64);
   color: #ffffff;
-  font-size: 1rem;
+  font-size: 0.96rem;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 16px 28px rgba(198, 40, 79, 0.22);
+  box-shadow: 0 12px 24px rgba(198, 40, 79, 0.18);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btnBolsa:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px rgba(198, 40, 79, 0.24);
 }
 
 .flyingCartChip {
@@ -1213,9 +1347,24 @@
   overflow: hidden;
   border-radius: 34px;
   background: linear-gradient(180deg, #fffdfb 0%, #fff6f2 100%);
-  box-shadow: 0 28px 60px rgba(92, 58, 46, 0.24);
+  border: 1px solid rgba(230, 136, 92, 0.18);
+  box-shadow:
+    0 28px 60px rgba(92, 58, 46, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.modalCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #c6284f 0%, #e04a64 45%, #ffd1b3 100%);
+  z-index: 1;
 }
 
 .modalHeader {
@@ -1223,8 +1372,13 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.35rem 1.35rem 1rem;
+  padding: 1.5rem 1.5rem 1.15rem;
   border-bottom: 1px solid rgba(230, 136, 92, 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 251, 249, 0.4) 100%);
+}
+
+.modalHeaderContent {
+  min-width: 0;
 }
 
 .modalEyebrow {
@@ -1254,7 +1408,7 @@
   width: 42px;
   height: 42px;
   flex-shrink: 0;
-  border: none;
+  border: 1px solid rgba(230, 136, 92, 0.16);
   border-radius: 999px;
   background: #ffffff;
   color: #8e3651;
@@ -1263,11 +1417,75 @@
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 10px 20px rgba(92, 58, 46, 0.1);
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.modalCloseButton:hover {
+  transform: scale(1.04);
+  background: #fff7f3;
+  border-color: rgba(198, 40, 79, 0.24);
 }
 
 .modalBody {
   padding: 1.15rem 1.35rem 1rem;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(198, 40, 79, 0.28) transparent;
+}
+
+.modalBody::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modalBody::-webkit-scrollbar-thumb {
+  background: rgba(198, 40, 79, 0.28);
+  border-radius: 999px;
+}
+
+.modalFormSection {
+  margin-bottom: 1rem;
+  padding: 1.15rem 1.1rem;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(230, 136, 92, 0.12);
+  box-shadow: 0 10px 26px rgba(92, 58, 46, 0.04);
+}
+
+.modalFormSection:last-child {
+  margin-bottom: 0;
+}
+
+.modalFormSection .cardGrid,
+.modalFormSection .textArea,
+.modalFormSection .fontSelector {
+  margin-bottom: 0;
+}
+
+.modalSectionHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.95rem;
+}
+
+.modalSectionHeader .sectionHeader {
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.sectionStepBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #c6284f, #e04a64);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 8px 18px rgba(198, 40, 79, 0.22);
 }
 
 .modalContentGrid {
@@ -1290,12 +1508,43 @@
 .modalPreviewPanel {
   border-radius: 28px;
   border: 1px solid rgba(230, 136, 92, 0.18);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 247, 243, 0.98) 100%);
-  padding: 1rem;
+  background:
+    radial-gradient(circle at top right, rgba(255, 209, 179, 0.18), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 247, 243, 0.98) 100%);
+  padding: 1.1rem;
   box-shadow: 0 16px 28px rgba(92, 58, 46, 0.08);
 }
 
+.modalPreviewHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.15rem;
+}
+
+.modalPreviewSparkle {
+  display: inline-block;
+  vertical-align: -1px;
+  margin-right: 0.28rem;
+}
+
+.modalPreviewCount {
+  flex-shrink: 0;
+  padding: 0.35rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(198, 40, 79, 0.08);
+  color: #8e3651;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .modalPreviewEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
   margin: 0 0 0.25rem;
   color: #c6284f;
   font-size: 0.72rem;
@@ -1312,7 +1561,7 @@
 }
 
 .modalPreviewText {
-  margin: 0.45rem 0 0.9rem;
+  margin: 0.45rem 0 0;
   color: #8a6f62;
   font-size: 0.9rem;
   line-height: 1.6;
@@ -1320,7 +1569,8 @@
 
 .modalLivePreview {
   width: 100%;
-  margin-bottom: 0.9rem;
+  margin: 0.9rem 0;
+  box-shadow: 0 14px 28px rgba(92, 58, 46, 0.1);
 }
 
 .modalFooter {
@@ -1330,6 +1580,7 @@
   gap: 0.8rem;
   padding: 1rem 1.35rem 1.35rem;
   border-top: 1px solid rgba(230, 136, 92, 0.14);
+  background: linear-gradient(180deg, rgba(255, 251, 249, 0.5) 0%, rgba(255, 255, 255, 0.85) 100%);
 }
 
 .modalSecondaryButton,
@@ -1346,6 +1597,12 @@
   border: 1px solid rgba(230, 136, 92, 0.22);
   background: #ffffff;
   color: #5c3a2e;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.modalSecondaryButton:hover {
+  background: #fff8f4;
+  border-color: rgba(198, 40, 79, 0.22);
 }
 
 .modalPrimaryButton {
@@ -1353,6 +1610,12 @@
   background: linear-gradient(135deg, #c6284f, #e04a64);
   color: #ffffff;
   box-shadow: 0 14px 28px rgba(198, 40, 79, 0.2);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.modalPrimaryButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 32px rgba(198, 40, 79, 0.28);
 }
 
 @media (max-width: 1120px) {
@@ -1422,8 +1685,12 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .choiceGridSwatch {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .choiceGridCompactSwatch {
+    grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  }
+
+  .choiceGridRibbonDesign {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .commentsHeader {

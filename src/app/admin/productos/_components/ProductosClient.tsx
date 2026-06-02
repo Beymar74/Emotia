@@ -3,16 +3,17 @@
 import { useState, useTransition } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { toggleProducto, eliminarProducto } from "../actions";
+import { toggleProducto } from "../actions";
 import { Search, Star, Package, CheckCircle2, AlertCircle, XCircle, Loader2 } from "lucide-react";
-import ModalConfirmacion from "./ModalConfirmacion";
 
 type EstadoProd = "activo" | "desactivado" | "revision";
 
 interface Producto {
   id: number;
   nombre: string;
+  imagenUrl: string | null;
   proveedor: string;
+  proveedorLogoUrl: string | null;
   categoria: string;
   precio: string;
   stock: number;
@@ -55,8 +56,6 @@ export default function ProductosClient({
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const [modalEliminarOpen, setModalEliminarOpen] = useState(false);
-  const [idAEliminar, setIdAEliminar]             = useState<number | null>(null);
   const [selectedIds, setSelectedIds]             = useState<number[]>([]);
 
   const actualizarFiltro = (key: string, value: string) => {
@@ -70,18 +69,11 @@ export default function ProductosClient({
     startTransition(async () => { await toggleProducto(id, estadoActual); });
   };
 
-  const handleEliminar = (id: number) => {
-    setIdAEliminar(id);
-    setModalEliminarOpen(true);
+  const cambiarFiltroEstado = (estado: string) => {
+    actualizarFiltro("estado", estado);
   };
 
-  const confirmarEliminacion = () => {
-    if (idAEliminar === null) return;
-    startTransition(async () => {
-      await eliminarProducto(idAEliminar);
-      setIdAEliminar(null);
-    });
-  };
+  const filtroEstadoUI = filtroEstadoInicial || "todos";
 
   const handleToggleAll = () => {
     if (selectedIds.length === productos.length && productos.length > 0) setSelectedIds([]);
@@ -95,24 +87,92 @@ export default function ProductosClient({
   const getInitials = (nombre: string) =>
     nombre ? nombre.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() : "PR";
 
+  const renderEmpresaAvatar = (nombre: string, logoUrl: string | null) => (
+    <div className="relative w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 border border-[#8E1B3A]/10 bg-[#FAF3EC]">
+      {logoUrl ? (
+        <img
+          src={logoUrl}
+          alt={nombre}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+            const fallback = e.currentTarget.nextElementSibling;
+            if (fallback) (fallback as HTMLElement).style.display = "flex";
+          }}
+        />
+      ) : null}
+      <div
+        className="absolute inset-0 bg-gradient-to-br from-[#8E1B3A] to-[#AB3A50] flex items-center justify-center text-[10px] font-bold text-white"
+        style={{ display: logoUrl ? "none" : "flex" }}
+      >
+        {getInitials(nombre)}
+      </div>
+    </div>
+  );
+
+  const renderImagenProducto = (p: Producto, size: "sm" | "md" = "md") => {
+    const sizeClass = size === "sm" ? "w-10 h-10" : "w-11 h-11";
+    return (
+      <div className={`${sizeClass} rounded-xl overflow-hidden bg-[#FAF3EC] flex items-center justify-center flex-shrink-0 border border-[#8E1B3A]/5`}>
+        {p.imagenUrl ? (
+          <img src={p.imagenUrl} alt={p.nombre} className="w-full h-full object-cover" />
+        ) : (
+          <Package size={size === "sm" ? 16 : 18} className="text-[#BC9968]" />
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
-      {/* Métricas */}
+      {/* Métricas / Filtros de estado */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
-          { label: "Total Catálogo", valor: totalProductos, icon: <Package size={24}/>,      color: "#8E1B3A" },
-          { label: "Activos",        valor: activos,        icon: <CheckCircle2 size={24}/>, color: "#2D7A47" },
-          { label: "En Revisión",    valor: enRevision,     icon: <AlertCircle size={24}/>,  color: "#8C5E08" },
-          { label: "Desactivados",   valor: desactivados,   icon: <XCircle size={24}/>,      color: "#A32D2D" },
-        ].map((s) => (
-          <div key={s.label} className="bg-white p-4 sm:p-5 rounded-2xl border border-[#8E1B3A]/10 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity" style={{ color: s.color }}>{s.icon}</div>
-            <p className="text-[10px] text-[#7A5260] uppercase tracking-wider font-bold mb-1">{s.label}</p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-serif font-bold text-[#5A0F24]">{s.valor}</p>
-              <div className="h-1 w-6 rounded-full" style={{ background: s.color }} />
-            </div>
-          </div>
+          { label: "Total Catálogo", valor: totalProductos, icon: <Package size={24}/>,      color: "#8E1B3A", key: "todos", clickable: true },
+          { label: "Activos",        valor: activos,        icon: <CheckCircle2 size={24}/>, color: "#2D7A47", key: "activo", clickable: true },
+          { label: "En Revisión",    valor: enRevision,     icon: <AlertCircle size={24}/>,  color: "#8C5E08", key: "revision", clickable: false },
+          { label: "Desactivados",   valor: desactivados,   icon: <XCircle size={24}/>,      color: "#A32D2D", key: "desactivado", clickable: true },
+        ].map((s) => {
+          const activo = s.clickable && filtroEstadoUI === s.key;
+          const Wrapper = s.clickable ? "button" : "div";
+          return (
+            <Wrapper
+              key={s.label}
+              {...(s.clickable ? { type: "button" as const, onClick: () => cambiarFiltroEstado(s.key === "todos" ? "" : s.key) } : {})}
+              className={`bg-white p-4 sm:p-5 rounded-2xl border relative overflow-hidden group text-left transition-all ${
+                activo ? "border-[#8E1B3A]/40 shadow-md ring-1 ring-[#8E1B3A]/10" : "border-[#8E1B3A]/10 hover:shadow-sm"
+              } ${s.clickable ? "cursor-pointer" : ""}`}
+            >
+              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity" style={{ color: s.color }}>{s.icon}</div>
+              <p className="text-[10px] text-[#7A5260] uppercase tracking-wider font-bold mb-1">{s.label}</p>
+              <div className="flex items-baseline gap-2">
+                <p className="text-3xl font-serif font-bold text-[#5A0F24]">{s.valor}</p>
+                <div className="h-1 w-6 rounded-full" style={{ background: s.color }} />
+              </div>
+            </Wrapper>
+          );
+        })}
+      </div>
+
+      {/* Filtros de estado — pills */}
+      <div className="flex flex-wrap gap-2">
+        {[
+          { label: "Todos", key: "todos" },
+          { label: "Activos", key: "activo" },
+          { label: "Desactivados", key: "desactivado" },
+        ].map(({ label, key }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => cambiarFiltroEstado(key === "todos" ? "" : key)}
+            className={`text-sm font-medium px-4 py-2 rounded-full transition ${
+              filtroEstadoUI === key
+                ? "bg-[#8E1B3A] text-white"
+                : "bg-white text-[#5A0F24] border border-[#8E1B3A]/10 hover:bg-[#FDFBF9]"
+            }`}
+          >
+            {label}
+          </button>
         ))}
       </div>
 
@@ -142,15 +202,6 @@ export default function ProductosClient({
           >
             <option value="">Todas las categorías</option>
             {categorias.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select
-            defaultValue={filtroEstadoInicial}
-            onChange={(e) => actualizarFiltro("estado", e.target.value)}
-            className="flex-1 lg:w-40 bg-white text-xs font-semibold border border-[#8E1B3A]/10 rounded-xl px-4 py-2.5 outline-none text-[#7A5260] cursor-pointer hover:border-[#8E1B3A]/30"
-          >
-            <option value="">Todos los estados</option>
-            <option value="activo">Activo</option>
-            <option value="desactivado">Desactivado</option>
           </select>
         </div>
       </div>
@@ -196,12 +247,13 @@ export default function ProductosClient({
               {productos.map((p) => (
                 <div key={p.id} className="border border-[#8E1B3A]/8 rounded-xl p-4 space-y-3">
                   <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                      {getInitials(p.proveedor)}
-                    </div>
-                    <div className="pr-6">
+                    {renderImagenProducto(p, "sm")}
+                    <div className="pr-6 min-w-0 flex-1">
                       <p className="text-sm font-bold text-[#2A0E18] leading-tight mb-0.5">{p.nombre}</p>
-                      <p className="text-xs text-[#7A5260] truncate">{p.proveedor}</p>
+                      <div className="flex items-center gap-2 min-w-0">
+                        {renderEmpresaAvatar(p.proveedor, p.proveedorLogoUrl)}
+                        <p className="text-xs text-[#7A5260] truncate">{p.proveedor}</p>
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2 items-center">
@@ -220,9 +272,8 @@ export default function ProductosClient({
                       <Link href={`/admin/productos/${p.id}`} className="p-1.5 hover:bg-[#8E1B3A]/5 rounded-lg text-[#8E1B3A] text-xs font-medium">Ver</Link>
                       <Link href={`/admin/productos/${p.id}/editar`} className="p-1.5 hover:bg-[#8C5E08]/5 rounded-lg text-[#8C5E08] text-xs font-medium">Editar</Link>
                       <button onClick={() => handleToggle(p.id, p.activo)} className="p-1.5 hover:bg-[#7A5260]/10 rounded-lg text-[#7A5260] text-xs font-medium">
-                        {p.activo ? "Pausar" : "Activar"}
+                        {p.activo ? "Desactivar" : "Activar"}
                       </button>
-                      <button onClick={() => handleEliminar(p.id)} className="p-1.5 hover:bg-[#A32D2D]/5 rounded-lg text-[#A32D2D] text-xs font-medium">Borrar</button>
                     </div>
                   </div>
                 </div>
@@ -254,13 +305,14 @@ export default function ProductosClient({
                         <input type="checkbox" className="w-4 h-4 rounded accent-[#8E1B3A] cursor-pointer" checked={selectedIds.includes(p.id)} onChange={() => handleToggleOne(p.id)} />
                       </td>
                       <td className="px-5 py-3">
-                        <p className="text-sm font-bold text-[#2A0E18] max-w-[200px] truncate" title={p.nombre}>{p.nombre}</p>
+                        <div className="flex items-center gap-3 min-w-0">
+                          {renderImagenProducto(p)}
+                          <p className="text-sm font-bold text-[#2A0E18] max-w-[180px] truncate" title={p.nombre}>{p.nombre}</p>
+                        </div>
                       </td>
                       <td className="px-5 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[#8E1B3A] to-[#BC9968] flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
-                            {getInitials(p.proveedor)}
-                          </div>
+                        <div className="flex items-center gap-2 min-w-0">
+                          {renderEmpresaAvatar(p.proveedor, p.proveedorLogoUrl)}
                           <span className="text-xs text-[#7A5260] max-w-[150px] truncate">{p.proveedor}</span>
                         </div>
                       </td>
@@ -284,9 +336,8 @@ export default function ProductosClient({
                           <Link href={`/admin/productos/${p.id}`} className="text-[11px] px-3 py-1.5 rounded-lg font-medium hover:opacity-80 bg-[#8E1B3A]/10 text-[#8E1B3A]">Ver</Link>
                           <Link href={`/admin/productos/${p.id}/editar`} className="text-[11px] px-3 py-1.5 rounded-lg font-medium hover:opacity-80 bg-[#FDF5E6] text-[#8C5E08]">Editar</Link>
                           <button onClick={() => handleToggle(p.id, p.activo)} className="text-[11px] px-3 py-1.5 rounded-lg font-medium hover:bg-[#F1EFE8] border border-[#8E1B3A]/10 text-[#7A5260]">
-                            {p.activo ? "Pausar" : "Activar"}
+                            {p.activo ? "Desactivar" : "Activar"}
                           </button>
-                          <button onClick={() => handleEliminar(p.id)} className="text-[11px] px-3 py-1.5 rounded-lg font-medium hover:opacity-80 bg-[#FBF0F0] text-[#A32D2D]">Borrar</button>
                         </div>
                       </td>
                     </tr>
@@ -297,17 +348,6 @@ export default function ProductosClient({
           </>
         )}
       </div>
-
-      <ModalConfirmacion
-        isOpen={modalEliminarOpen}
-        onClose={() => setModalEliminarOpen(false)}
-        onConfirm={confirmarEliminacion}
-        titulo="Eliminar Producto"
-        mensaje="¿Estás seguro de que deseas eliminar este producto? Esta acción lo desactivará del catálogo y no podrá deshacerse fácilmente."
-        confirmText="Eliminar"
-        cancelText="Volver"
-        isDestructive={true}
-      />
     </div>
   );
 }

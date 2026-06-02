@@ -416,6 +416,66 @@ function buildFlowerColorChoices(flowerType: string): PersonalizationChoice[] {
   return [];
 }
 
+function buildRibbonColorChoices(): PersonalizationChoice[] {
+  return [
+    {
+      id: "rosado",
+      label: "Rosado blush",
+      description: "Suave, romantico y muy usado en arreglos florales.",
+      swatchColors: ["#f4c7d5", "#e8a9bf", "#fff0f4"],
+    },
+    {
+      id: "rojo",
+      label: "Rojo vino",
+      description: "Clasico y elegante para ocasiones especiales.",
+      swatchColors: ["#8f3d4f", "#c96a73", "#f1d3d0"],
+    },
+    {
+      id: "blanco",
+      label: "Marfil",
+      description: "Neutro y refinado, combina con cualquier arreglo.",
+      swatchColors: ["#f7f1e5", "#efe2cf", "#fffaf2"],
+    },
+    {
+      id: "burdeos",
+      label: "Burdeos",
+      description: "Profundo y sofisticado, ideal para detalles premium.",
+      swatchColors: ["#5a0f24", "#8e1b3a", "#d4a0a8"],
+    },
+    {
+      id: "dorado",
+      label: "Dorado",
+      description: "Calido y festivo para celebraciones.",
+      swatchColors: ["#e8c872", "#d4a853", "#fff6dc"],
+    },
+    {
+      id: "verde",
+      label: "Verde sage",
+      description: "Natural y fresco, perfecto para arreglos organicos.",
+      swatchColors: ["#9eb5a0", "#7a9e7e", "#e8f0e8"],
+    },
+    {
+      id: "lila",
+      label: "Lila suave",
+      description: "Delicado y moderno para un toque distintivo.",
+      swatchColors: ["#d9c7eb", "#bda2d7", "#f3edfb"],
+    },
+  ];
+}
+
+function isCompactColorField(fieldId: string) {
+  return fieldId === "ribbonColor" || fieldId === "flowerColor";
+}
+
+function isRibbonDesignField(fieldId: string) {
+  return fieldId === "ribbonDesign";
+}
+
+function isRibbonNoneSelected(fieldValues: Record<string, string>) {
+  const ribbonId = normalizeProductText(fieldValues.ribbonDesign ?? "");
+  return ribbonId === "sin-liston" || ribbonId.includes("ningun") || ribbonId.includes("sin-liston");
+}
+
 function buildPersonalizationConfig(producto: DetailProduct, visualCatalog: VisualChoiceCatalog): ProductPersonalizationConfig {
   const kind = inferProductKind(producto);
   const fingerprint = normalizeProductText(`${producto.baseCategory} ${producto.name} ${producto.description}`);
@@ -438,6 +498,8 @@ function buildPersonalizationConfig(producto: DetailProduct, visualCatalog: Visu
   ];
   const defaultWrappingChoiceId = wrappingChoices[0]?.id ?? "";
   const defaultRibbonChoiceId = ribbonChoices[0]?.id ?? "";
+  const defaultFlowerRibbonChoiceId =
+    ribbonChoices.find((choice) => choice.id !== "sin-liston")?.id ?? defaultRibbonChoiceId;
   const flowerTypeChoices: PersonalizationChoice[] = [
     { id: "mixto", label: "Mixto", description: "Combinacion variada y armoniosa." },
     { id: "rosas", label: "Rosas", description: "Mas clasico y romantico." },
@@ -538,9 +600,18 @@ function buildPersonalizationConfig(producto: DetailProduct, visualCatalog: Visu
           type: "choice",
           label: "Diseño del liston",
           helper: "Elige el estilo visual del liston o deja ninguno si no lo necesitas.",
-          defaultValue: defaultRibbonChoiceId,
+          defaultValue: defaultFlowerRibbonChoiceId,
           summaryLabel: "Liston",
           choices: ribbonChoices,
+        },
+        {
+          id: "ribbonColor",
+          type: "choice",
+          label: "Color del liston",
+          helper: "Elige el tono del liston que acompañara tu arreglo floral.",
+          defaultValue: "rosado",
+          summaryLabel: "Color liston",
+          choices: buildRibbonColorChoices(),
         },
       ],
     });
@@ -641,7 +712,7 @@ function buildPersonalizationConfig(producto: DetailProduct, visualCatalog: Visu
     availabilityLabel: features.length > 1 ? `${features.length} areas personalizables` : "Tarjeta incluida",
     lead:
       kind === "flowers"
-        ? "Personaliza la tarjeta, las flores, el empaque y los acabados del ramo antes de agregarlo a la bolsa."
+        ? "Personaliza la tarjeta, las flores, el liston con su color, el empaque y los acabados del ramo antes de agregarlo a la bolsa."
         : kind === "cake"
           ? "Personaliza la tarjeta, la presentacion, la escritura y las indicaciones alimentarias de la torta."
           : kind === "food"
@@ -708,6 +779,7 @@ function buildPersonalizationSummary(
   sections.forEach((section) => {
     section.fields.forEach((field) => {
       if (!isFieldVisible(field, selection.fieldValues)) return;
+      if (field.id === "ribbonColor" && isRibbonNoneSelected(selection.fieldValues)) return;
 
       const rawValue = selection.fieldValues[field.id] ?? "";
       if (!rawValue.trim()) return;
@@ -832,11 +904,14 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, config, onCl
 
   if (!isOpen) return null;
 
+  const hasRibbonDesign = !isRibbonNoneSelected(draftFieldValues);
+  const ribbonColorDisabled = !hasRibbonDesign;
+
   return (
     <div className={styles.modalOverlay} onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="personalizacion-producto">
       <div className={styles.modalCard} onClick={(event) => event.stopPropagation()}>
         <div className={styles.modalHeader}>
-          <div>
+          <div className={styles.modalHeaderContent}>
             <p className={styles.modalEyebrow}>Personalización</p>
             <h2 id="personalizacion-producto" className={styles.modalTitle}>
               Personaliza este producto
@@ -852,12 +927,16 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, config, onCl
         <div className={styles.modalBody}>
           <div className={styles.modalContentGrid}>
             <div className={styles.modalFormColumn}>
-              <div className={styles.sectionHeader}>
-                <h3>1. Elige una tarjeta</h3>
-                <span>Siempre disponible</span>
-              </div>
+              <div className={styles.modalFormSection}>
+                <div className={styles.modalSectionHeader}>
+                  <span className={styles.sectionStepBadge}>1</span>
+                  <div className={styles.sectionHeader}>
+                    <h3>Elige una tarjeta</h3>
+                    <span>Siempre disponible</span>
+                  </div>
+                </div>
 
-              <div className={styles.cardGrid}>
+                <div className={styles.cardGrid}>
                 {tarjetas.map((tarjeta) => {
                   const isActive = draftSelectedCard === tarjeta.id;
                   const cardFont = fuentes.find((fuente) => fuente.id === draftSelectedFont) || fuentes[0];
@@ -884,43 +963,57 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, config, onCl
                   );
                 })}
               </div>
-
-              <div className={styles.sectionHeader}>
-                <h3>2. Escribe tu mensaje</h3>
-                <span>Hasta donde quieras emocionar</span>
               </div>
 
-              <textarea
-                value={draftCardMessage}
-                onChange={(event) => setDraftCardMessage(event.target.value)}
-                className={styles.textArea}
-                placeholder="Escribe aquí el mensaje para la tarjeta..."
-              />
+              <div className={styles.modalFormSection}>
+                <div className={styles.modalSectionHeader}>
+                  <span className={styles.sectionStepBadge}>2</span>
+                  <div className={styles.sectionHeader}>
+                    <h3>Escribe tu mensaje</h3>
+                    <span>Hasta donde quieras emocionar</span>
+                  </div>
+                </div>
 
-              <div className={styles.sectionHeader}>
-                <h3>3. Elige el estilo de letra</h3>
-                <span>{fuenteActiva.label}</span>
+                <textarea
+                  value={draftCardMessage}
+                  onChange={(event) => setDraftCardMessage(event.target.value)}
+                  className={styles.textArea}
+                  placeholder="Escribe aquí el mensaje para la tarjeta..."
+                />
               </div>
 
-              <div className={styles.fontSelector}>
-                {fuentes.map((fuente) => (
-                  <button
-                    key={fuente.id}
-                    type="button"
-                    onClick={() => setDraftSelectedFont(fuente.id)}
-                    className={`${styles.fontButton} ${draftSelectedFont === fuente.id ? styles.fontButtonActive : ""}`}
-                    style={{ fontFamily: fuente.family }}
-                  >
-                    {fuente.label}
-                  </button>
-                ))}
+              <div className={styles.modalFormSection}>
+                <div className={styles.modalSectionHeader}>
+                  <span className={styles.sectionStepBadge}>3</span>
+                  <div className={styles.sectionHeader}>
+                    <h3>Elige el estilo de letra</h3>
+                    <span>{fuenteActiva.label}</span>
+                  </div>
+                </div>
+
+                <div className={styles.fontSelector}>
+                  {fuentes.map((fuente) => (
+                    <button
+                      key={fuente.id}
+                      type="button"
+                      onClick={() => setDraftSelectedFont(fuente.id)}
+                      className={`${styles.fontButton} ${draftSelectedFont === fuente.id ? styles.fontButtonActive : ""}`}
+                      style={{ fontFamily: fuente.family }}
+                    >
+                      {fuente.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {config.sections.map((section, sectionIndex) => (
-                <section key={section.id} className={styles.personalizationOptionSection}>
-                  <div className={styles.sectionHeader}>
-                    <h3>{sectionIndex + 4}. {section.title}</h3>
-                    <span>{section.description}</span>
+                <div key={section.id} className={styles.modalFormSection}>
+                  <div className={styles.modalSectionHeader}>
+                    <span className={styles.sectionStepBadge}>{sectionIndex + 4}</span>
+                    <div className={styles.sectionHeader}>
+                      <h3>{section.title}</h3>
+                      <span>{section.description}</span>
+                    </div>
                   </div>
 
                   <div className={styles.fieldStack}>
@@ -942,14 +1035,21 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, config, onCl
                         );
 
                         return (
-                          <div key={field.id} className={styles.optionFieldBlock}>
+                          <div
+                            key={field.id}
+                            className={`${styles.optionFieldBlock} ${field.id === "ribbonColor" && ribbonColorDisabled ? styles.optionFieldBlockMuted : ""}`}
+                          >
                             <div className={styles.optionFieldHead}>
                               <h4>{field.label}</h4>
-                              <p>{field.helper}</p>
+                              <p>
+                                {field.id === "ribbonColor" && ribbonColorDisabled
+                                  ? "Primero elige un diseño de listón arriba para activar la selección de color."
+                                  : field.helper}
+                              </p>
                             </div>
 
                             <div
-                              className={`${styles.choiceGrid} ${visualChoices ? styles.choiceGridVisual : ""} ${!choices.some((choice) => choice.imageUrl) && visualChoices ? styles.choiceGridSwatch : ""}`}
+                              className={`${styles.choiceGrid} ${visualChoices ? styles.choiceGridVisual : ""} ${!choices.some((choice) => choice.imageUrl) && visualChoices ? styles.choiceGridSwatch : ""} ${isCompactColorField(field.id) ? styles.choiceGridCompactSwatch : ""} ${isRibbonDesignField(field.id) ? styles.choiceGridRibbonDesign : ""}`}
                             >
                               {choices.map((choice) => {
                                 const isActive = (draftFieldValues[field.id] ?? "") === choice.id;
@@ -959,28 +1059,31 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, config, onCl
                                 const isImageChoice = !choice.textOnly && Boolean(choice.imageUrl);
                                 const isSwatchChoice = !choice.textOnly && Boolean(choice.swatchColors?.length);
                                 const isTextOnlyChoice = Boolean(choice.textOnly);
+                                const isDisabled = field.id === "ribbonColor" && ribbonColorDisabled;
+                                const isCompactSwatch = isCompactColorField(field.id) && isSwatchChoice;
 
                                 return (
                                   <button
                                     key={choice.id}
                                     type="button"
+                                    disabled={isDisabled}
                                     onClick={() =>
                                       setDraftFieldValues((prev) => ({
                                         ...prev,
                                         [field.id]: choice.id,
                                       }))
                                     }
-                                    className={`${styles.choiceButton} ${isImageChoice ? styles.choiceButtonVisual : ""} ${isImageChoice ? styles.choiceButtonImageOnly : ""} ${isSwatchChoice ? styles.choiceButtonSwatch : ""} ${isTextOnlyChoice && visualChoices ? styles.choiceButtonInlineText : ""} ${isActive ? styles.choiceButtonActive : ""}`}
+                                    className={`${styles.choiceButton} ${isImageChoice ? styles.choiceButtonVisual : ""} ${isImageChoice ? styles.choiceButtonImageOnly : ""} ${isSwatchChoice ? styles.choiceButtonSwatch : ""} ${isCompactSwatch ? styles.choiceButtonCompactSwatch : ""} ${isTextOnlyChoice && visualChoices ? styles.choiceButtonInlineText : ""} ${isActive ? styles.choiceButtonActive : ""} ${isDisabled ? styles.choiceButtonDisabled : ""}`}
                                     aria-label={isImageChoice || isSwatchChoice ? visualChoiceLabel : undefined}
                                     title={isImageChoice || isSwatchChoice ? choice.label : undefined}
                                   >
                                     {isImageChoice ? (
-                                      <div className={styles.choiceVisualImageWrap}>
+                                      <div className={`${styles.choiceVisualImageWrap} ${isRibbonDesignField(field.id) ? styles.choiceVisualImageWrapCompact : ""}`}>
                                         <img src={choice.imageUrl} alt={choice.label} className={styles.choiceVisualImage} />
                                       </div>
                                     ) : isSwatchChoice ? (
                                       <div
-                                        className={styles.choiceSwatchPreview}
+                                        className={`${styles.choiceSwatchPreview} ${isCompactSwatch ? styles.choiceSwatchPreviewCompact : ""}`}
                                         aria-hidden="true"
                                         style={{ backgroundImage: buildChoiceSwatchBackground(choice.swatchColors ?? []) }}
                                       />
@@ -1052,15 +1155,23 @@ function PersonalizationModal({ isOpen, initialSelection, tarjetas, config, onCl
                       );
                     })}
                   </div>
-                </section>
+                </div>
               ))}
             </div>
 
             <aside className={styles.modalPreviewColumn}>
               <div className={styles.modalPreviewPanel}>
-                <p className={styles.modalPreviewEyebrow}>Vista previa</p>
-                <h3 className={styles.modalPreviewTitle}>Resumen de tu personalización</h3>
-                <p className={styles.modalPreviewText}>Revisa la tarjeta y los detalles elegidos antes de guardarlos.</p>
+                <div className={styles.modalPreviewHeaderRow}>
+                  <div>
+                    <p className={styles.modalPreviewEyebrow}>
+                      <Sparkles size={12} className={styles.modalPreviewSparkle} aria-hidden="true" />
+                      Vista previa
+                    </p>
+                    <h3 className={styles.modalPreviewTitle}>Resumen de tu personalización</h3>
+                    <p className={styles.modalPreviewText}>Revisa la tarjeta y los detalles elegidos antes de guardarlos.</p>
+                  </div>
+                  <span className={styles.modalPreviewCount}>{summaryItems.length} detalles</span>
+                </div>
 
                 <CardPreview
                   tarjeta={tarjetaActiva}
@@ -1373,37 +1484,44 @@ export default function ProductDetailClient({
             <p className={styles.description}>{producto.description}</p>
           </div>
 
-          <div className={styles.customCardPanel}>
-            <div className={styles.sectionHeader}>
-              <h3>Personalización</h3>
-              <span>{personalizationConfig.availabilityLabel}</span>
+          <div className={styles.purchasePanel}>
+            <div className={styles.personalizationBlock}>
+              <div className={styles.personalizationBlockTop}>
+                <div>
+                  <p className={styles.personalizationEyebrow}>Personalización</p>
+                  <h3 className={styles.personalizationHeading}>Hazlo único antes de comprar</h3>
+                </div>
+                <span className={styles.personalizationBadge}>{personalizationConfig.availabilityLabel}</span>
+              </div>
+
+              <p className={styles.personalizationLead}>{personalizationConfig.lead}</p>
+
+              <div className={styles.personalizationFeatureRow}>
+                {personalizationConfig.features.map((feature) => (
+                  <span key={feature} className={styles.personalizationFeaturePill}>
+                    {feature}
+                  </span>
+                ))}
+              </div>
+
+              <button type="button" className={styles.personalizeButton} onClick={() => setIsPersonalizationOpen(true)}>
+                <Sparkles size={18} strokeWidth={2.1} />
+                Personaliza este producto
+              </button>
             </div>
 
-            <p className={styles.personalizationLead}>
-              {personalizationConfig.lead}
-            </p>
-
-            <div className={styles.personalizationFeatureRow}>
-              {personalizationConfig.features.map((feature) => (
-                <span key={feature} className={styles.personalizationFeaturePill}>
-                  {feature}
-                </span>
-              ))}
-            </div>
-
-            <button type="button" className={styles.personalizeButton} onClick={() => setIsPersonalizationOpen(true)}>
-              <Sparkles size={18} strokeWidth={2.1} />
-              Personaliza este producto
-            </button>
-
-            <div className={styles.personalizationPreviewBox}>
-              <div className={styles.personalizationPreviewHeader}>
+            <div className={styles.previewBlock}>
+              <div className={styles.previewBlockHeader}>
                 <div>
                   <p className={styles.personalizationPreviewEyebrow}>Vista previa</p>
-                  <h4 className={styles.personalizationPreviewTitle}>Así se verá la personalización de este producto</h4>
+                  <h4 className={styles.personalizationPreviewTitle}>
+                    {hasSavedPersonalization ? "Tu configuración guardada" : "Aún sin personalizar"}
+                  </h4>
                 </div>
-                <span className={styles.personalizationPreviewState}>
-                  {hasSavedPersonalization ? "Personalización guardada" : "Pendiente de personalizar"}
+                <span
+                  className={`${styles.personalizationPreviewState} ${hasSavedPersonalization ? styles.personalizationPreviewStateSaved : ""}`}
+                >
+                  {hasSavedPersonalization ? "Guardada" : "Pendiente"}
                 </span>
               </div>
 
@@ -1434,17 +1552,11 @@ export default function ProductDetailClient({
                 </div>
               ) : (
                 <div className={styles.personalizationEmptyState}>
-                  <p className={styles.personalizationEmptyTitle}>Todavia no configuraste este producto.</p>
+                  <Sparkles size={22} strokeWidth={1.8} className={styles.personalizationEmptyIcon} aria-hidden="true" />
+                  <p className={styles.personalizationEmptyTitle}>Configura tarjeta, flores y acabados</p>
                   <p className={styles.personalizationEmptyCopy}>
-                    Cuando guardes la personalización aquí verás la tarjeta, el empaque y los detalles especiales elegidos.
+                    Al guardar verás aquí un resumen claro de tu regalo personalizado.
                   </p>
-                  <div className={styles.personalizationFeatureRow}>
-                    {personalizationConfig.features.map((feature) => (
-                      <span key={feature} className={styles.personalizationFeaturePill}>
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
                 </div>
               )}
             </div>
