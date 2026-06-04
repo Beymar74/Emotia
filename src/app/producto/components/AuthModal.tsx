@@ -332,6 +332,10 @@ export default function AuthModal({
                     {view === "login" ? (
                       <button
                         type="button"
+                        onClick={() => {
+                          onClose();
+                          window.location.href = "/auth/recuperar";
+                        }}
                         className="text-[0.75rem] font-bold text-[#5A0F24] hover:underline focus:outline-none"
                       >
                         ¿La olvidaste?

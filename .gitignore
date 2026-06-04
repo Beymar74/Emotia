@@ -53,3 +53,10 @@ next-env.d.ts
 !.env.example
 
 /src/generated/prisma
+
+
+mismodulos.md
+modulo1-autenticacion.md
+modulo1srip.md
+modulo2-gestion-cuentas.md
+modulo3-reportes.md

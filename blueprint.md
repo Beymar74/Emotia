@@ -362,3 +362,26 @@ Hacer que la marquesina o carrusel de la sección **"Trabajamos con las mejores 
 ### Cambios Completados
 1. **Clase CSS Específica**: Se creó la clase CSS `.marquee-track-partners` en [ProductsSection.tsx](file:///c:/Users/Beymar/Desktop/emotia/Emotia/src/app/home/ProductsSection.tsx) que hereda la animación lenta de 50 segundos del carrusel, pero excluye a esta clase de la regla `:hover { animation-play-state: paused; }`.
 2. **Asociación en UI**: Se asignó la clase `.marquee-track-partners` al carrusel de logos/nombres de marcas aliadas, asegurando que las marcas se muevan de forma constante e ininterrumpida. El carrusel de productos ("Los más deseados") mantiene su comportamiento interactivo de pausa en hover para facilitar la selección.
+
+---
+
+## Pantalla de Recuperación y Restablecimiento de Contraseña (Conversación Actual)
+
+### Objetivo
+Crear una interfaz premium e intuitiva para la recuperación de contraseña de Emotia, tanto en formato de modal integrado como de páginas de redirección independientes, configurando las rutas personalizadas en `@stackframe/stack`.
+
+### Plan y Pasos de Ejecución
+1. **Modificación de Stack Config**:
+   - Editar `src/lib/stack.ts` para registrar `forgotPassword: "/auth/recuperar"` y `passwordReset: "/auth/restablecer"`.
+2. **Implementación de la Pantalla de Recuperación (`/auth/recuperar`)**:
+   - Crear `src/app/auth/recuperar/page.tsx`.
+   - Diseñar una maquetación B2C de doble columna (branding con eslogan + formulario limpio de recuperación).
+   - Llamar a la API `stackApp.sendForgotPasswordEmail` para gestionar el envío.
+3. **Implementación de la Pantalla de Restablecimiento (`/auth/restablecer`)**:
+   - Crear `src/app/auth/restablecer/page.tsx`.
+   - Envolver el componente `<PasswordReset />` de `@stackframe/stack` en un contenedor con la misma estética de la marca (vinos, dorados, crema).
+4. **Integración en Modal de Autenticación**:
+   - Modificar `src/app/home/AuthModal.tsx` para admitir una vista in-modal `"forgot"` o redirigir directamente al usuario a `/auth/recuperar`.
+5. **Verificación**:
+   - Ejecutar `npm run build` y `npm run lint` para garantizar la estabilidad del compilador y el linter.
+

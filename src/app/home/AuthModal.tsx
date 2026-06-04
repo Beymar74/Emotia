@@ -198,7 +198,14 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Au
                   <div className="flex justify-between items-center mb-1.5 ml-1 pr-1">
                     <label className="text-[0.7rem] font-bold text-[#5C3A2E] uppercase tracking-widest">Contraseña</label>
                     {view === "login" && (
-                      <button type="button" className="text-[0.75rem] font-bold text-[#5A0F24] hover:underline focus:outline-none">
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          onClose();
+                          window.location.href = "/auth/recuperar";
+                        }}
+                        className="text-[0.75rem] font-bold text-[#5A0F24] hover:underline focus:outline-none"
+                      >
                         ¿La olvidaste?
                       </button>
                     )}
